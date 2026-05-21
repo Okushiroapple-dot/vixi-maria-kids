@@ -58,6 +58,7 @@ let favorites = JSON.parse(localStorage.getItem('vixiFavorites')||'[]');
 let cart = JSON.parse(localStorage.getItem('vixiCart')||'[]');
 let activeSizeFilter = null;
 let currentFilter = 'all';
+let visibleCount = 12;
 
 // ── Utilities ──
 function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
@@ -133,6 +134,7 @@ function saveToStorage(){
       return p;
     });
     writeJson(PRODUCT_IMAGE_KEY, productImgs);
+    if(window.vixiSaveCloud) window.vixiSaveCloud('vixiProductImages', productImgs);
     localStorage.setItem('vixiAdmin_v2', JSON.stringify(toSave));
     if(window.vixiSaveCloud) window.vixiSaveCloud('vixiAdmin_v2', toSave);
   }catch(e){showToast('Armazenamento cheio. Baixe o site para salvar permanentemente.');}
@@ -328,9 +330,19 @@ window.saveCart=saveCart;window.saveFavorites=saveFavorites;window.saveToStorage
 window.loadContent=loadContent;window.applyProductImages=applyProductImages;window.applyVisualImages=applyVisualImages;
 window.readJson=readJson;window.writeJson=writeJson;
 
-// Expose mutable state via getters so other files can access current values
-Object.defineProperty(window,'favorites',{get:function(){return favorites;},set:function(v){favorites=v;},configurable:true});
-Object.defineProperty(window,'cart',{get:function(){return cart;},set:function(v){cart=v;},configurable:true});
-Object.defineProperty(window,'currentFilter',{get:function(){return currentFilter;},set:function(v){currentFilter=v;},configurable:true});
-Object.defineProperty(window,'activeSizeFilter',{get:function(){return activeSizeFilter;},set:function(v){activeSizeFilter=v;},configurable:true});
-Object.defineProperty(window,'visibleCount',{get:function(){return visibleCount;},set:function(v){visibleCount=v;},configurable:true});
+// Expose mutable state via getters so other files can access current values.
+// Guard prevents TypeError if script is evaluated more than once (e.g. hot-reload).
+(function defineStateProps(){
+  var defs = {
+    favorites:      {get:function(){return favorites;},     set:function(v){favorites=v;}},
+    cart:           {get:function(){return cart;},           set:function(v){cart=v;}},
+    currentFilter:  {get:function(){return currentFilter;},  set:function(v){currentFilter=v;}},
+    activeSizeFilter:{get:function(){return activeSizeFilter;},set:function(v){activeSizeFilter=v;}},
+    visibleCount:   {get:function(){return visibleCount;},   set:function(v){visibleCount=v;}}
+  };
+  Object.keys(defs).forEach(function(prop){
+    if(!Object.getOwnPropertyDescriptor(window, prop)){
+      Object.defineProperty(window, prop, Object.assign({configurable:true}, defs[prop]));
+    }
+  });
+})();

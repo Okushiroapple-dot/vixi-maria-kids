@@ -7,7 +7,6 @@
 // ══════════════════════════════════════════
 
 var PRODS = [];
-var visibleCount = 12;
 
 (function loadFromStorage(){
   try {

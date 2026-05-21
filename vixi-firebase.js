@@ -85,6 +85,20 @@ async function vixiApplyCloudData() {
     }
   }
   if (changed) {
+    // Reload PRODS in memory from the freshly-synced localStorage
+    try {
+      var saved = JSON.parse(localStorage.getItem('vixiAdmin_v2')||'[]');
+      var deleted = JSON.parse(localStorage.getItem('vixiAdmin_deleted')||'[]');
+      var imgs = JSON.parse(localStorage.getItem('vixiProductImages')||'{}');
+      var dSet = new Set(deleted);
+      if (Array.isArray(saved) && saved.length && window.PRODS) {
+        window.PRODS.length = 0;
+        saved.forEach(function(item){
+          if(!dSet.has(item.id))
+            window.PRODS.push(Object.assign({}, item, {img: imgs[item.id]||item.img||''}));
+        });
+      }
+    } catch(e){}
     try{if(window.syncCategoriesUI)window.syncCategoriesUI();}catch(e){}
     try{if(window.renderProds)window.renderProds(window.currentFilter||'all');}catch(e){}
     try{if(window.loadContent)window.loadContent();}catch(e){}
