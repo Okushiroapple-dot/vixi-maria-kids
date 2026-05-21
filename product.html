@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produto — Vixi Maria Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vixi-shared.css">
+</head>
+<body>
+
+<!-- Announce Bar -->
+<div class="ann">
+  <div class="ann-track" id="annTrack">
+    <div class="ann-item"><span>🚚</span> FRETE GRÁTIS para Ribeirão Preto em compras acima de R$ 250 <span>✦</span></div>
+    <div class="ann-item"><span>💖</span> PIX com 10% de desconto <span>✦</span></div>
+    <div class="ann-item"><span>💳</span> 3× sem juros no cartão <span>✦</span></div>
+    <div class="ann-item"><span>✨</span> Do RN ao tamanho 20 — do bebê ao juvenil! <span>✦</span></div>
+    <div class="ann-item"><span>🌸</span> Acesse nosso WhatsApp e fale com a Débora <span>✦</span></div>
+    <div class="ann-item"><span>🚚</span> FRETE GRÁTIS para Ribeirão Preto em compras acima de R$ 250 <span>✦</span></div>
+    <div class="ann-item"><span>💖</span> PIX com 10% de desconto <span>✦</span></div>
+    <div class="ann-item"><span>💳</span> 3× sem juros no cartão <span>✦</span></div>
+    <div class="ann-item"><span>✨</span> Do RN ao tamanho 20 — do bebê ao juvenil! <span>✦</span></div>
+    <div class="ann-item"><span>🌸</span> Acesse nosso WhatsApp e fale com a Débora <span>✦</span></div>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="hdr">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-text">
+        <span class="logo-name">vixi maria</span>
+        <span class="logo-sub">kids</span>
+      </div>
+    </a>
+    <nav>
+      <a href="index.html">🏠 Início</a>
+      <div class="nav-dd">
+        <button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button>
+        <div class="nav-dd-menu">
+          <a href="clothes.html">Todas as roupas</a>
+          <a href="clothes.html?cat=meninas">👗 Meninas</a>
+          <a href="clothes.html?cat=meninos">⚽ Meninos</a>
+          <a href="clothes.html?cat=bebes">🍼 Bebês</a>
+          <a href="clothes.html?cat=juvenil">✨ Juvenil</a>
+          <a href="clothes.html?cat=acessorios">🎀 Acessórios</a>
+        </div>
+      </div>
+      <a href="clothes.html" class="hot">🔥 Novidades</a>
+    </nav>
+    <div class="hdr-icons">
+      <button class="ibt" title="Buscar" id="searchBtn">🔍</button>
+      <button class="ibt" title="Favoritos" id="favBtn">🤍</button>
+      <button class="ibt" title="Carrinho" id="cartBtn">
+        🛍️
+        <span class="badge" id="cartBadge">0</span>
+      </button>
+      <a href="https://wa.me/5516991781559" class="hdr-cta" target="_blank">
+        💬 Fale conosco
+      </a>
+      <button class="burger" id="burgerBtn">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mob-menu" id="mobMenu">
+  <button class="mob-close" id="mobClose">✕</button>
+  <a href="index.html" onclick="closeMob()">🏠 Início</a>
+  <a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>
+  <a href="clothes.html?cat=meninas" onclick="closeMob()">👗 Meninas</a>
+  <a href="clothes.html?cat=meninos" onclick="closeMob()">⚽ Meninos</a>
+  <a href="clothes.html?cat=bebes" onclick="closeMob()">🍼 Bebês</a>
+  <a href="clothes.html?cat=juvenil" onclick="closeMob()">✨ Juvenil</a>
+  <a href="clothes.html?cat=acessorios" onclick="closeMob()">🎀 Acessórios</a>
+  <a href="cart.html" onclick="closeMob()">🛒 Carrinho</a>
+  <a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>
+</div>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb wrap" style="padding-top:20px;padding-bottom:0">
+  <a href="index.html">Início</a> ›
+  <a href="clothes.html">Roupas</a> ›
+  <span id="prodBreadcrumb">Produto</span>
+</div>
+
+<!-- Product Detail -->
+<div class="section" style="padding-top:28px">
+  <div class="product-detail-wrap" id="productDetailWrap">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--gray)">
+      <div style="font-size:48px;margin-bottom:12px">🌸</div>
+      <p style="font-weight:700">Carregando produto...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Related Products -->
+<section class="section related-section" id="relatedSection" style="display:none">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">você também vai adorar</span>
+      <h2>Produtos Relacionados</h2>
+    </div>
+    <div class="related-grid" id="relatedGrid"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer id="contato">
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="index.html" class="logo" style="margin-bottom:18px;display:inline-flex">
+        <div class="logo-icon">🌸</div>
+        <div class="logo-text">
+          <span class="logo-name">vixi maria</span>
+          <span class="logo-sub">kids</span>
+        </div>
+      </a>
+      <p>Moda infantil e juvenil em Ribeirão Preto — vestindo criança como criança com charme e muito carinho.</p>
+      <div class="foot-socials">
+        <a href="https://instagram.com/kidsviximaria" class="fsoc" target="_blank" rel="noopener" title="Instagram">📷</a>
+        <a href="https://facebook.com/vixmariakids" class="fsoc" target="_blank" rel="noopener" title="Facebook">📘</a>
+        <a href="https://wa.me/5516991781559" class="fsoc" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div>
+      <h5>Categorias</h5>
+      <ul>
+        <li><a href="clothes.html?cat=meninas">👗 Meninas (2–16)</a></li>
+        <li><a href="clothes.html?cat=meninos">⚽ Meninos (2–16)</a></li>
+        <li><a href="clothes.html?cat=bebes">🍼 Bebês (RN–24m)</a></li>
+        <li><a href="clothes.html?cat=juvenil">✨ Juvenil (10–20)</a></li>
+        <li><a href="clothes.html">🌸 Novidades</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Ajuda</h5>
+      <ul>
+        <li><a href="#">Tabela de medidas</a></li>
+        <li><a href="#">Trocas e devoluções</a></li>
+        <li><a href="#">Formas de pagamento</a></li>
+        <li><a href="#">Política de privacidade</a></li>
+        <li><a href="#">Frete e entrega</a></li>
+      </ul>
+    </div>
+    <div class="foot-contact">
+      <h5>Visite a Loja 📍</h5>
+      <p><span class="ic">📍</span><span>Rua Orlândia, 1193<br>Ribeirão Preto — SP</span></p>
+      <p><span class="ic">🕐</span><span>Seg–Sáb · 9h às 18h</span></p>
+      <p><span class="ic">📱</span><span>@kidsviximaria</span></p>
+      <p><span class="ic">💬</span><span>WhatsApp disponível</span></p>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2026 Vixi Maria Kids. Todos os direitos reservados.</span>
+    <span>Feito com 💖 em Ribeirão Preto</span>
+  </div>
+</footer>
+
+<!-- Floating WhatsApp -->
+<a href="https://wa.me/5516991781559" class="wa-float" target="_blank" rel="noopener" title="WhatsApp">
+  <span class="wa-tip">Fale com a Débora!</span>
+  💬
+</a>
+
+<!-- Toast -->
+<div class="toast" id="toast">🌸 <span id="toastMsg">Pronto!</span></div>
+
+<!-- Modals -->
+<div class="store-modal" id="searchModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🔍 Buscar produtos</h3><button class="store-close" onclick="closeStoreModal('searchModal')">✕</button></div>
+    <input class="store-input" id="searchInput" placeholder="Digite produto, categoria ou tamanho..." oninput="runSearch()">
+    <div class="store-list" id="searchResults"></div>
+  </div>
+</div>
+<div class="store-modal" id="favModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🥰 Favoritos</h3><button class="store-close" onclick="closeStoreModal('favModal')">✕</button></div>
+    <div class="store-list" id="favResults"></div>
+  </div>
+</div>
+<div class="store-modal" id="cartModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🛍️ Carrinho</h3><button class="store-close" onclick="closeStoreModal('cartModal')">✕</button></div>
+    <div class="store-list" id="cartResults"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+      <strong id="cartTotal" style="font-size:20px;color:var(--ink)">Total: R$ 0,00</strong>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <button class="store-mini" onclick="checkoutWhatsApp()">Enviar pedido no WhatsApp 💬</button>
+        <a href="cart.html" class="store-mini light" style="text-align:center;text-decoration:none;display:block">Ver carrinho completo →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="vixi-products.js"></script>
+<script src="vixi-core.js"></script>
+<script>
+var _selectedSize = null;
+
+function selectDetailSize(btn, size){
+  document.querySelectorAll('.product-detail-size-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  _selectedSize = size;
+}
+
+function addProductToCart(id){
+  var p = getProduct(id);
+  if(!p) return;
+  if(p.sizes && p.sizes.length > 0 && !_selectedSize){
+    showToast('Selecione um tamanho primeiro 📏');
+    return;
+  }
+  addCart(id, null);
+  renderCart();
+}
+
+function renderProduct(){
+  var params = new URLSearchParams(location.search);
+  var productId = params.get('id');
+
+  if(!productId){
+    document.getElementById('productDetailWrap').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:80px 20px"><h2 style="font-family:var(--font-d);color:var(--ink-mid)">Produto não encontrado</h2><p style="margin-top:12px"><a href="clothes.html" style="color:var(--pink)">← Ver todos os produtos</a></p></div>';
+    return;
+  }
+
+  var p = getProduct(productId);
+  if(!p){
+    document.getElementById('productDetailWrap').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:80px 20px"><h2 style="font-family:var(--font-d);color:var(--ink-mid)">Produto não encontrado</h2><p style="color:var(--gray);margin:12px 0">Pode ter sido removido ou ainda está carregando.</p><a href="clothes.html" class="btn-main" style="display:inline-flex;margin-top:16px">← Ver todos os produtos</a></div>';
+    return;
+  }
+
+  // Update page title and breadcrumb
+  document.title = p.name + ' — Vixi Maria Kids';
+  var bc = document.getElementById('prodBreadcrumb');
+  if(bc) bc.textContent = p.name;
+
+  var liked = window.favorites && window.favorites.includes(p.id);
+  var oldHtml = p.old ? '<span class="product-detail-old">' + money(p.old) + '</span>' : '';
+  var sizesHtml = (p.sizes||[]).map(function(s){
+    return '<button class="product-detail-size-btn" onclick="selectDetailSize(this,\'' + escapeHtml(s) + '\')">' + escapeHtml(s) + '</button>';
+  }).join('');
+  var descHtml = p.desc ? '<p class="product-detail-desc">' + escapeHtml(p.desc) + '</p>' : '';
+  var badgeHtml = p.badge ? '<span class="pbadge ' + (p.badge==='FAV'?'fav':String(p.badge).includes('%')?'off':'novo') + '" style="position:static;display:inline-block;margin-bottom:8px">' + escapeHtml(p.badge) + '</span>' : '';
+
+  document.getElementById('productDetailWrap').innerHTML =
+    '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '"></div>' +
+    '<div class="product-detail-info">' +
+      badgeHtml +
+      '<div class="product-detail-cat">' + getCatLabel(p.cat) + '</div>' +
+      '<h1 class="product-detail-name">' + escapeHtml(p.name) + '</h1>' +
+      descHtml +
+      '<div class="product-detail-price-row">' + oldHtml + '<span class="product-detail-price">' + money(p.price) + '</span></div>' +
+      (sizesHtml ? '<div><p style="font-size:13px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Selecione o tamanho:</p><div class="product-detail-sizes" id="detailSizes">' + sizesHtml + '</div></div>' : '') +
+      '<div class="product-detail-actions">' +
+        '<button class="btn-main" onclick="addProductToCart(\'' + p.id + '\')">🛍️ Adicionar ao carrinho</button>' +
+        '<button class="product-detail-fav-btn ' + (liked?'liked':'') + '" onclick="toggleFav(\'' + p.id + '\',this,event)" id="detailFavBtn">' + (liked?'❤️':'🤍') + '</button>' +
+      '</div>' +
+      '<p style="font-size:13px;color:var(--gray);font-weight:600">💖 PIX com 10% · 3× sem juros · Frete grátis acima R$250 em RP</p>' +
+      '<p style="font-size:13px;color:var(--gray);font-weight:600">💬 Dúvidas? <a href="https://wa.me/5516991781559" target="_blank" style="color:var(--pink)">Fale com a Débora no WhatsApp</a></p>' +
+    '</div>';
+
+  // Related products
+  var related = PRODS.filter(function(x){ return x.cat === p.cat && x.id !== p.id; }).slice(0,4);
+  if(related.length){
+    document.getElementById('relatedSection').style.display = '';
+    document.getElementById('relatedGrid').innerHTML = related.map(function(rp){
+      var rliked = window.favorites && window.favorites.includes(rp.id);
+      return '<article class="prod-card" onclick="window.location.href=\'product.html?id=' + rp.id + '\'" style="cursor:pointer">' +
+        '<div class="prod-img-wrap">' +
+          (rp.badge ? '<span class="pbadge novo">' + escapeHtml(rp.badge) + '</span>' : '') +
+          '<button class="fav-btn ' + (rliked?'liked':'') + '" onclick="toggleFav(\'' + rp.id + '\',this,event)">' + (rliked?'❤️':'🤍') + '</button>' +
+          '<img src="' + rp.img + '" alt="' + escapeHtml(rp.name) + '" loading="lazy">' +
+        '</div>' +
+        '<div class="prod-info">' +
+          '<div class="prod-cat">' + getCatLabel(rp.cat) + '</div>' +
+          '<h4 class="prod-name">' + escapeHtml(rp.name) + '</h4>' +
+          '<div class="prod-foot"><div class="prod-price">' +
+            (rp.old ? '<span class="pold">' + money(rp.old) + '</span>' : '') +
+            '<span class="pnew">' + money(rp.price) + '</span>' +
+          '</div><button class="padd" onclick="addCart(\'' + rp.id + '\',event)">+</button></div>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  syncCategoriesUI();
+  renderProduct();
+  // Re-render after Firebase sync (products may have just loaded)
+  var origRender = window.renderProds;
+  window.renderProds = function(f){
+    if(typeof origRender === 'function') origRender(f);
+    renderProduct();
+    window.renderProds = origRender; // only once
+  };
+});
+</script>
+<script type="module" src="vixi-firebase.js"></script>
+</body>
+</html>

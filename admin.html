@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Vixi Maria Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vixi-shared.css">
+<style>
+body{background:var(--pink-pale,#fff0f5);min-height:100vh;display:flex;flex-direction:column;}
+.adm-page-bg{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast">🌸 <span id="toastMsg">Pronto!</span></div>
+
+<!-- Admin Trigger -->
+<button id="adminTrigger" class="visible" title="Área Admin" onclick="openAdminPw()" style="position:fixed;bottom:28px;right:28px;z-index:9999;background:var(--pink,#e75480);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);">⚙️</button>
+
+<!-- Password Modal -->
+<div id="adminPwModal" class="">
+  <div class="pw-card">
+    <div class="pw-logo">🌸</div>
+    <div class="pw-title">Área da Débora</div>
+    <div class="pw-sub">Digite a senha para editar a loja</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <p class="pw-err" id="pwErr" style="display:none;">Senha incorreta. Tente novamente!</p>
+    <button class="pw-btn" onclick="checkPw()">Entrar 🌸</button>
+    <button class="pw-cancel" onclick="window.location.href='index.html'">← Voltar à loja</button>
+  </div>
+</div>
+
+<!-- Admin Dashboard -->
+<div id="adminDash">
+  <div class="adm-hdr">
+    <div class="logo-adm">🌸 vixi maria <span class="adm-badge">ADMIN</span></div>
+    <div class="adm-hdr-btns">
+      <a href="index.html" class="adm-hbtn" style="text-decoration:none">🏠 Ver loja</a>
+      <button class="adm-hbtn export" onclick="exportSite()">⬇️ Baixar site</button>
+      <button class="adm-hbtn" onclick="closeAdmin()">✕ Sair</button>
+    </div>
+  </div>
+  <div class="adm-stats">
+    <div class="adm-stat"><span class="sn" id="statTotal">0</span><span class="sl">Produtos</span></div>
+    <div class="adm-stat"><span class="sn" id="statMeninos">0</span><span class="sl">Meninos</span></div>
+    <div class="adm-stat"><span class="sn" id="statAcess">0</span><span class="sl">Acessórios</span></div>
+    <div class="adm-stat"><span class="sn" id="statBebes">0</span><span class="sl">Bebês</span></div>
+  </div>
+  <div class="adm-search">
+    <input type="text" placeholder="🔍 Buscar produto..." id="admSearchInput" oninput="renderAdminGrid()">
+    <button class="adm-add-btn" onclick="openAddModal()">➕ Novo produto</button>
+  </div>
+  <div class="adm-body">
+    <div class="adm-grid" id="adminGrid"></div>
+  </div>
+</div>
+
+<!-- Edit / Add Product Modal -->
+<div id="admModal" class="">
+  <div class="adm-modal-box">
+    <div class="adm-modal-title">
+      <span id="admModalTitle">➕ Novo Produto</span>
+      <button class="adm-modal-close" onclick="closeAdmModal()">✕</button>
+    </div>
+    <!-- Photo -->
+    <div class="adm-field">
+      <span class="adm-label">📷 Foto do Produto</span>
+      <div class="adm-photo-upload" id="photoUploadArea" onclick="document.getElementById('photoFileInput').click()">
+        <img id="photoPreview" src="" alt="">
+        <div class="adm-photo-placeholder">
+          <span class="big">📸</span>
+          Clique para escolher uma foto da galeria
+        </div>
+        <input type="file" id="photoFileInput" accept="image/*" onchange="handlePhotoUpload(event)" style="display:none">
+      </div>
+    </div>
+    <!-- Name -->
+    <div class="adm-field">
+      <span class="adm-label">🏷️ Nome do Produto</span>
+      <input class="adm-input" type="text" id="admName" placeholder="Ex: Vestido Floral Rosa">
+    </div>
+    <!-- Category -->
+    <div class="adm-field">
+      <span class="adm-label">📂 Categoria</span>
+      <select class="adm-input" id="admCat">
+        <option value="meninas">👗 Meninas</option>
+        <option value="meninos">⚽ Meninos</option>
+        <option value="bebes">🍼 Bebês</option>
+        <option value="juvenil">✨ Juvenil</option>
+        <option value="acessorios">🎀 Acessórios</option>
+      </select>
+    </div>
+    <!-- Prices -->
+    <div class="adm-row">
+      <div class="adm-field">
+        <span class="adm-label">💰 Preço (R$)</span>
+        <input class="adm-input" type="number" id="admPrice" placeholder="0" min="0" step="0.01">
+      </div>
+      <div class="adm-field">
+        <span class="adm-label">🔖 Preço antigo (R$)</span>
+        <input class="adm-input" type="number" id="admOld" placeholder="Deixe vazio" min="0" step="0.01">
+      </div>
+    </div>
+    <!-- Badge -->
+    <div class="adm-field">
+      <span class="adm-label">⭐ Destaque (badge)</span>
+      <select class="adm-input" id="admBadge">
+        <option value="">Nenhum</option>
+        <option value="NOVO">✨ NOVO</option>
+        <option value="FAV">💖 FAVORITO</option>
+        <option value="-10%">🏷️ -10%</option>
+        <option value="-20%">🏷️ -20%</option>
+        <option value="-30%">🏷️ -30%</option>
+        <option value="-40%">🏷️ -40%</option>
+        <option value="-50%">🏷️ -50%</option>
+      </select>
+    </div>
+    <!-- Sizes -->
+    <div class="adm-field">
+      <span class="adm-label">📏 Tamanhos disponíveis</span>
+      <div class="adm-sizes-grid" id="sizesGrid"></div>
+    </div>
+    <!-- Buttons -->
+    <div class="adm-modal-btns">
+      <button class="adm-cancel-btn" onclick="closeAdmModal()">Cancelar</button>
+      <button class="adm-save-btn" onclick="saveProduct()">💾 Salvar produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div id="admConfirm">
+  <div class="adm-confirm-box">
+    <h3>Excluir produto?</h3>
+    <p id="admConfirmName">Este produto será removido da loja.</p>
+    <div class="adm-confirm-btns">
+      <button class="adm-confirm-cancel" onclick="document.getElementById('admConfirm').classList.remove('open')">Cancelar</button>
+      <button class="adm-confirm-del" id="admConfirmDelBtn">🗑️ Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Toast -->
+<div id="admExportToast">⬇️ <span id="admExportMsg">Preparando download...</span></div>
+
+<!-- Scripts -->
+<script src="vixi-products.js"></script>
+<script src="vixi-core.js"></script>
+<script src="vixi-admin.js"></script>
+<script>
+// On admin.html, close admin = go back to store
+(function(){
+  var _orig = window.closeAdmin;
+  window.closeAdmin = function(){
+    if(typeof _orig === 'function') _orig();
+    window.location.href = 'index.html';
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', function(){
+  openAdminPw();
+});
+</script>
+<script type="module" src="vixi-firebase.js"></script>
+</body>
+</html>
