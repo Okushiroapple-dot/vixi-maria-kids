@@ -399,9 +399,20 @@ function saveContentFromAdmin(){
   showToast('Textos atualizados ✅');
 }
 
+// ── Backup helpers ──
+async function waitFirebase(key, ms=6000){
+  const end = Date.now()+ms;
+  while(!window[key] && Date.now()<end) await new Promise(r=>setTimeout(r,300));
+  return !!window[key];
+}
+
 // ── Backup functions ──
 async function createBackupNow(silent){
-  if(!window.vixiCreateBackup){ showToast('Firebase não conectado ainda.'); return; }
+  if(!window.vixiCreateBackup){
+    if(!silent) showToast('Aguardando Firebase...');
+    const ok = await waitFirebase('vixiCreateBackup');
+    if(!ok){ if(!silent) showToast('Firebase não conectado. Recarregue a página.'); return; }
+  }
   try{
     if(!silent) showToast('Criando backup...');
     const prods = (liveProducts||PRODS).map(p=>{
@@ -434,8 +445,9 @@ async function viewBackups(){
   const box = document.getElementById('backupList');
   if(!box) return;
   if(!window.vixiListBackups){
-    box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado ainda.</p>';
-    return;
+    box.innerHTML='<p style="color:var(--gray);font-size:13px">Conectando ao Firebase...</p>';
+    const ok = await waitFirebase('vixiListBackups');
+    if(!ok){ box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado. Recarregue a página.</p>'; return; }
   }
   box.innerHTML='<p style="color:var(--gray);font-size:13px">Carregando...</p>';
   try{
