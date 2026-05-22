@@ -44,12 +44,7 @@ body{background:var(--pink-pale,#fff0f5);min-height:100vh;display:flex;flex-dire
       <button class="adm-hbtn" onclick="closeAdmin()">✕ Sair</button>
     </div>
   </div>
-  <div class="adm-stats">
-    <div class="adm-stat"><span class="sn" id="statTotal">0</span><span class="sl">Produtos</span></div>
-    <div class="adm-stat"><span class="sn" id="statMeninos">0</span><span class="sl">Meninos</span></div>
-    <div class="adm-stat"><span class="sn" id="statAcess">0</span><span class="sl">Acessórios</span></div>
-    <div class="adm-stat"><span class="sn" id="statBebes">0</span><span class="sl">Bebês</span></div>
-  </div>
+  <div class="adm-stats" id="admStats"></div>
   <div class="adm-search">
     <input type="text" placeholder="🔍 Buscar produto..." id="admSearchInput" oninput="renderAdminGrid()">
     <button class="adm-add-btn" onclick="openAddModal()">➕ Novo produto</button>

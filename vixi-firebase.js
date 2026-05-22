@@ -14,7 +14,12 @@ import {
   getDocs,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -108,5 +113,44 @@ async function vixiApplyCloudData() {
 }
 
 vixiApplyCloudData();
+
+// ── Backup system ──────────────────────────────
+
+window.vixiCreateBackup = async function(data) {
+  const backupsCol = collection(db, 'backups');
+  const ref = await addDoc(backupsCol, {
+    products:       data.products       || [],
+    siteContent:    data.siteContent    || {},
+    categories:     data.categories     || [],
+    layoutSettings: data.layoutSettings || {},
+    version: '1.0',
+    createdAt: serverTimestamp()
+  });
+  // Keep only the 7 most recent backups
+  try {
+    const q = query(backupsCol, orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    const docs = snap.docs;
+    for (let i = 7; i < docs.length; i++) {
+      await deleteDoc(docs[i].ref);
+    }
+  } catch(e) { console.warn('backup cleanup error', e); }
+  return ref.id;
+};
+
+window.vixiListBackups = async function() {
+  try {
+    const q = query(collection(db, 'backups'), orderBy('createdAt', 'desc'), limit(10));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('vixiListBackups error', e);
+    return [];
+  }
+};
+
+window.vixiDeleteBackup = async function(id) {
+  await deleteDoc(doc(db, 'backups', id));
+};
 
 console.log("Firebase conectado!");

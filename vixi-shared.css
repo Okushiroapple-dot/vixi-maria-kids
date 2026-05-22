@@ -407,7 +407,7 @@ footer ul li a:hover{color:var(--pink)}
 .adm-hbtn.export{background:#fff;color:var(--pink);border-color:#fff}
 .adm-hbtn.export:hover{background:var(--pink-pale)}
 
-.adm-stats{background:var(--pink-pale);padding:14px 20px;display:flex;gap:20px;flex-shrink:0;border-bottom:2px solid var(--line)}
+.adm-stats{background:var(--pink-pale);padding:14px 20px;display:flex;gap:20px;flex-wrap:wrap;border-bottom:2px solid var(--line)}
 .adm-stat{text-align:center}
 .adm-stat .sn{font-family:'Fredoka',sans-serif;font-size:22px;font-weight:700;color:var(--pink);display:block}
 .adm-stat .sl{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--gray)}
@@ -591,3 +591,22 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
 .breadcrumb{max-width:1360px;margin:0 auto;padding:16px 28px;font-size:13px;color:var(--gray);font-weight:600}
 .breadcrumb a{color:var(--pink);text-decoration:none}
 .breadcrumb a:hover{text-decoration:underline}
+
+/* ──── BACK BUTTON ──── */
+.back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:#fff;border:2px solid var(--line);border-radius:var(--r99);font-family:var(--font-b);font-size:14px;font-weight:800;color:var(--ink-mid);cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:var(--sh1);line-height:1}
+.back-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-pale);transform:translateX(-3px)}
+.back-btn-row{padding:20px 28px 0;max-width:1360px;margin:0 auto;display:flex;align-items:center}
+
+/* ──── DRAG PREVENTION ──── */
+img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-drag:none;user-drag:none}
+.prod-card,.prod-grid,.hero,.section,.hdr,header,footer{-webkit-user-select:none;user-select:none}
+.prod-card img,.adm-pcard img{pointer-events:none}
+
+/* ──── BACKUP UI ──── */
+.backup-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:var(--r12);padding:12px 14px;flex-wrap:wrap}
+.backup-info{display:flex;flex-direction:column;gap:4px}
+.backup-info strong{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--ink)}
+.backup-info span{font-size:12px;color:var(--gray);font-weight:600}
+.backup-btns{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.mini-btn.danger{background:#fff0f0;color:#e53935;border:1.5px solid #ffcdd2}
+.mini-btn.danger:hover{background:#e53935;color:#fff;border-color:#e53935}

@@ -291,6 +291,12 @@ function closeMob(){
   if(m) m.classList.remove('open');
 }
 
+// ── Back navigation ──
+function goBackOrHome(){
+  if(window.history.length>1){window.history.back();}
+  else{window.location.href='index.html';}
+}
+
 // ── DOMContentLoaded bootstrap ──
 document.addEventListener('DOMContentLoaded', function(){
   updateCartBadge();
@@ -316,6 +322,12 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   // Close store modals on backdrop click
   document.querySelectorAll('.store-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+  // Prevent accidental drag on images and layout elements
+  document.addEventListener('dragstart',function(e){
+    if(e.target.tagName==='IMG'||e.target.closest('.prod-card,.hdr,header,footer,.ann')){
+      e.preventDefault();
+    }
+  });
 });
 
 // ── Window exports ──
@@ -328,7 +340,7 @@ window.checkoutWhatsApp=checkoutWhatsApp;window.syncCategoriesUI=syncCategoriesU
 window.closeMob=closeMob;window.updateCartBadge=updateCartBadge;window.getCats=getCats;window.saveCats=saveCats;
 window.saveCart=saveCart;window.saveFavorites=saveFavorites;window.saveToStorage=saveToStorage;
 window.loadContent=loadContent;window.applyProductImages=applyProductImages;window.applyVisualImages=applyVisualImages;
-window.readJson=readJson;window.writeJson=writeJson;
+window.readJson=readJson;window.writeJson=writeJson;window.goBackOrHome=goBackOrHome;
 
 // Expose mutable state via getters so other files can access current values.
 // Guard prevents TypeError if script is evaluated more than once (e.g. hot-reload).

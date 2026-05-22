@@ -85,12 +85,24 @@ function closeAdmin(){
   if(typeof stopVisualEditor==='function') stopVisualEditor();
 }
 
-// ── Stats ──
+// ── Stats (fully dynamic) ──
 function updateStats(){
-  document.getElementById('statTotal').textContent = liveProducts.length;
-  document.getElementById('statMeninos').textContent = liveProducts.filter(p=>p.cat==='meninos').length;
-  document.getElementById('statAcess').textContent = liveProducts.filter(p=>p.cat==='acessorios').length;
-  document.getElementById('statBebes').textContent = liveProducts.filter(p=>p.cat==='bebes').length;
+  const box = document.getElementById('admStats');
+  if(!box || !liveProducts) return;
+  const cats = typeof getCats==='function' ? getCats() : [];
+  const counts = {};
+  liveProducts.forEach(p=>{ counts[p.cat]=(counts[p.cat]||0)+1; });
+  let html = `<div class="adm-stat"><span class="sn">${liveProducts.length}</span><span class="sl">Total</span></div>`;
+  cats.forEach(c=>{
+    html += `<div class="adm-stat"><span class="sn">${counts[c.id]||0}</span><span class="sl">${c.icon} ${c.label}</span></div>`;
+  });
+  // Any category not in the defined list
+  Object.keys(counts).forEach(id=>{
+    if(!cats.find(c=>c.id===id)){
+      html += `<div class="adm-stat"><span class="sn">${counts[id]}</span><span class="sl">🛍️ ${id}</span></div>`;
+    }
+  });
+  box.innerHTML = html;
 }
 
 // ── Admin Grid ──
@@ -295,27 +307,35 @@ function buildAdminExtras(){
   extra.className = 'admin-extra';
   extra.innerHTML = `<div class="admin-extra-tabs">
     <button class="on" data-admin-tab="products">Produtos</button>
-    <button data-admin-tab="visual">✏️ Edit Page</button>
+    <button data-admin-tab="visual">✏️ Editar Textos</button>
     <button data-admin-tab="categories">Categorias</button>
-    <button data-admin-tab="images">Banners/Imagens</button>
+    <button data-admin-tab="backup">💾 Backups</button>
   </div>
   <div id="adminVisual" class="admin-extra-panel">
-    <div class="admin-visual-actions">
-      <button class="mini-btn primary" onclick="startVisualEditor&&startVisualEditor()">✏️ Edit Page</button>
-      <button class="mini-btn soft" onclick="closeAdmin();startVisualEditor&&startVisualEditor()">Editar visualmente</button>
-    </div>
+    <div id="contentEditorFields" style="display:grid;gap:10px;max-height:320px;overflow-y:auto;padding-right:4px;margin-bottom:12px"></div>
+    <button class="mini-btn primary" onclick="saveContentFromAdmin()" style="width:100%">💾 Salvar textos da página</button>
   </div>
   <div id="adminCats" class="admin-extra-panel"><div class="cat-editor" id="catEditor"></div><button class="mini-btn" onclick="addCategoryRow()">+ Nova categoria</button><button class="mini-btn primary" onclick="saveCategoriesFromAdmin()">Salvar categorias</button></div>
-  <div id="adminImages" class="admin-extra-panel"><div class="admin-visual-actions"><button class="mini-btn primary" onclick="closeAdmin();startVisualEditor&&startVisualEditor();setTimeout(()=>document.querySelector('.hero')?.scrollIntoView({behavior:'smooth'}),80)">Editar imagens na página</button><button class="mini-btn soft" onclick="openAddModal()">Novo produto com foto</button></div></div>`;
+  <div id="adminBackupPanel" class="admin-extra-panel">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="mini-btn primary" onclick="createBackupNow()">💾 Criar backup agora</button>
+      <button class="mini-btn soft" onclick="viewBackups()">📋 Ver backups</button>
+    </div>
+    <div id="backupList" style="display:grid;gap:8px;max-height:280px;overflow-y:auto"></div>
+  </div>`;
   dash.insertBefore(extra,dash.children[1]||dash.firstChild);
   extra.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{
     extra.querySelectorAll('[data-admin-tab]').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
     document.getElementById('adminVisual').classList.toggle('on',b.dataset.adminTab==='visual');
     document.getElementById('adminCats').classList.toggle('on',b.dataset.adminTab==='categories');
-    document.getElementById('adminImages').classList.toggle('on',b.dataset.adminTab==='images');
+    document.getElementById('adminBackupPanel').classList.toggle('on',b.dataset.adminTab==='backup');
+    if(b.dataset.adminTab==='visual') buildContentEditorFields();
+    if(b.dataset.adminTab==='backup') viewBackups();
   });
   renderCatEditor();
+  // Auto-backup once per 24h
+  autoBackup();
 }
 
 // ── Category editor helpers ──
@@ -348,13 +368,149 @@ function saveCategoriesFromAdmin(){
   if(typeof renderProds==='function') renderProds(window.currentFilter||'all');
   showToast('Categorias atualizadas');
 }
+// ── Content editor: build inputs for fields present on the current page ──
+function buildContentEditorFields(){
+  const container = document.getElementById('contentEditorFields');
+  if(!container) return;
+  const fields = typeof CONTENT_FIELDS!=='undefined' ? CONTENT_FIELDS : [];
+  const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
+  const esc = typeof escapeHtml==='function' ? escapeHtml : s=>String(s||'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+  // Show all content fields (greyed out if selector not on this page)
+  container.innerHTML = fields.map(f=>{
+    const el = document.querySelector(f.selector);
+    const rawVal = data[f.key]!==undefined ? data[f.key] : (el ? el.textContent.trim() : '');
+    const disabled = !el ? 'style="opacity:.45"' : '';
+    const hint = !el ? ' <small>(não está nesta página)</small>' : '';
+    return `<div ${disabled}><label style="font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">${esc(f.label)}${hint}</label><input class="adm-input" id="content_${f.key}" style="font-size:13px;padding:8px 12px" value="${esc(rawVal)}" placeholder="${esc(f.label)}"${!el?' disabled':''}></div>`;
+  }).join('') || '<p style="color:var(--gray);font-size:13px">Nenhum campo configurado.</p>';
+}
+
 function saveContentFromAdmin(){
-  const data={};
-  const FIELDS = typeof CONTENT_FIELDS!=='undefined'?CONTENT_FIELDS:[];
-  FIELDS.forEach(f=>{const inp=document.getElementById('content_'+f.key); if(inp)data[f.key]=inp.value;});
+  const fields = typeof CONTENT_FIELDS!=='undefined'?CONTENT_FIELDS:[];
+  // Load existing saved data, then only overwrite enabled fields
+  const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
+  fields.forEach(f=>{
+    const inp=document.getElementById('content_'+f.key);
+    if(inp && !inp.disabled) data[f.key]=inp.value;
+  });
   localStorage.setItem('vixiContent',JSON.stringify(data));
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiContent', data);
   if(typeof loadContent==='function') loadContent();
   showToast('Textos atualizados ✅');
+}
+
+// ── Backup functions ──
+async function createBackupNow(silent){
+  if(!window.vixiCreateBackup){ showToast('Firebase não conectado ainda.'); return; }
+  try{
+    if(!silent) showToast('Criando backup...');
+    const prods = (liveProducts||PRODS).map(p=>{
+      const {img,...rest} = p;
+      // only keep URLs (Firebase Storage), skip base64 blobs
+      const safeImg = img && img.startsWith('http') ? img : '';
+      return {...rest, img:safeImg};
+    });
+    const siteContent = JSON.parse(localStorage.getItem('vixiContent')||'{}');
+    const categories  = JSON.parse(localStorage.getItem('vixiCategories')||'[]');
+    const layoutSettings = JSON.parse(localStorage.getItem('vixiVisualImages')||'{}');
+    await window.vixiCreateBackup({products:prods, siteContent, categories, layoutSettings});
+    localStorage.setItem('vixiLastBackup', String(Date.now()));
+    if(!silent) showToast('✅ Backup criado!');
+    viewBackups();
+  }catch(e){
+    console.error('createBackupNow error',e);
+    if(!silent) showToast('Erro ao criar backup 😢');
+  }
+}
+
+async function autoBackup(){
+  const last = parseInt(localStorage.getItem('vixiLastBackup')||'0',10);
+  if(Date.now()-last > 86400000){ // >24h
+    createBackupNow(true);
+  }
+}
+
+async function viewBackups(){
+  const box = document.getElementById('backupList');
+  if(!box) return;
+  if(!window.vixiListBackups){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado ainda.</p>';
+    return;
+  }
+  box.innerHTML='<p style="color:var(--gray);font-size:13px">Carregando...</p>';
+  try{
+    const list = await window.vixiListBackups();
+    if(!list.length){
+      box.innerHTML='<p style="color:var(--gray);font-size:13px">Nenhum backup encontrado.</p>';
+      return;
+    }
+    box.innerHTML = list.map(b=>{
+      const ts = b.createdAt?.seconds ? b.createdAt.seconds*1000 : (b.createdAt||0);
+      const dateStr = ts ? new Date(ts).toLocaleString('pt-BR') : 'Data desconhecida';
+      const count = Array.isArray(b.products)?b.products.length:0;
+      return `<div class="backup-item">
+        <div class="backup-info">
+          <strong>📦 ${count} produto${count!==1?'s':''}</strong>
+          <span>${dateStr}</span>
+        </div>
+        <div class="backup-btns">
+          <button class="mini-btn soft" onclick="restoreBackup('${b.id}','${dateStr.replace(/'/g,'')}')">↩ Restaurar</button>
+          <button class="mini-btn danger" onclick="deleteBackupItem('${b.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px">Erro ao carregar backups 😢</p>';
+    console.error('viewBackups error',e);
+  }
+}
+
+async function restoreBackup(id, dateLabel){
+  if(!confirm(`Restaurar backup de ${dateLabel}?\n\nOs produtos e conteúdo atuais serão substituídos. Esta ação não pode ser desfeita.`)) return;
+  if(!window.vixiListBackups){ showToast('Firebase não conectado.'); return; }
+  try{
+    showToast('Restaurando...');
+    const list = await window.vixiListBackups();
+    const b = list.find(x=>x.id===id);
+    if(!b){ showToast('Backup não encontrado.'); return; }
+    // Restore products
+    if(Array.isArray(b.products)&&b.products.length){
+      localStorage.setItem('vixiAdmin_v2', JSON.stringify(b.products));
+      localStorage.setItem('vixiAdmin_deleted', '[]');
+      liveProducts = JSON.parse(JSON.stringify(b.products));
+      PRODS.length=0;
+      liveProducts.forEach(p=>PRODS.push(p));
+    }
+    // Restore content
+    if(b.siteContent&&Object.keys(b.siteContent).length){
+      localStorage.setItem('vixiContent', JSON.stringify(b.siteContent));
+    }
+    // Restore categories
+    if(Array.isArray(b.categories)&&b.categories.length){
+      localStorage.setItem('vixiCategories', JSON.stringify(b.categories));
+    }
+    renderAdminGrid();
+    updateStats();
+    if(typeof syncCategoriesUI==='function') syncCategoriesUI();
+    if(typeof renderProds==='function') renderProds('all');
+    if(typeof loadContent==='function') loadContent();
+    showToast('✅ Backup restaurado!');
+  }catch(e){
+    console.error('restoreBackup error',e);
+    showToast('Erro ao restaurar 😢');
+  }
+}
+
+async function deleteBackupItem(id){
+  if(!confirm('Apagar este backup permanentemente?')) return;
+  try{
+    await window.vixiDeleteBackup(id);
+    showToast('Backup removido.');
+    viewBackups();
+  }catch(e){
+    showToast('Erro ao remover backup.');
+    console.error('deleteBackupItem error',e);
+  }
 }
 
 // ── Window exports ──
@@ -368,9 +524,15 @@ window.closeAdmModal=typeof closeAdmModal!=='undefined'?closeAdmModal:window.clo
 window.exportSite=typeof exportSite!=='undefined'?exportSite:window.exportSite;
 window.handlePhotoUpload=typeof handlePhotoUpload!=='undefined'?handlePhotoUpload:window.handlePhotoUpload;
 window.buildAdminExtras=typeof buildAdminExtras!=='undefined'?buildAdminExtras:window.buildAdminExtras;
+window.buildContentEditorFields=typeof buildContentEditorFields!=='undefined'?buildContentEditorFields:window.buildContentEditorFields;
 window.renderAdminGrid=typeof renderAdminGrid!=='undefined'?renderAdminGrid:window.renderAdminGrid;
 window.saveToStorage=typeof saveToStorage!=='undefined'?saveToStorage:window.saveToStorage;
 window.openAddModal=typeof openAddModal!=='undefined'?openAddModal:window.openAddModal;
 window.openAdmin=typeof openAdmin!=='undefined'?openAdmin:window.openAdmin;
 window.confirmDelete=typeof confirmDelete!=='undefined'?confirmDelete:window.confirmDelete;
+window.createBackupNow=typeof createBackupNow!=='undefined'?createBackupNow:window.createBackupNow;
+window.autoBackup=typeof autoBackup!=='undefined'?autoBackup:window.autoBackup;
+window.viewBackups=typeof viewBackups!=='undefined'?viewBackups:window.viewBackups;
+window.restoreBackup=typeof restoreBackup!=='undefined'?restoreBackup:window.restoreBackup;
+window.deleteBackupItem=typeof deleteBackupItem!=='undefined'?deleteBackupItem:window.deleteBackupItem;
 window.liveProducts=liveProducts;
