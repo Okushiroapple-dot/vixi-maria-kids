@@ -46,6 +46,10 @@ const VISUAL_FIELDS = [
   {key:'promo2Cta', selector:'.promo-card:nth-child(2) .btn-main', type:'text'},
   {key:'aboutTitle', selector:'#sobre h2', type:'text'},
   {key:'aboutDesc', selector:'#sobre p', type:'text'},
+  {key:'instagramTitle', selector:'#instagram h3', type:'text'},
+  {key:'instagramDesc', selector:'#instagram > p:first-of-type', type:'html'},
+  {key:'instagramFooter', selector:'#instagram > p:last-of-type', type:'text'},
+  {key:'instagramCta', selector:'#instagram .ig-btn', type:'text'},
   {key:'footerWhatsapp', selector:'.foot-contact p:last-child span:last-child', type:'text'}
 ];
 
@@ -324,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function(){
   document.querySelectorAll('.store-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
   // Prevent accidental drag on images and layout elements
   document.addEventListener('dragstart',function(e){
-    if(e.target.tagName==='IMG'||e.target.closest('.prod-card,.hdr,header,footer,.ann')){
+    if(e.target.tagName==='IMG'||e.target.closest('.prod-card,.hdr,header,.footer-sec,.ann')){
       e.preventDefault();
     }
   });
