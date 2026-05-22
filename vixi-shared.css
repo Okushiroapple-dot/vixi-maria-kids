@@ -522,7 +522,7 @@ nav.vixi-main-nav{align-items:center;gap:8px}
 #favoritos{display:none!important}
 .hdr{gap:18px}.hdr-icons{margin-left:auto}.hdr-cta{background:#25d366}.hdr-cta:hover{background:#128c4a}
 .store-modal.open .store-box{animation:vixiModalIn .22s ease both}@keyframes vixiModalIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
-.admin-extra{display:grid;gap:14px}.admin-extra-tabs{align-items:center}.admin-extra-tabs button[data-admin-tab="visual"]{background:var(--pink);color:#fff}
+.admin-extra{display:grid;gap:14px}.admin-extra-tabs{align-items:center}
 .admin-visual-actions{display:flex;gap:10px;flex-wrap:wrap}.mini-btn.primary{background:var(--pink);color:#fff}.mini-btn.soft{background:#fff;color:var(--ink-mid)}
 .cat-row{grid-template-columns:64px 1fr 1fr auto auto auto}.cat-row .move{background:#fff;color:var(--ink-mid);border:1px solid var(--line)}
 .vixi-editor-bar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:700;background:#1e001a;color:#fff;border-radius:999px;box-shadow:0 20px 60px rgba(30,0,26,.28);padding:8px;display:none;align-items:center;gap:8px}
