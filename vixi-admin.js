@@ -180,9 +180,14 @@ async function handlePhotoUpload(e){
   if(!file) return;
   const area = document.getElementById('photoUploadArea');
   const preview = document.getElementById('photoPreview');
+  const cropped = window.vixiCropImageFile
+    ? await window.vixiCropImageFile(file,{aspect:1,width:1200,title:'Enquadrar foto do produto'})
+    : null;
+  if(window.vixiCropImageFile && !cropped) return;
+  const uploadFile = cropped?.file || file;
   try{
     showToast('Enviando imagem para o Firebase...');
-    const url = await window.vixiUploadImage(file, 'produtos');
+    const url = await window.vixiUploadImage(uploadFile, 'produtos');
     currentPhotoB64 = url;
     preview.src = url;
     area.classList.add('has-img');
@@ -192,11 +197,12 @@ async function handlePhotoUpload(e){
     showToast('Firebase falhou. Usando prévia local.');
     const reader = new FileReader();
     reader.onload = function(ev){
-      currentPhotoB64 = ev.target.result;
+      currentPhotoB64 = cropped?.dataUrl || ev.target.result;
       preview.src = currentPhotoB64;
       area.classList.add('has-img');
     };
-    reader.readAsDataURL(file);
+    if(cropped?.dataUrl) reader.onload({target:{result:cropped.dataUrl}});
+    else reader.readAsDataURL(file);
   }
 }
 

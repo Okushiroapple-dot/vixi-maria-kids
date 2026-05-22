@@ -35,6 +35,48 @@ const VISUAL_FIELDS = [
   {key:'heroSubtitle', selector:'.hero-sub', type:'text'},
   {key:'heroPrimaryCta', selector:'.hero-btns .btn-main', type:'text'},
   {key:'heroSecondaryCta', selector:'.hero-btns .btn-ghost', type:'text'},
+  {key:'headerLogoName', selector:'.hdr .logo-name', type:'text'},
+  {key:'headerLogoSub', selector:'.hdr .logo-sub', type:'text'},
+  {key:'footerLogoName', selector:'.foot-brand .logo-name', type:'text'},
+  {key:'footerLogoSub', selector:'.foot-brand .logo-sub', type:'text'},
+  {key:'headerWhatsappCta', selector:'.hdr-cta', type:'text'},
+  {key:'ann1Icon', selector:'.ann-item:nth-child(1) .ann-icon', type:'text'},
+  {key:'ann1Text', selector:'.ann-item:nth-child(1) .ann-copy', type:'text'},
+  {key:'ann2Icon', selector:'.ann-item:nth-child(2) .ann-icon', type:'text'},
+  {key:'ann2Text', selector:'.ann-item:nth-child(2) .ann-copy', type:'text'},
+  {key:'ann3Icon', selector:'.ann-item:nth-child(3) .ann-icon', type:'text'},
+  {key:'ann3Text', selector:'.ann-item:nth-child(3) .ann-copy', type:'text'},
+  {key:'ann4Icon', selector:'.ann-item:nth-child(4) .ann-icon', type:'text'},
+  {key:'ann4Text', selector:'.ann-item:nth-child(4) .ann-copy', type:'text'},
+  {key:'ann5Icon', selector:'.ann-item:nth-child(5) .ann-icon', type:'text'},
+  {key:'ann5Text', selector:'.ann-item:nth-child(5) .ann-copy', type:'text'},
+  {key:'promise1Icon', selector:'.prom-item:nth-child(1) .prom-icon', type:'text'},
+  {key:'promise1Title', selector:'.prom-item:nth-child(1) .pt', type:'text'},
+  {key:'promise1Desc', selector:'.prom-item:nth-child(1) .ps', type:'text'},
+  {key:'promise2Icon', selector:'.prom-item:nth-child(2) .prom-icon', type:'text'},
+  {key:'promise2Title', selector:'.prom-item:nth-child(2) .pt', type:'text'},
+  {key:'promise2Desc', selector:'.prom-item:nth-child(2) .ps', type:'text'},
+  {key:'promise3Icon', selector:'.prom-item:nth-child(3) .prom-icon', type:'text'},
+  {key:'promise3Title', selector:'.prom-item:nth-child(3) .pt', type:'text'},
+  {key:'promise3Desc', selector:'.prom-item:nth-child(3) .ps', type:'text'},
+  {key:'promise4Icon', selector:'.prom-item:nth-child(4) .prom-icon', type:'text'},
+  {key:'promise4Title', selector:'.prom-item:nth-child(4) .pt', type:'text'},
+  {key:'promise4Desc', selector:'.prom-item:nth-child(4) .ps', type:'text'},
+  {key:'categoriesEyebrow', selector:'#categorias .eyebrow', type:'text'},
+  {key:'categoriesTitle', selector:'#categorias h2', type:'text'},
+  {key:'categoriesDesc', selector:'#categorias .sec-head p', type:'text'},
+  {key:'catMeninasName', selector:'#meninas .cat-name', type:'text'},
+  {key:'catMeninasRange', selector:'#meninas .cat-range', type:'text'},
+  {key:'catMeninosName', selector:'#meninos .cat-name', type:'text'},
+  {key:'catMeninosRange', selector:'#meninos .cat-range', type:'text'},
+  {key:'catBebesName', selector:'#bebes .cat-name', type:'text'},
+  {key:'catBebesRange', selector:'#bebes .cat-range', type:'text'},
+  {key:'catJuvenilName', selector:'#juvenil .cat-name', type:'text'},
+  {key:'catJuvenilRange', selector:'#juvenil .cat-range', type:'text'},
+  {key:'categoriesCta', selector:'#categorias .btn-main', type:'text'},
+  {key:'sizesEyebrow', selector:'.sizes-section .eyebrow', type:'text'},
+  {key:'sizesTitle', selector:'.sizes-section h2', type:'text'},
+  {key:'sizesDesc', selector:'.sizes-section .sec-head p', type:'text'},
   {key:'productsEyebrow', selector:'#colecao .eyebrow', type:'text'},
   {key:'productsTitle', selector:'#colecao h2', type:'text'},
   {key:'productsDesc', selector:'#colecao .sec-head p', type:'text'},
@@ -44,12 +86,23 @@ const VISUAL_FIELDS = [
   {key:'promo2Eyebrow', selector:'.promo-card:nth-child(2) .eyebrow', type:'text'},
   {key:'promo2Title', selector:'.promo-card:nth-child(2) h3', type:'html'},
   {key:'promo2Cta', selector:'.promo-card:nth-child(2) .btn-main', type:'text'},
+  {key:'aboutEyebrow', selector:'#sobre .about-text .eyebrow', type:'text'},
   {key:'aboutTitle', selector:'#sobre h2', type:'text'},
-  {key:'aboutDesc', selector:'#sobre p', type:'text'},
+  {key:'aboutFounderRole', selector:'#sobre .np-role', type:'text'},
+  {key:'aboutFounderName', selector:'#sobre .np-name', type:'text'},
+  {key:'aboutFounderLocation', selector:'#sobre .np-loc', type:'text'},
+  {key:'aboutDesc', selector:'#sobre .about-text p:nth-of-type(1)', type:'text'},
+  {key:'aboutDesc2', selector:'#sobre .about-text p:nth-of-type(2)', type:'text'},
+  {key:'aboutDesc3', selector:'#sobre .about-text p:nth-of-type(3)', type:'html'},
+  {key:'newsletterEyebrow', selector:'#newsletter .eyebrow', type:'text'},
+  {key:'newsletterTitle', selector:'#newsletter h2', type:'text'},
+  {key:'newsletterDesc', selector:'#newsletter p', type:'text'},
+  {key:'newsletterButton', selector:'#newsletter button', type:'text'},
   {key:'instagramTitle', selector:'#instagram h3', type:'text'},
   {key:'instagramDesc', selector:'#instagram > p:first-of-type', type:'html'},
   {key:'instagramFooter', selector:'#instagram > p:last-of-type', type:'text'},
   {key:'instagramCta', selector:'#instagram .ig-btn', type:'text'},
+  {key:'footerBrandDesc', selector:'.foot-brand > p', type:'text'},
   {key:'footerWhatsapp', selector:'.foot-contact p:last-child span:last-child', type:'text'}
 ];
 
@@ -87,6 +140,103 @@ function writeJson(key, value){
   if(window.vixiSaveCloud) window.vixiSaveCloud(key, value);
 }
 
+function vixiCropImageFile(file, opts={}){
+  return new Promise((resolve,reject)=>{
+    if(!file || !String(file.type||'').startsWith('image/')){resolve(null);return;}
+    const aspect = Number(opts.aspect || 1);
+    const outW = Number(opts.width || 1200);
+    const outH = Number(opts.height || Math.round(outW / aspect));
+    let modal = document.getElementById('vixiCropModal');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'vixiCropModal';
+      modal.className = 'vixi-crop-modal';
+      modal.innerHTML = `<div class="vixi-crop-box" role="dialog" aria-modal="true">
+        <div class="vixi-crop-head"><h3>Enquadrar imagem</h3><button class="vixi-crop-close" type="button">X</button></div>
+        <div class="vixi-crop-frame"><img alt=""></div>
+        <div class="vixi-crop-controls">
+          <label>Zoom <input type="range" min="1" max="3" step=".01" value="1.12" data-crop-zoom></label>
+          <label>Horizontal <input type="range" min="-100" max="100" step="1" value="0" data-crop-x></label>
+          <label>Vertical <input type="range" min="-100" max="100" step="1" value="0" data-crop-y></label>
+        </div>
+        <div class="vixi-crop-actions"><button class="cancel" type="button">Cancelar</button><button class="save" type="button">Usar imagem</button></div>
+      </div>`;
+      document.body.appendChild(modal);
+    }
+    const title = modal.querySelector('h3');
+    const frame = modal.querySelector('.vixi-crop-frame');
+    const img = modal.querySelector('img');
+    const zoom = modal.querySelector('[data-crop-zoom]');
+    const posX = modal.querySelector('[data-crop-x]');
+    const posY = modal.querySelector('[data-crop-y]');
+    const close = modal.querySelector('.vixi-crop-close');
+    const cancel = modal.querySelector('.cancel');
+    const save = modal.querySelector('.save');
+    const url = URL.createObjectURL(file);
+    let baseScale = 1;
+    let finished = false;
+    title.textContent = opts.title || 'Enquadrar imagem';
+    frame.style.aspectRatio = String(aspect);
+    zoom.value = opts.zoom || 1.12;
+    posX.value = 0;
+    posY.value = 0;
+    img.src = url;
+    modal.classList.add('open');
+    function cleanup(){
+      modal.classList.remove('open');
+      URL.revokeObjectURL(url);
+      img.removeEventListener('load',onLoad);
+      zoom.removeEventListener('input',render);
+      posX.removeEventListener('input',render);
+      posY.removeEventListener('input',render);
+      close.removeEventListener('click',onCancel);
+      cancel.removeEventListener('click',onCancel);
+      save.removeEventListener('click',onSave);
+    }
+    function render(){
+      const fw = frame.clientWidth || 420;
+      const fh = frame.clientHeight || (fw / aspect);
+      baseScale = Math.max(fw / img.naturalWidth, fh / img.naturalHeight);
+      const x = Number(posX.value) / 100 * fw / 2;
+      const y = Number(posY.value) / 100 * fh / 2;
+      img.style.width = (img.naturalWidth * baseScale) + 'px';
+      img.style.height = (img.naturalHeight * baseScale) + 'px';
+      img.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px) scale(${zoom.value})`;
+    }
+    function onLoad(){render();}
+    function onCancel(){if(finished)return;finished=true;cleanup();resolve(null);}
+    function onSave(){
+      if(finished)return;
+      finished = true;
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(outW / img.naturalWidth, outH / img.naturalHeight) * Number(zoom.value || 1);
+      const x = Number(posX.value) / 100 * outW / 2;
+      const y = Number(posY.value) / 100 * outH / 2;
+      const dw = img.naturalWidth * scale;
+      const dh = img.naturalHeight * scale;
+      ctx.drawImage(img, (outW - dw) / 2 + x, (outH - dh) / 2 + y, dw, dh);
+      canvas.toBlob(blob=>{
+        if(!blob){cleanup();reject(new Error('Falha ao cortar imagem'));return;}
+        const name = String(file.name || 'imagem.jpg').replace(/\.[^.]+$/,'') + '-enquadrada.jpg';
+        const croppedFile = new File([blob], name, {type:'image/jpeg'});
+        const dataUrl = canvas.toDataURL('image/jpeg', .9);
+        cleanup();
+        resolve({file:croppedFile, dataUrl});
+      }, 'image/jpeg', .9);
+    }
+    img.addEventListener('load',onLoad);
+    zoom.addEventListener('input',render);
+    posX.addEventListener('input',render);
+    posY.addEventListener('input',render);
+    close.addEventListener('click',onCancel);
+    cancel.addEventListener('click',onCancel);
+    save.addEventListener('click',onSave);
+  });
+}
+
 // ── applyProductImages ──
 function applyProductImages(){
   const imgs = readJson(PRODUCT_IMAGE_KEY,{});
@@ -98,8 +248,17 @@ function applyVisualImages(){
   const imgs = readJson(VISUAL_IMAGE_KEY,{});
   Object.keys(imgs).forEach(key=>{
     if(key.startsWith('banner:')){
-      const el = document.querySelector(`[data-banner-key="${key.slice(7)}"]`);
-      if(el) el.style.backgroundImage = `linear-gradient(135deg,rgba(242,39,110,.72),rgba(30,0,26,.32)),url("${imgs[key]}")`;
+      document.querySelectorAll(`[data-banner-key="${key.slice(7)}"]`).forEach(el=>{
+        el.style.backgroundImage = `linear-gradient(135deg,rgba(242,39,110,.72),rgba(30,0,26,.32)),url("${imgs[key]}")`;
+        el.classList.add('has-custom-image');
+      });
+    }else if(key.startsWith('bg:')){
+      const bgKey = key.slice(3);
+      const extras = bgKey === 'logo' ? ',.logo-icon' : '';
+      document.querySelectorAll(`[data-visual-bg-key="${bgKey}"]${extras}`).forEach(el=>{
+        el.style.backgroundImage = `url("${imgs[key]}")`;
+        el.classList.add('has-custom-image');
+      });
     }else{
       const el = document.querySelector(`[data-image-key="${key}"]`);
       if(el) el.src = imgs[key];
@@ -108,6 +267,20 @@ function applyVisualImages(){
 }
 
 // ── loadVisualContent / loadContent ──
+function syncAnnouncementMirrors(){
+  const items = [...document.querySelectorAll('.ann-track .ann-item')];
+  const originals = items.filter(el=>!el.dataset.annMirror);
+  originals.forEach((source,i)=>{
+    const mirror = document.querySelector(`.ann-track .ann-item[data-ann-mirror="${i+1}"]`);
+    if(!mirror) return;
+    ['ann-icon','ann-copy'].forEach(cls=>{
+      const from = source.querySelector('.'+cls);
+      const to = mirror.querySelector('.'+cls);
+      if(from && to) to.textContent = from.textContent;
+    });
+  });
+}
+
 function loadVisualContent(){
   const data = readJson(TEXT_STORE_KEY,{});
   VISUAL_FIELDS.forEach(f=>{
@@ -119,6 +292,7 @@ function loadVisualContent(){
       else el.textContent = data[f.key];
     }
   });
+  syncAnnouncementMirrors();
 }
 function loadContent(){ loadVisualContent(); }
 
@@ -344,7 +518,7 @@ window.checkoutWhatsApp=checkoutWhatsApp;window.syncCategoriesUI=syncCategoriesU
 window.closeMob=closeMob;window.updateCartBadge=updateCartBadge;window.getCats=getCats;window.saveCats=saveCats;
 window.saveCart=saveCart;window.saveFavorites=saveFavorites;window.saveToStorage=saveToStorage;
 window.loadContent=loadContent;window.applyProductImages=applyProductImages;window.applyVisualImages=applyVisualImages;
-window.readJson=readJson;window.writeJson=writeJson;window.goBackOrHome=goBackOrHome;
+window.readJson=readJson;window.writeJson=writeJson;window.vixiCropImageFile=vixiCropImageFile;window.goBackOrHome=goBackOrHome;
 
 // Expose mutable state via getters so other files can access current values.
 // Guard prevents TypeError if script is evaluated more than once (e.g. hot-reload).
