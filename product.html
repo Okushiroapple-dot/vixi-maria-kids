@@ -240,6 +240,7 @@
 <!-- Scripts -->
 <script src="vixi-products.js"></script>
 <script src="vixi-core.js"></script>
+<script src="vixi-admin.js"></script>
 <script>
 var _selectedSize = null;
 
@@ -287,17 +288,17 @@ function renderProduct(){
   var sizesHtml = (p.sizes||[]).map(function(s){
     return '<button class="product-detail-size-btn" onclick="selectDetailSize(this,\'' + escapeHtml(s) + '\')">' + escapeHtml(s) + '</button>';
   }).join('');
-  var descHtml = p.desc ? '<p class="product-detail-desc">' + escapeHtml(p.desc) + '</p>' : '';
+  var descHtml = '<p class="product-detail-desc" data-edit-product="' + p.id + '" data-edit-field="desc">' + escapeHtml(p.desc || '') + '</p>';
   var badgeHtml = p.badge ? '<span class="pbadge ' + (p.badge==='FAV'?'fav':String(p.badge).includes('%')?'off':'novo') + '" style="position:static;display:inline-block;margin-bottom:8px">' + escapeHtml(p.badge) + '</span>' : '';
 
   document.getElementById('productDetailWrap').innerHTML =
-    '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '"></div>' +
+    '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" data-edit-product="' + p.id + '" data-edit-field="img"></div>' +
     '<div class="product-detail-info">' +
       badgeHtml +
       '<div class="product-detail-cat">' + getCatLabel(p.cat) + '</div>' +
-      '<h1 class="product-detail-name">' + escapeHtml(p.name) + '</h1>' +
+      '<h1 class="product-detail-name" data-edit-product="' + p.id + '" data-edit-field="name">' + escapeHtml(p.name) + '</h1>' +
       descHtml +
-      '<div class="product-detail-price-row">' + oldHtml + '<span class="product-detail-price">' + money(p.price) + '</span></div>' +
+      '<div class="product-detail-price-row">' + oldHtml + '<span class="product-detail-price" data-edit-product="' + p.id + '" data-edit-field="price">' + money(p.price) + '</span></div>' +
       (sizesHtml ? '<div><p style="font-size:13px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Selecione o tamanho:</p><div class="product-detail-sizes" id="detailSizes">' + sizesHtml + '</div></div>' : '') +
       '<div class="product-detail-actions">' +
         '<button class="btn-main" onclick="addProductToCart(\'' + p.id + '\')">🛍️ Adicionar ao carrinho</button>' +

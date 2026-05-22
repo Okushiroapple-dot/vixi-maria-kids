@@ -26,7 +26,16 @@ const CONTENT_FIELDS = [
   {key:'promo1', label:'Announcement 1', selector:'.ann-item:nth-child(1)', type:'text'},
   {key:'promo2', label:'Announcement 2', selector:'.ann-item:nth-child(2)', type:'text'},
   {key:'promo3', label:'Announcement 3', selector:'.ann-item:nth-child(3)', type:'text'},
-  {key:'whatsappCta', label:'Header WhatsApp CTA', selector:'.hdr-cta', type:'text'}
+  {key:'whatsappCta', label:'Header WhatsApp CTA', selector:'.hdr-cta', type:'text'},
+  {key:'pageHeroTitle', label:'Titulo da pagina interna', selector:'.clothes-hero h1', type:'text'},
+  {key:'pageHeroDesc', label:'Descricao da pagina interna', selector:'.clothes-hero p', type:'text'},
+  {key:'relatedEyebrow', label:'Chamada relacionados', selector:'#relatedSection .eyebrow', type:'text'},
+  {key:'relatedTitle', label:'Titulo relacionados', selector:'#relatedSection h2', type:'text'},
+  {key:'instagramTitle', label:'Titulo Instagram', selector:'.ig-bar h3', type:'text'},
+  {key:'instagramDesc', label:'Texto Instagram', selector:'.ig-bar > p:first-of-type', type:'html'},
+  {key:'instagramFooter', label:'Rodape Instagram', selector:'.ig-bar > p:last-of-type', type:'text'},
+  {key:'instagramCta', label:'Botao Instagram', selector:'.ig-bar .ig-btn', type:'text'},
+  {key:'footerBrandDesc', label:'Texto do rodape', selector:'.foot-brand > p', type:'text'}
 ];
 
 const VISUAL_FIELDS = [
@@ -40,6 +49,10 @@ const VISUAL_FIELDS = [
   {key:'footerLogoName', selector:'.foot-brand .logo-name', type:'text'},
   {key:'footerLogoSub', selector:'.foot-brand .logo-sub', type:'text'},
   {key:'headerWhatsappCta', selector:'.hdr-cta', type:'text'},
+  {key:'pageHeroTitle', selector:'.clothes-hero h1', type:'text'},
+  {key:'pageHeroDesc', selector:'.clothes-hero p', type:'text'},
+  {key:'relatedEyebrow', selector:'#relatedSection .eyebrow', type:'text'},
+  {key:'relatedTitle', selector:'#relatedSection h2', type:'text'},
   {key:'ann1Icon', selector:'.ann-item:nth-child(1) .ann-icon', type:'text'},
   {key:'ann1Text', selector:'.ann-item:nth-child(1) .ann-copy', type:'text'},
   {key:'ann2Icon', selector:'.ann-item:nth-child(2) .ann-icon', type:'text'},

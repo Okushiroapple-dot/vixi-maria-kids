@@ -15,8 +15,77 @@ let currentPhotoB64 = null;
 let editingProductId = null;
 let logoTaps = 0, logoTimer;
 
+function ensureAdminShell(){
+  if(!document.body) return;
+  if(!document.getElementById('adminTrigger')){
+    document.body.insertAdjacentHTML('beforeend','<button id="adminTrigger" class="visible" title="Area Admin" onclick="openAdminPw()">⚙</button>');
+  }
+  if(!document.getElementById('adminPwModal')){
+    document.body.insertAdjacentHTML('beforeend',`<div id="adminPwModal">
+      <div class="pw-card">
+        <div class="pw-logo">🌸</div>
+        <div class="pw-title">Area da Debora</div>
+        <div class="pw-sub">Digite a senha para editar a loja</div>
+        <input class="pw-input" type="password" id="pwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+        <p class="pw-err" id="pwErr" style="display:none;">Senha incorreta. Tente novamente!</p>
+        <button class="pw-btn" onclick="checkPw()">Entrar</button>
+        <button class="pw-cancel" onclick="closeAdminPw()">Cancelar</button>
+      </div>
+    </div>`);
+  }
+  if(!document.getElementById('adminDash')){
+    document.body.insertAdjacentHTML('beforeend',`<div id="adminDash">
+      <div class="adm-hdr">
+        <div class="logo-adm">🌸 vixi maria <span class="adm-badge">ADMIN</span></div>
+        <div class="adm-hdr-btns">
+          <button class="adm-hbtn" onclick="closeAdmin()">Ver pagina</button>
+          <button class="adm-hbtn export" onclick="exportSite()">Baixar site</button>
+          <button class="adm-hbtn" onclick="closeAdmin()">Sair</button>
+        </div>
+      </div>
+      <div class="adm-stats" id="admStats"></div>
+      <div class="adm-search">
+        <input type="text" placeholder="Buscar produto..." id="admSearchInput" oninput="renderAdminGrid()">
+        <button class="adm-add-btn" onclick="openAddModal()">+ Novo produto</button>
+      </div>
+      <div class="adm-body"><div class="adm-grid" id="adminGrid"></div></div>
+    </div>`);
+  }
+  if(!document.getElementById('admModal')){
+    document.body.insertAdjacentHTML('beforeend',`<div id="admModal">
+      <div class="adm-modal-box">
+        <div class="adm-modal-title"><span id="admModalTitle">+ Novo Produto</span><button class="adm-modal-close" onclick="closeAdmModal()">x</button></div>
+        <div class="adm-field">
+          <span class="adm-label">Foto do Produto</span>
+          <div class="adm-photo-upload" id="photoUploadArea" onclick="document.getElementById('photoFileInput').click()">
+            <img id="photoPreview" src="" alt="">
+            <div class="adm-photo-placeholder"><span class="big">📸</span>Clique para escolher uma foto da galeria</div>
+            <input type="file" id="photoFileInput" accept="image/*" onchange="handlePhotoUpload(event)" style="display:none">
+          </div>
+        </div>
+        <div class="adm-field"><span class="adm-label">Nome do Produto</span><input class="adm-input" type="text" id="admName" placeholder="Ex: Vestido Floral Rosa"></div>
+        <div class="adm-field"><span class="adm-label">Categoria</span><select class="adm-input" id="admCat"></select></div>
+        <div class="adm-row">
+          <div class="adm-field"><span class="adm-label">Preco (R$)</span><input class="adm-input" type="number" id="admPrice" placeholder="0" min="0" step="0.01"></div>
+          <div class="adm-field"><span class="adm-label">Preco antigo (R$)</span><input class="adm-input" type="number" id="admOld" placeholder="Deixe vazio" min="0" step="0.01"></div>
+        </div>
+        <div class="adm-field"><span class="adm-label">Destaque (badge)</span><select class="adm-input" id="admBadge"><option value="">Nenhum</option><option value="NOVO">NOVO</option><option value="FAV">FAVORITO</option><option value="-10%">-10%</option><option value="-20%">-20%</option><option value="-30%">-30%</option><option value="-40%">-40%</option><option value="-50%">-50%</option></select></div>
+        <div class="adm-field"><span class="adm-label">Tamanhos disponiveis</span><div class="adm-sizes-grid" id="sizesGrid"></div></div>
+        <div class="adm-modal-btns"><button class="adm-cancel-btn" onclick="closeAdmModal()">Cancelar</button><button class="adm-save-btn" onclick="saveProduct()">Salvar produto</button></div>
+      </div>
+    </div>`);
+  }
+  if(!document.getElementById('admConfirm')){
+    document.body.insertAdjacentHTML('beforeend',`<div id="admConfirm"><div class="adm-confirm-box"><h3>Excluir produto?</h3><p id="admConfirmName">Este produto sera removido da loja.</p><div class="adm-confirm-btns"><button class="adm-confirm-cancel" onclick="document.getElementById('admConfirm').classList.remove('open')">Cancelar</button><button class="adm-confirm-del" id="admConfirmDelBtn">Excluir</button></div></div></div>`);
+  }
+  if(!document.getElementById('admExportToast')){
+    document.body.insertAdjacentHTML('beforeend','<div id="admExportToast">⬇ <span id="admExportMsg">Preparando download...</span></div>');
+  }
+}
+
 // ── Secret logo tap ──
 (function(){
+  ensureAdminShell();
   const logo = document.querySelector('.logo-icon');
   if(logo) logo.addEventListener('click', ()=>{
     logoTaps++;
@@ -28,10 +97,12 @@ let logoTaps = 0, logoTimer;
 })();
 
 function showAdminTrigger(){
+  ensureAdminShell();
   document.getElementById('adminTrigger').classList.add('visible');
   showToast('🔐 Acesso admin liberado!');
 }
 function openAdminPw(){
+  ensureAdminShell();
   document.getElementById('adminPwModal').classList.add('open');
   setTimeout(()=>document.getElementById('pwInput').focus(),300);
 }
@@ -42,7 +113,7 @@ function closeAdminPw(){
 }
 function checkPw(){
   const v = document.getElementById('pwInput').value.trim();
-  if(v === ADM_PW){ closeAdminPw(); openAdmin(); }
+  if(v === ADM_PW){ sessionStorage.setItem('vixiAdminLogged','1'); closeAdminPw(); openAdmin(); }
   else{
     document.getElementById('pwErr').style.display='block';
     document.getElementById('pwInput').value='';
@@ -52,6 +123,7 @@ function checkPw(){
 
 // ── Admin Open/Close ──
 function openAdmin(){
+  ensureAdminShell();
   liveProducts = JSON.parse(JSON.stringify(PRODS)); // deep copy
   // Merge localStorage overrides
   try{
@@ -65,6 +137,7 @@ function openAdmin(){
     const deleted = JSON.parse(localStorage.getItem('vixiAdmin_deleted')||'[]');
     liveProducts = liveProducts.filter(p=>!deleted.includes(p.id));
   }catch(e){}
+  window.liveProducts = liveProducts;
   document.getElementById('adminDash').classList.add('open');
   updateStats();
   renderAdminGrid();
@@ -81,6 +154,7 @@ function openAdmin(){
   syncCategoriesUI();
 }
 function closeAdmin(){
+  ensureAdminShell();
   document.getElementById('adminDash').classList.remove('open');
   if(typeof stopVisualEditor==='function') stopVisualEditor();
 }
@@ -235,6 +309,7 @@ function saveProduct(){
   // Apply to live store
   PRODS.length = 0;
   liveProducts.forEach(p=>PRODS.push(p));
+  window.liveProducts = liveProducts;
   if(typeof visibleCount!=='undefined') window.visibleCount = 12;
   if(typeof renderProds==='function') renderProds(document.querySelector('.tab.on')?.dataset?.f||'all');
   if(typeof applyProductImages==='function') applyProductImages();
@@ -263,6 +338,7 @@ function deleteProduct(id){
   updateStats();
   PRODS.length=0;
   liveProducts.forEach(p=>PRODS.push(p));
+  window.liveProducts = liveProducts;
   if(typeof visibleCount!=='undefined') window.visibleCount = 12;
   if(typeof renderProds==='function') renderProds(document.querySelector('.tab.on')?.dataset?.f||'all');
   document.getElementById('admConfirm').classList.remove('open');
@@ -318,6 +394,10 @@ function buildAdminExtras(){
     <button data-admin-tab="backup">💾 Backups</button>
   </div>
   <div id="adminVisual" class="admin-extra-panel">
+    <div class="admin-visual-actions" style="margin-bottom:12px">
+      <button class="mini-btn primary" onclick="closeAdmin();startVisualEditor()">Editar textos na pagina atual</button>
+      <button class="mini-btn soft" onclick="closeAdmin();startVisualEditor()">Alterar banners/imagens</button>
+    </div>
     <div id="contentEditorFields" style="display:grid;gap:10px;max-height:320px;overflow-y:auto;padding-right:4px;margin-bottom:12px"></div>
     <button class="mini-btn primary" onclick="saveContentFromAdmin()" style="width:100%">💾 Salvar textos da página</button>
   </div>
@@ -406,6 +486,229 @@ function saveContentFromAdmin(){
 }
 
 // ── Backup helpers ──
+let visualEditorOn = false;
+let visualImageTarget = null;
+
+function getEditableContentFields(){
+  const seen = new Set();
+  const all = [];
+  const add = f=>{
+    if(!f || !f.key || !f.selector || seen.has(f.key)) return;
+    seen.add(f.key);
+    all.push(f);
+  };
+  try{(VISUAL_FIELDS||[]).forEach(add);}catch(e){}
+  try{(CONTENT_FIELDS||[]).forEach(add);}catch(e){}
+  return all;
+}
+
+function ensureVisualChrome(){
+  if(!document.getElementById('vixiImageInput')){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.id = 'vixiImageInput';
+    input.style.display = 'none';
+    input.addEventListener('change', handleVisualImageUpload);
+    document.body.appendChild(input);
+  }
+  if(!document.getElementById('vixiEditorBar')){
+    const bar = document.createElement('div');
+    bar.id = 'vixiEditorBar';
+    bar.className = 'vixi-editor-bar';
+    bar.innerHTML = '<span>Editor visual ativo</span><button class="save" onclick="saveVisualNow()">Salvar</button><button class="exit" onclick="stopVisualEditor()">Sair</button>';
+    document.body.appendChild(bar);
+  }
+}
+
+function decorateVisualTargets(){
+  const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
+  getEditableContentFields().forEach(f=>{
+    const el = document.querySelector(f.selector);
+    if(!el) return;
+    el.dataset.vixiEdit = f.key;
+    if(data[f.key]!==undefined){
+      if(f.type==='html') el.innerHTML = data[f.key];
+      else el.textContent = data[f.key];
+    }
+  });
+  document.querySelectorAll('.logo-icon').forEach(el=>el.dataset.visualBgKey='logo');
+  document.querySelectorAll('.promo-card').forEach((el,i)=>el.dataset.bannerKey='promo'+(i+1));
+  if(typeof applyVisualImages==='function') applyVisualImages();
+}
+
+function enableVisualEditing(){
+  document.querySelectorAll('[data-vixi-edit],[data-edit-product]').forEach(el=>{
+    if(el.tagName === 'IMG') return;
+    el.contentEditable = 'true';
+    el.spellcheck = true;
+    el.addEventListener('click', stopVisualClick, true);
+    el.addEventListener('blur', saveInlineVisualEdit);
+    el.addEventListener('keydown', visualEditableKeydown);
+  });
+  document.querySelectorAll('img[data-image-key],img[data-edit-product],[data-banner-key],[data-visual-bg-key]').forEach(el=>{
+    el.addEventListener('click', openVisualImagePicker, true);
+  });
+}
+
+function disableVisualEditing(){
+  document.querySelectorAll('[contenteditable="true"]').forEach(el=>{
+    el.contentEditable = 'false';
+    el.removeEventListener('click', stopVisualClick, true);
+    el.removeEventListener('blur', saveInlineVisualEdit);
+    el.removeEventListener('keydown', visualEditableKeydown);
+  });
+  document.querySelectorAll('img[data-image-key],img[data-edit-product],[data-banner-key],[data-visual-bg-key]').forEach(el=>{
+    el.removeEventListener('click', openVisualImagePicker, true);
+  });
+}
+
+function stopVisualClick(e){ if(visualEditorOn) e.stopPropagation(); }
+
+function visualEditableKeydown(e){
+  if(e.key === 'Enter' && !e.shiftKey && !['H1','H2','H3','P'].includes(e.currentTarget.tagName)){
+    e.preventDefault();
+    e.currentTarget.blur();
+  }
+}
+
+function normalizeAdminPrice(text){
+  const raw = String(text||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function saveInlineVisualEdit(e){
+  const el = e.currentTarget;
+  if(el.dataset.vixiEdit){
+    const field = getEditableContentFields().find(f=>f.key===el.dataset.vixiEdit);
+    const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
+    data[el.dataset.vixiEdit] = field?.type === 'html' ? el.innerHTML.trim() : el.textContent.trim();
+    if(typeof writeJson==='function') writeJson('vixiContent', data);
+    else localStorage.setItem('vixiContent', JSON.stringify(data));
+  }
+  if(el.dataset.editProduct){
+    const p = PRODS.find(x=>x.id===el.dataset.editProduct);
+    if(p){
+      const field = el.dataset.editField;
+      if(field === 'price'){p.price = normalizeAdminPrice(el.textContent); el.textContent = money(p.price);}
+      if(field === 'name') p.name = el.textContent.trim();
+      if(field === 'desc') p.desc = el.textContent.trim();
+      if(!liveProducts) liveProducts = JSON.parse(JSON.stringify(PRODS));
+      const idx = liveProducts.findIndex(x=>x.id===p.id);
+      if(idx >= 0) liveProducts[idx] = {...liveProducts[idx], ...p};
+      else liveProducts.push({...p});
+      window.liveProducts = liveProducts;
+      if(typeof saveToStorage==='function') saveToStorage();
+    }
+  }
+  showToast('Alteracao salva');
+}
+
+function openVisualImagePicker(e){
+  if(!visualEditorOn) return;
+  if(e.target.closest('[data-vixi-edit],[data-edit-product]') && e.target !== e.currentTarget) return;
+  e.preventDefault();
+  e.stopPropagation();
+  visualImageTarget = e.currentTarget;
+  const input = document.getElementById('vixiImageInput');
+  input.value = '';
+  input.click();
+}
+
+function cropOptionsForVisualTarget(target){
+  if(target?.dataset?.editProduct) return {aspect:1,width:1200,title:'Enquadrar foto do produto'};
+  if(target?.dataset?.visualBgKey === 'logo') return {aspect:1,width:600,title:'Enquadrar logo'};
+  if(target?.dataset?.bannerKey) return {aspect:16/9,width:1400,title:'Enquadrar banner'};
+  return {aspect:1,width:1200,title:'Enquadrar imagem'};
+}
+
+async function handleVisualImageUpload(e){
+  const file = e.target.files?.[0];
+  if(!file || !visualImageTarget) return;
+  try{
+    const cropped = window.vixiCropImageFile ? await window.vixiCropImageFile(file, cropOptionsForVisualTarget(visualImageTarget)) : null;
+    if(window.vixiCropImageFile && !cropped) return;
+    const uploadFile = cropped?.file || file;
+    let src = cropped?.dataUrl || '';
+    try{
+      if(typeof window.vixiUploadImage !== 'function') throw new Error('Firebase upload indisponivel');
+      src = await window.vixiUploadImage(uploadFile, visualImageTarget.dataset.editProduct ? 'produtos' : 'layout');
+    }catch(uploadErr){
+      console.error(uploadErr);
+      if(!src){
+        src = await new Promise(resolve=>{
+          const reader = new FileReader();
+          reader.onload = ev=>resolve(ev.target.result);
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+    if(visualImageTarget.dataset.editProduct){
+      const p = PRODS.find(x=>x.id===visualImageTarget.dataset.editProduct);
+      if(p){
+        p.img = src;
+        visualImageTarget.src = src;
+        if(!liveProducts) liveProducts = JSON.parse(JSON.stringify(PRODS));
+        const idx = liveProducts.findIndex(x=>x.id===p.id);
+        if(idx >= 0) liveProducts[idx] = {...liveProducts[idx], ...p};
+        else liveProducts.push({...p});
+        window.liveProducts = liveProducts;
+        if(typeof saveToStorage==='function') saveToStorage();
+      }
+    }else if(visualImageTarget.dataset.bannerKey){
+      const images = typeof readJson==='function' ? readJson('vixiVisualImages',{}) : {};
+      images['banner:'+visualImageTarget.dataset.bannerKey] = src;
+      if(typeof writeJson==='function') writeJson('vixiVisualImages', images);
+      else localStorage.setItem('vixiVisualImages', JSON.stringify(images));
+      if(typeof applyVisualImages==='function') applyVisualImages();
+    }else if(visualImageTarget.dataset.visualBgKey){
+      const images = typeof readJson==='function' ? readJson('vixiVisualImages',{}) : {};
+      images['bg:'+visualImageTarget.dataset.visualBgKey] = src;
+      if(typeof writeJson==='function') writeJson('vixiVisualImages', images);
+      else localStorage.setItem('vixiVisualImages', JSON.stringify(images));
+      if(typeof applyVisualImages==='function') applyVisualImages();
+    }else if(visualImageTarget.dataset.imageKey){
+      const images = typeof readJson==='function' ? readJson('vixiVisualImages',{}) : {};
+      images[visualImageTarget.dataset.imageKey] = src;
+      if(typeof writeJson==='function') writeJson('vixiVisualImages', images);
+      else localStorage.setItem('vixiVisualImages', JSON.stringify(images));
+      visualImageTarget.src = src;
+    }
+    showToast('Imagem salva');
+  }catch(err){
+    console.error(err);
+    showToast('Erro ao preparar imagem.');
+  }
+}
+
+function startVisualEditor(){
+  if(!window.vixiAdminLogged && sessionStorage.getItem('vixiAdminLogged') !== '1'){
+    openAdminPw();
+    return;
+  }
+  ensureVisualChrome();
+  visualEditorOn = true;
+  window.vixiAdminLogged = true;
+  document.body.classList.add('vixi-editing');
+  decorateVisualTargets();
+  enableVisualEditing();
+  showToast('Editor visual ativado nesta pagina');
+}
+
+function stopVisualEditor(){
+  visualEditorOn = false;
+  document.body.classList.remove('vixi-editing');
+  disableVisualEditing();
+}
+
+function saveVisualNow(){
+  document.activeElement?.blur?.();
+  if(typeof loadContent==='function') loadContent();
+  if(typeof applyVisualImages==='function') applyVisualImages();
+  showToast('Pagina salva');
+}
+
 async function waitFirebase(key, ms=6000){
   const end = Date.now()+ms;
   while(!window[key] && Date.now()<end) await new Promise(r=>setTimeout(r,300));
@@ -554,3 +857,7 @@ window.viewBackups=typeof viewBackups!=='undefined'?viewBackups:window.viewBacku
 window.restoreBackup=typeof restoreBackup!=='undefined'?restoreBackup:window.restoreBackup;
 window.deleteBackupItem=typeof deleteBackupItem!=='undefined'?deleteBackupItem:window.deleteBackupItem;
 window.liveProducts=liveProducts;
+window.startVisualEditor=typeof startVisualEditor!=='undefined'?startVisualEditor:window.startVisualEditor;
+window.stopVisualEditor=typeof stopVisualEditor!=='undefined'?stopVisualEditor:window.stopVisualEditor;
+window.saveVisualNow=typeof saveVisualNow!=='undefined'?saveVisualNow:window.saveVisualNow;
+window.ensureAdminShell=typeof ensureAdminShell!=='undefined'?ensureAdminShell:window.ensureAdminShell;
