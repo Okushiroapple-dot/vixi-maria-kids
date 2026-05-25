@@ -457,8 +457,8 @@ function syncHeaderAuth(user){
       }
     },0);
   }
-  var cartBtnEl=document.getElementById('cartBtn');
-  if(icons.classList.contains('acct-before-cart')&&cartBtnEl) icons.insertBefore(dd,cartBtnEl);
+  var ctaEl=icons.querySelector('.hdr-cta');
+  if(ctaEl) icons.insertBefore(dd,ctaEl);
   else if(burger) icons.insertBefore(dd,burger);
   else icons.appendChild(dd);
 }
