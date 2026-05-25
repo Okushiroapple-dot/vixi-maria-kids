@@ -69,9 +69,7 @@ nav a.hot{color:var(--pink)}
 .hdr-cta:hover{background:var(--ink-mid);transform:translateY(-1px)}
 .burger{display:none;font-size:24px;background:none;border:none;cursor:pointer;color:var(--ink-mid)}
 .acct-dd{position:relative;display:inline-block;flex-shrink:0}
-.acct-entry{width:44px;height:44px;border-radius:50%;background:var(--pink-pale);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-mid);transition:all .2s;position:relative;font-size:20px;text-decoration:none;flex-shrink:0}
-.acct-entry:hover{background:var(--pink);color:#fff;transform:scale(1.08)}
-.acct-entry.in{background:var(--pink-pale);color:var(--ink-mid)}
+.acct-in{background:var(--pink)!important;color:#fff!important}
 .acct-menu{position:absolute;right:0;top:calc(100% + 10px);background:#fff;border-radius:20px;box-shadow:0 8px 36px rgba(30,0,26,.16);border:1.5px solid var(--line);min-width:230px;z-index:400;display:none;padding:8px}
 .acct-dd.open .acct-menu{display:block}
 .acct-hd{padding:10px 14px;font-weight:800;font-size:13px;color:var(--gray);border-bottom:1px solid var(--line);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
