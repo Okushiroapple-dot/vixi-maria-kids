@@ -409,16 +409,19 @@ window.decryptField=decryptField;
 // ── Header account dropdown ── (styles in vixi-shared.css)
 
 function syncHeaderAuth(user){
-  var icons=document.querySelector('.hdr-icons');
-  if(!icons)return;
-  var existing=document.getElementById('acctDd');
-  if(existing)existing.remove();
-  var burger=document.getElementById('burgerBtn');
-  var dd=document.createElement('div');
-  dd.id='acctDd'; dd.className='acct-dd';
-
+  var dd=document.getElementById('acctDd');
+  if(!dd){
+    var icons=document.querySelector('.hdr-icons');
+    if(!icons)return;
+    dd=document.createElement('div');
+    dd.id='acctDd'; dd.className='acct-dd';
+    var burger=document.getElementById('burgerBtn');
+    if(burger) icons.insertBefore(dd,burger);
+    else icons.appendChild(dd);
+  }
+  dd.classList.remove('open');
   if(!user){
-    dd.innerHTML='<a href="conta.html" class="acct-entry">👤 Entrar</a>';
+    dd.innerHTML='<a href="conta.html" class="acct-entry">👤 Minha Conta</a>';
   }else{
     var nome=(user.displayName||'').split(' ')[0]||'Conta';
     dd.innerHTML='<button class="acct-entry in" id="acctToggle">👤 '+escapeHtml(nome)+'</button>'
@@ -431,18 +434,12 @@ function syncHeaderAuth(user){
         +'<div class="acct-sep"></div>'
         +'<button class="acct-item" style="color:#c0392b" onclick="window.vixiLogout&&window.vixiLogout()">Sair da conta</button>'
       +'</div>';
-    setTimeout(function(){
-      var toggle=document.getElementById('acctToggle');
-      if(toggle){
-        toggle.addEventListener('click',function(e){e.stopPropagation();dd.classList.toggle('open');});
-        document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.classList.remove('open');});
-      }
-    },0);
+    var toggle=document.getElementById('acctToggle');
+    if(toggle){
+      toggle.addEventListener('click',function(e){e.stopPropagation();dd.classList.toggle('open');});
+      document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.classList.remove('open');},{once:false});
+    }
   }
-  var ctaEl=icons.querySelector('.hdr-cta');
-  if(ctaEl) icons.insertBefore(dd,ctaEl);
-  else if(burger) icons.insertBefore(dd,burger);
-  else icons.appendChild(dd);
 }
 window.syncHeaderAuth=syncHeaderAuth;
 
