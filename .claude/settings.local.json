@@ -3,7 +3,8 @@
     "allow": [
       "Bash(awk 'NR>=1293 && NR<=1335 {if\\(length\\($0\\)>120\\) print NR\": [long line - base64 img]\"; else print NR\": \"$0}' \"c:/Users/okush/OneDrive/Desktop/vixi-maria-kids-atualizado/index.html\")",
       "Bash(awk 'NR>=1278 && NR<=1315 {if\\(length\\($0\\)>120\\) print NR\": [img base64]\"; else print NR\": \"$0}' \"c:/Users/okush/OneDrive/Desktop/vixi-maria-kids-atualizado/index.html\")",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "PowerShell(New-Item -ItemType Directory -Path \"$env:USERPROFILE\\\\Desktop\\\\Nova Pasta\")"
     ]
   }
 }

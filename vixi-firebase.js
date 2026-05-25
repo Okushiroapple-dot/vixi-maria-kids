@@ -8,6 +8,18 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
   getFirestore,
   collection,
   addDoc,
@@ -21,6 +33,7 @@ import {
   limit,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 import {
   getStorage,
@@ -154,3 +167,75 @@ window.vixiDeleteBackup = async function(id) {
 };
 
 console.log("Firebase conectado!");
+
+// ── Firebase Auth ──────────────────────────────
+const auth = getAuth(app);
+window.firebaseAuth = auth;
+
+window.vixiRegister = async function(email, password, displayName) {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(cred.user, { displayName });
+  return cred.user;
+};
+
+window.vixiLogin = async function(email, password) {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+};
+
+window.vixiLogout = async function() {
+  await signOut(auth);
+  window.currentUser = null;
+};
+
+window.vixiResetPassword = async function(email) {
+  await sendPasswordResetEmail(auth, email);
+};
+
+window.vixiLoginWithGoogle = async function() {
+  const provider = new GoogleAuthProvider();
+  const cred = await signInWithPopup(auth, provider);
+  const user = cred.user;
+  // Create profile doc on first login if it doesn't exist
+  const { getDoc, doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const snap = await getDoc(doc(db, 'customers', user.uid));
+  if (!snap.exists()) {
+    await setDoc(doc(db, 'customers', user.uid), {
+      nome:      user.displayName || '',
+      email:     user.email,
+      createdAt: Date.now()
+    });
+  }
+  return user;
+};
+
+// ── Customer profile (Firestore) ──────────────
+window.vixiSaveProfile = async function(uid, data) {
+  await setDoc(doc(db, 'customers', uid), data, { merge: true });
+};
+
+window.vixiLoadProfile = async function(uid) {
+  const snap = await getDoc(doc(db, 'customers', uid));
+  return snap.exists() ? snap.data() : null;
+};
+
+window.vixiLoadOrders = async function(uid) {
+  const q = query(
+    collection(db, 'customers', uid, 'orders'),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+// ── Auth state observer ────────────────────────
+onAuthStateChanged(auth, function(user) {
+  window.currentUser = user || null;
+  if (typeof window.syncHeaderAuth === 'function') {
+    window.syncHeaderAuth(user || null);
+  }
+  if (typeof window.onAuthStateChange === 'function') {
+    window.onAuthStateChange(user || null);
+  }
+});

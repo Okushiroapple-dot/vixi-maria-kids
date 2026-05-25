@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Site content — readable by anyone, writable only via server/admin
+    match /siteData/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Customer profiles — each customer can only read/write their own data
+    match /customers/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Orders subcollection — customer can read, only server can write
+      match /orders/{orderId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+    }
+
+    // Backups — server-side only
+    match /backups/{document} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -378,6 +378,90 @@ function runSearch(){
   box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)}</p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">Carrinho</button><button class="store-mini light" onclick="toggleFav('${p.id}')">Favoritar</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado.</div>';
 }
 
+// ── CPF encryption (AES-GCM + PBKDF2) ──
+async function encryptField(text, uid){
+  var enc=new TextEncoder();
+  var km=await crypto.subtle.importKey('raw',enc.encode(uid),{name:'PBKDF2'},false,['deriveKey']);
+  var key=await crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode('vixi-cpf-2026'),iterations:120000,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},false,['encrypt']);
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(text));
+  var out=new Uint8Array(12+ct.byteLength);
+  out.set(iv,0); out.set(new Uint8Array(ct),12);
+  return btoa(String.fromCharCode(...out));
+}
+async function decryptField(b64, uid){
+  try{
+    var enc=new TextEncoder();
+    var buf=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+    var km=await crypto.subtle.importKey('raw',enc.encode(uid),{name:'PBKDF2'},false,['deriveKey']);
+    var key=await crypto.subtle.deriveKey(
+      {name:'PBKDF2',salt:enc.encode('vixi-cpf-2026'),iterations:120000,hash:'SHA-256'},
+      km,{name:'AES-GCM',length:256},false,['decrypt']);
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12)},key,buf.slice(12));
+    return new TextDecoder().decode(pt);
+  }catch(e){return '';}
+}
+window.encryptField=encryptField;
+window.decryptField=decryptField;
+
+// ── Header account dropdown ──
+(function injectAccountStyles(){
+  if(document.getElementById('vixiAccountCSS'))return;
+  var s=document.createElement('style');
+  s.id='vixiAccountCSS';
+  s.textContent=
+    '.acct-dd{position:relative;display:inline-block}'
+   +'.acct-entry{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:var(--pink-pale);color:var(--pink);font-family:var(--font-b);font-weight:800;font-size:14px;border:2px solid transparent;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap;line-height:1}'
+   +'.acct-entry:hover{background:var(--pink);color:#fff}'
+   +'.acct-entry.in{background:var(--pink);color:#fff;border-color:var(--pink)}'
+   +'.acct-menu{position:absolute;right:0;top:calc(100% + 10px);background:#fff;border-radius:20px;box-shadow:0 8px 36px rgba(30,0,26,.16);border:1.5px solid var(--line);min-width:230px;z-index:400;display:none;padding:8px;animation:vixiModalIn .2s ease both}'
+   +'.acct-dd.open .acct-menu{display:block}'
+   +'.acct-hd{padding:10px 14px;font-weight:800;font-size:13px;color:var(--gray);border-bottom:1px solid var(--line);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+   +'.acct-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;text-decoration:none;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;background:none;border:none;width:100%;text-align:left;transition:background .15s;white-space:nowrap}'
+   +'.acct-item:hover{background:var(--pink-pale);color:var(--pink)}'
+   +'.acct-sep{height:1px;background:var(--line);margin:4px 8px}'
+   +'@media(max-width:640px){.acct-entry{font-size:13px;padding:8px 12px}}';
+  document.head.appendChild(s);
+})();
+
+function syncHeaderAuth(user){
+  var icons=document.querySelector('.hdr-icons');
+  if(!icons)return;
+  var existing=document.getElementById('acctDd');
+  if(existing)existing.remove();
+  var burger=document.getElementById('burgerBtn');
+  var dd=document.createElement('div');
+  dd.id='acctDd'; dd.className='acct-dd';
+
+  if(!user){
+    dd.innerHTML='<a href="conta.html" class="acct-entry">👤 Entrar</a>';
+  }else{
+    var nome=(user.displayName||'').split(' ')[0]||'Conta';
+    dd.innerHTML='<button class="acct-entry in" id="acctToggle">👤 '+escapeHtml(nome)+'</button>'
+      +'<div class="acct-menu" id="acctMenu">'
+        +'<div class="acct-hd">Olá, '+escapeHtml(nome)+'!</div>'
+        +'<a class="acct-item" href="conta.html#pedidos">📦 Meus Pedidos</a>'
+        +'<a class="acct-item" href="conta.html#perfil">👤 Meu Perfil</a>'
+        +'<a class="acct-item" href="conta.html#favoritos">❤️ Meus Favoritos</a>'
+        +'<a class="acct-item" href="conta.html#carrinho">🛒 Meu Carrinho</a>'
+        +'<div class="acct-sep"></div>'
+        +'<button class="acct-item" style="color:#c0392b" onclick="window.vixiLogout&&window.vixiLogout()">Sair da conta</button>'
+      +'</div>';
+    setTimeout(function(){
+      var toggle=document.getElementById('acctToggle');
+      if(toggle){
+        toggle.addEventListener('click',function(e){e.stopPropagation();dd.classList.toggle('open');});
+        document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.classList.remove('open');});
+      }
+    },0);
+  }
+  if(burger) icons.insertBefore(dd,burger);
+  else icons.appendChild(dd);
+}
+window.syncHeaderAuth=syncHeaderAuth;
+
 // ── checkoutWhatsApp ──
 function checkoutWhatsApp(){
   if(!cart.length){showToast('Seu carrinho está vazio 🛒');return;}
@@ -385,6 +469,42 @@ function checkoutWhatsApp(){
   const total = cart.reduce((s,i)=>{const p=getProduct(i.id);return s+(p?Number(p.price)*i.qty:0)},0);
   const msg = encodeURIComponent(`Olá! Tenho interesse nestes produtos:\n\n${lines.join('\n')}\n\nTotal aproximado: ${money(total)}`);
   window.open(`https://wa.me/${VIXI_WHATSAPP}?text=${msg}`,'_blank');
+}
+
+// ── checkoutMercadoPago ──
+const MP_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/createMpPreference';
+
+function openMpCheckoutModal(){
+  if(!cart.length){showToast('Seu carrinho está vazio 🛒');return;}
+  window.location.href = 'checkout.html';
+}
+
+async function submitMpCheckout(payerData){
+  try {
+    var items = cart.map(function(i){
+      var p = getProduct(i.id);
+      if(!p) return null;
+      return { id: i.id, name: p.name, qty: i.qty || 1, price: Number(p.promo || p.price || 0) };
+    }).filter(Boolean);
+
+    var res = await fetch(MP_FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items, payer: payerData, baseUrl: window.location.origin })
+    });
+
+    var data = await res.json();
+
+    if(data.init_point){
+      window.location.href = data.init_point;
+    } else {
+      throw new Error(data.error || 'Erro desconhecido');
+    }
+  } catch(err) {
+    showToast('Erro ao iniciar pagamento. Tente novamente. 😕');
+    console.error('MP checkout error:', err);
+    throw err;
+  }
 }
 
 // ── Product filtering / rendering ──
@@ -435,13 +555,13 @@ function syncCategoriesUI(){
   if(nav){
     nav.className='vixi-main-nav';
     var dd=cats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    nav.innerHTML='<a href="index.html">🏠 Início</a><div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+dd+'</div></div><a href="clothes.html" class="hot">🔥 Novidades</a>';
+    nav.innerHTML='<a href="index.html">🏠 Início</a><div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+dd+'</div></div><a href="clothes.html" class="hot">🔥 Novidades</a><a href="conta.html">👤 Minha Conta</a>';
   }
   var mob=document.getElementById('mobMenu');
   if(mob){
     var close='<button class="mob-close" id="mobClose">✕</button>';
     var links=cats.map(function(c){return '<a href="clothes.html?cat='+c.id+'" onclick="closeMob()">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>'+links+'<a href="cart.html" onclick="closeMob()">🛒 Carrinho</a><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
+    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>'+links+'<a href="cart.html" onclick="closeMob()">🛒 Meu Carrinho</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
     document.getElementById('mobClose')&&document.getElementById('mobClose').addEventListener('click',closeMob);
   }
   var tabs=document.querySelector('.prod-tabs');
@@ -492,6 +612,7 @@ function goBackOrHome(){
 document.addEventListener('DOMContentLoaded', function(){
   updateCartBadge();
   syncCategoriesUI();
+  syncHeaderAuth(window.currentUser || null); // show immediately, Firebase will update it
   if(typeof loadContent==='function')loadContent();
   if(typeof applyProductImages==='function')applyProductImages();
   var sb=document.getElementById('searchBtn');
@@ -527,7 +648,7 @@ window.getProduct=getProduct;window.addCart=addCart;window.removeCart=removeCart
 window.toggleFav=toggleFav;window.renderCart=renderCart;window.renderFavs=renderFavs;window.runSearch=runSearch;
 window.showToast=showToast;window.filterCategory=filterCategory;window.filterSize=filterSize;window.loadMore=loadMore;
 window.selectSize=selectSize;window.openStoreModal=openStoreModal;window.closeStoreModal=closeStoreModal;
-window.checkoutWhatsApp=checkoutWhatsApp;window.syncCategoriesUI=syncCategoriesUI;window.renderProds=renderProds;
+window.checkoutWhatsApp=checkoutWhatsApp;window.openMpCheckoutModal=openMpCheckoutModal;window.submitMpCheckout=submitMpCheckout;window.syncCategoriesUI=syncCategoriesUI;window.renderProds=renderProds;
 window.closeMob=closeMob;window.updateCartBadge=updateCartBadge;window.getCats=getCats;window.saveCats=saveCats;
 window.saveCart=saveCart;window.saveFavorites=saveFavorites;window.saveToStorage=saveToStorage;
 window.loadContent=loadContent;window.applyProductImages=applyProductImages;window.applyVisualImages=applyVisualImages;
