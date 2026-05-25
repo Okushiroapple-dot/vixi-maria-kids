@@ -26,10 +26,11 @@ body{background:var(--pink-pale,#fff0f5);min-height:100vh;display:flex;flex-dire
   <div class="pw-card">
     <div class="pw-logo">🌸</div>
     <div class="pw-title">Área da Débora</div>
-    <div class="pw-sub">Digite a senha para editar a loja</div>
-    <input class="pw-input" type="password" id="pwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkPw()">
-    <p class="pw-err" id="pwErr" style="display:none;">Senha incorreta. Tente novamente!</p>
-    <button class="pw-btn" onclick="checkPw()">Entrar 🌸</button>
+    <div class="pw-sub">Faça login para editar a loja</div>
+    <input class="pw-input" type="text" id="adminUser" placeholder="Usuário" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()">
+    <input class="pw-input" type="password" id="adminPass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkAdminLogin()" style="margin-top:10px">
+    <p class="pw-err" id="pwErr" style="display:none;">Usuário ou senha incorretos.</p>
+    <button class="pw-btn" onclick="checkAdminLogin()">Entrar 🌸</button>
     <button class="pw-cancel" onclick="window.location.href='index.html'">← Voltar à loja</button>
   </div>
 </div>

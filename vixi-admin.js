@@ -7,7 +7,7 @@
 // ══════════════════════════════════════════
 
 // ── Admin constants ──
-const ADM_PW = 'viximaria2026';
+const ADMIN_EMAIL = 'viximariakids@viximariakids.com';
 const ADM_SIZES_ALL = ['RN','P','M','G','GG','2','4','6','8','10','12','14','16','18','20','Único'];
 const CAT_LABELS = {meninos:'Meninos',acessorios:'Acessórios',bebes:'Bebês',meninas:'Meninas',juvenil:'Juvenil'};
 let liveProducts = null;  // working copy
@@ -24,11 +24,12 @@ function ensureAdminShell(){
     document.body.insertAdjacentHTML('beforeend',`<div id="adminPwModal">
       <div class="pw-card">
         <div class="pw-logo">🌸</div>
-        <div class="pw-title">Area da Debora</div>
-        <div class="pw-sub">Digite a senha para editar a loja</div>
-        <input class="pw-input" type="password" id="pwInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')checkPw()">
-        <p class="pw-err" id="pwErr" style="display:none;">Senha incorreta. Tente novamente!</p>
-        <button class="pw-btn" onclick="checkPw()">Entrar</button>
+        <div class="pw-title">Área da Débora</div>
+        <div class="pw-sub">Faça login para editar a loja</div>
+        <input class="pw-input" type="text" id="adminUser" placeholder="Usuário" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()">
+        <input class="pw-input" type="password" id="adminPass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkAdminLogin()" style="margin-top:10px">
+        <p class="pw-err" id="pwErr" style="display:none;">Usuário ou senha incorretos.</p>
+        <button class="pw-btn" onclick="checkAdminLogin()">Entrar 🌸</button>
         <button class="pw-cancel" onclick="closeAdminPw()">Cancelar</button>
       </div>
     </div>`);
@@ -104,21 +105,44 @@ function showAdminTrigger(){
 function openAdminPw(){
   ensureAdminShell();
   document.getElementById('adminPwModal').classList.add('open');
-  setTimeout(()=>document.getElementById('pwInput').focus(),300);
+  setTimeout(()=>{ var u=document.getElementById('adminUser'); if(u) u.focus(); },300);
 }
 function closeAdminPw(){
   document.getElementById('adminPwModal').classList.remove('open');
-  document.getElementById('pwInput').value='';
+  var u=document.getElementById('adminUser'); if(u) u.value='';
+  var p=document.getElementById('adminPass'); if(p) p.value='';
   document.getElementById('pwErr').style.display='none';
 }
-function checkPw(){
-  const v = document.getElementById('pwInput').value.trim();
-  if(v === ADM_PW){ sessionStorage.setItem('vixiAdminLogged','1'); closeAdminPw(); openAdmin(); }
-  else{
-    document.getElementById('pwErr').style.display='block';
-    document.getElementById('pwInput').value='';
-    document.getElementById('pwInput').focus();
+async function checkAdminLogin(){
+  var user = (document.getElementById('adminUser')||{}).value?.trim();
+  var pass = (document.getElementById('adminPass')||{}).value;
+  var errEl = document.getElementById('pwErr');
+  var btn   = document.querySelector('#adminPwModal .pw-btn');
+  errEl.style.display='none';
+  if(!user||!pass){ errEl.textContent='Preencha usuário e senha.'; errEl.style.display='block'; return; }
+  if(!window.vixiLogin){ errEl.textContent='Aguarde o carregamento e tente novamente.'; errEl.style.display='block'; return; }
+  btn.textContent='Entrando...'; btn.disabled=true;
+  var email = user==='viximariakids' ? ADMIN_EMAIL : null;
+  if(!email){
+    errEl.textContent='Usuário ou senha incorretos.'; errEl.style.display='block';
+    btn.textContent='Entrar 🌸'; btn.disabled=false; return;
   }
+  try{
+    var logged = await window.vixiLogin(email, pass);
+    if(logged.email===ADMIN_EMAIL){
+      sessionStorage.setItem('vixiAdminLogged','1');
+      closeAdminPw(); openAdmin();
+    }else{
+      if(window.vixiLogout) await window.vixiLogout();
+      errEl.textContent='Acesso não autorizado.'; errEl.style.display='block';
+    }
+  }catch(e){
+    var msg = (e.code==='auth/wrong-password'||e.code==='auth/invalid-credential')
+      ? 'Usuário ou senha incorretos.'
+      : 'Erro ao entrar. Tente novamente.';
+    errEl.textContent=msg; errEl.style.display='block';
+  }
+  btn.textContent='Entrar 🌸'; btn.disabled=false;
 }
 
 // ── Admin Open/Close ──
