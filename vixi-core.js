@@ -413,16 +413,17 @@ window.decryptField=decryptField;
   s.id='vixiAccountCSS';
   s.textContent=
     '.acct-dd{position:relative;display:inline-block}'
-   +'.acct-entry{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:var(--pink-pale);color:var(--pink);font-family:var(--font-b);font-weight:800;font-size:14px;border:2px solid transparent;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap;line-height:1}'
-   +'.acct-entry:hover{background:var(--pink);color:#fff}'
-   +'.acct-entry.in{background:var(--pink);color:#fff;border-color:var(--pink)}'
+   +'.acct-entry{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:99px;background:var(--pink);color:#fff;font-family:var(--font-b);font-weight:800;font-size:14px;border:none;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap;line-height:1;flex-shrink:0}'
+   +'.acct-entry:hover{background:var(--ink-mid);transform:translateY(-1px)}'
+   +'.acct-entry.in{background:var(--pink);color:#fff}'
+   +'@media(max-width:768px){.acct-entry{display:none}}'
    +'.acct-menu{position:absolute;right:0;top:calc(100% + 10px);background:#fff;border-radius:20px;box-shadow:0 8px 36px rgba(30,0,26,.16);border:1.5px solid var(--line);min-width:230px;z-index:400;display:none;padding:8px;animation:vixiModalIn .2s ease both}'
    +'.acct-dd.open .acct-menu{display:block}'
    +'.acct-hd{padding:10px 14px;font-weight:800;font-size:13px;color:var(--gray);border-bottom:1px solid var(--line);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
    +'.acct-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;text-decoration:none;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;background:none;border:none;width:100%;text-align:left;transition:background .15s;white-space:nowrap}'
    +'.acct-item:hover{background:var(--pink-pale);color:var(--pink)}'
    +'.acct-sep{height:1px;background:var(--line);margin:4px 8px}'
-   +'@media(max-width:640px){.acct-entry{font-size:13px;padding:8px 12px}}';
+   +'';
   document.head.appendChild(s);
 })();
 
