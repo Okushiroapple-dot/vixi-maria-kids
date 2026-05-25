@@ -421,17 +421,17 @@ function buildAdminExtras(){
   <div id="adminBadgesPanel" class="admin-extra-panel">
     <p style="font-size:13px;font-weight:700;color:var(--gray);margin:0 0 14px">Estilo das tags dos produtos</p>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="badgeStyleBtns">
-      <button class="badge-preset-btn" data-style="soft" onclick="setBadgeStyle('soft')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
-        <span style="background:rgba(22,16,28,.72);color:#fff;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Suave
+      <button class="badge-preset-btn" data-style="" onclick="setBadgeStyle('')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
+        <span style="background:#1e101e;color:#fff;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Sólido
       </button>
-      <button class="badge-preset-btn" data-style="classic" onclick="setBadgeStyle('classic')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
-        <span style="background:#1e101e;color:#fff;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Clássico
+      <button class="badge-preset-btn" data-style="soft" onclick="setBadgeStyle('soft')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
+        <span style="background:rgba(22,16,28,.72);color:#fff;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Suave
       </button>
       <button class="badge-preset-btn" data-style="outline" onclick="setBadgeStyle('outline')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
-        <span style="box-shadow:inset 0 0 0 1.5px rgba(22,16,28,.55);color:#1e101e;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Contorno
+        <span style="box-shadow:inset 0 0 0 1.5px #1e101e;color:#1e101e;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Contorno
       </button>
     </div>
-    <p style="font-size:12px;color:var(--gray);font-weight:600;margin:0">A tag FAV aparece apenas no carrossel de favoritos. As tags de % e Novo! aparecem nos cards.</p>
+    <p style="font-size:12px;color:var(--gray);font-weight:600;margin:0">FAV é uma tag interna — não aparece nos cards, usada para destacar produtos no carrossel.</p>
   </div>
   <div id="adminVisual" class="admin-extra-panel">
     <div class="admin-visual-actions" style="margin-bottom:12px">

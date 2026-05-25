@@ -591,7 +591,7 @@ function goBackOrHome(){
 
 // ── DOMContentLoaded bootstrap ──
 function applyBadgeStyle(){
-  var s=localStorage.getItem('vixiBadgeStyle')||'soft';
+  var s=localStorage.getItem('vixiBadgeStyle')||'';
   document.body.dataset.badgeStyle=s;
 }
 window.applyBadgeStyle=applyBadgeStyle;
