@@ -421,10 +421,10 @@ function syncHeaderAuth(user){
   }
   dd.classList.remove('open');
   if(!user){
-    dd.innerHTML='<a href="conta.html" class="acct-entry">👤 Minha Conta</a>';
+    dd.innerHTML='<a href="conta.html" class="acct-entry" title="Minha Conta">👤</a>';
   }else{
     var nome=(user.displayName||'').split(' ')[0]||'Conta';
-    dd.innerHTML='<button class="acct-entry in" id="acctToggle">👤 '+escapeHtml(nome)+'</button>'
+    dd.innerHTML='<button class="acct-entry in" id="acctToggle" title="'+escapeHtml(nome)+'">👤</button>'
       +'<div class="acct-menu" id="acctMenu">'
         +'<div class="acct-hd">Olá, '+escapeHtml(nome)+'!</div>'
         +'<a class="acct-item" href="conta.html#pedidos">📦 Meus Pedidos</a>'
