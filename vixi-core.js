@@ -490,7 +490,7 @@ async function submitMpCheckout(payerData){
     var res = await fetch(MP_FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: items, payer: payerData, baseUrl: window.location.origin })
+      body: JSON.stringify({ items: items, payer: payerData, baseUrl: window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '') })
     });
 
     var data = await res.json();
