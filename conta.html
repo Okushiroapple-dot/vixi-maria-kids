@@ -72,6 +72,27 @@
 .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 16px;border:2px solid var(--line);border-radius:14px;background:#fff;font-family:var(--font-b);font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;transition:all .2s}.google-btn:hover{border-color:#4285F4;background:#f0f6ff}
 .or-divider{display:flex;align-items:center;gap:10px;color:var(--gray);font-size:13px;font-weight:700;margin:14px 0}.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--line)}
 @media(max-width:540px){.form-grid{grid-template-columns:1fr}.acct-page-tabs{gap:6px}.acct-page-tab{font-size:13px;padding:7px 12px}}
+/* ── Order Detail Modal ── */
+.order-card{cursor:pointer;transition:box-shadow .2s}
+.order-card:hover{box-shadow:0 4px 20px rgba(242,39,110,.13)}
+.od-modal{position:fixed;inset:0;z-index:1000;background:rgba(30,0,26,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.od-modal.open{display:flex}
+.od-box{background:#fff;border-radius:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:32px;position:relative}
+.od-close{position:absolute;top:16px;right:16px;border:none;background:var(--pink-pale);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--pink);font-weight:900}
+.od-title{font-family:var(--font-d);font-size:22px;color:var(--ink);margin:0 0 4px}
+.od-meta{font-size:13px;color:var(--gray);font-weight:700;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.od-section{margin-bottom:20px}
+.od-section-label{font-size:11px;font-weight:800;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.od-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.od-item:last-child{border-bottom:none}
+.od-item img,.od-item-ph{width:60px;height:60px;object-fit:cover;border-radius:12px;flex-shrink:0;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:24px}
+.od-item-info{flex:1}
+.od-item-name{font-weight:800;font-size:14px;color:var(--ink)}
+.od-item-qty{font-size:12px;color:var(--gray);font-weight:700;margin-top:2px}
+.od-item-price{font-family:var(--font-d);font-size:16px;color:var(--pink);flex-shrink:0}
+.od-total-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0 0;border-top:2px solid var(--line);margin-top:4px}
+.od-info-row{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:var(--ink-mid);padding:4px 0}
+.od-info-row span{color:var(--gray)}
 </style>
 </head>
 <body>
@@ -324,6 +345,14 @@
 </div>
 <div class="toast" id="toast">🌸 <span id="toastMsg">Pronto!</span></div>
 
+<!-- Order Detail Modal -->
+<div class="od-modal" id="odModal" onclick="closeOrderDetail(event)">
+  <div class="od-box">
+    <button class="od-close" onclick="closeOrderDetail()">✕</button>
+    <div id="odContent"></div>
+  </div>
+</div>
+
 <script src="vixi-products.js"></script>
 <script src="vixi-core.js"></script>
 <script>
@@ -507,6 +536,7 @@ async function fillProfile(profile, uid){
 
 // ── Orders ──
 var ordersLoaded=false;
+var ordersCache=[];
 async function loadOrders(){
   if(ordersLoaded)return;
   var user=window.currentUser; if(!user)return;
@@ -515,6 +545,7 @@ async function loadOrders(){
   if(!el||!window.vixiLoadOrders)return;
   try{
     var orders=await window.vixiLoadOrders(user.uid);
+    ordersCache=orders;
     if(loading) loading.style.display='none';
     if(!orders.length){
       el.innerHTML='<div class="empty-tab"><div class="ei">📦</div><p>Você ainda não fez nenhum pedido.</p><a href="clothes.html" class="btn-main" style="display:inline-flex;margin-top:12px">Ver produtos →</a></div>';
@@ -527,7 +558,7 @@ async function loadOrders(){
       var date=o.createdAt&&o.createdAt.seconds ? new Date(o.createdAt.seconds*1000).toLocaleDateString('pt-BR') : '—';
       var itemsText=(o.items||[]).map(function(i){return i.qty+'× '+i.name;}).join(', ');
       var total=typeof o.total==='number' ? money(o.total) : '—';
-      return '<div class="order-card">'
+      return '<div class="order-card" onclick="openOrderDetail(\''+o.id+'\')">'
         +'<div class="order-header">'
           +'<span class="order-id">Pedido #'+o.id.slice(-6).toUpperCase()+'</span>'
           +'<span class="order-date">'+date+'</span>'
@@ -535,6 +566,7 @@ async function loadOrders(){
         +'</div>'
         +'<div class="order-items">'+escapeHtml(itemsText)+'</div>'
         +'<div class="order-total">'+total+'</div>'
+        +'<div style="font-size:12px;color:var(--pink);font-weight:700;margin-top:6px">Ver detalhes →</div>'
         +'</div>';
     }).join('');
     ordersLoaded=true;
@@ -542,6 +574,83 @@ async function loadOrders(){
     if(loading) loading.style.display='none';
     el.innerHTML='<div class="empty-tab"><p>Erro ao carregar pedidos.</p></div>';
   }
+}
+
+function openOrderDetail(orderId){
+  var o=ordersCache.find(function(x){return x.id===orderId;});
+  if(!o)return;
+  var statusMap={'pending':'Em análise','approved':'Aprovado','failed':'Recusado'};
+  var statusLabel=statusMap[o.status]||o.status;
+  var statusClass=o.status||'pending';
+  var date=o.createdAt&&o.createdAt.seconds ? new Date(o.createdAt.seconds*1000).toLocaleString('pt-BR') : '—';
+  var total=typeof o.total==='number' ? money(o.total) : '—';
+
+  var itemsHtml=(o.items||[]).map(function(i){
+    var prod=typeof getProduct==='function' ? getProduct(i.id) : null;
+    var img=prod&&prod.img
+      ? '<img src="'+prod.img+'" alt="'+escapeHtml(i.name||'')+'" loading="lazy">'
+      : '<div class="od-item-ph">🌸</div>';
+    var subtotal=typeof money==='function' ? money(Number(i.price||0)*Number(i.qty||1)) : '';
+    return '<div class="od-item">'
+      +img
+      +'<div class="od-item-info">'
+        +'<div class="od-item-name">'+escapeHtml(i.name||'Produto')+'</div>'
+        +'<div class="od-item-qty">'+Number(i.qty||1)+'× — R$ '+Number(i.price||0).toFixed(2).replace('.',',')+'</div>'
+      +'</div>'
+      +'<div class="od-item-price">'+subtotal+'</div>'
+      +'</div>';
+  }).join('');
+
+  var payerNome=o.payer&&o.payer.nome ? escapeHtml(o.payer.nome) : '—';
+  var payerEmail=o.payer&&o.payer.email ? escapeHtml(o.payer.email) : '—';
+
+  var html=''
+    +'<h2 class="od-title">📦 Pedido #'+o.id.slice(-6).toUpperCase()+'</h2>'
+    +'<div class="od-meta">'
+      +'<span>'+date+'</span>'
+      +'<span class="order-status '+statusClass+'">'+statusLabel+'</span>'
+    +'</div>'
+
+    +'<div class="od-section">'
+      +'<div class="od-section-label">Itens do pedido</div>'
+      +itemsHtml
+      +'<div class="od-total-row">'
+        +'<strong style="font-family:var(--font-d);font-size:18px">Total</strong>'
+        +'<span style="font-family:var(--font-d);font-size:22px;color:var(--pink)">'+total+'</span>'
+      +'</div>'
+    +'</div>'
+
+    +'<div class="od-section">'
+      +'<div class="od-section-label">Dados do comprador</div>'
+      +'<div class="od-info-row"><span>Nome</span>'+payerNome+'</div>'
+      +'<div class="od-info-row"><span>E-mail</span>'+payerEmail+'</div>'
+    +'</div>'
+
+    +'<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">'
+      +'<button class="btn-ghost" onclick="closeOrderDetail()" style="flex:1;justify-content:center;font-size:14px;padding:12px">Fechar</button>'
+      +'<button class="btn-main" onclick="reorderItems(\''+orderId+'\')" style="flex:1;justify-content:center;font-size:14px;padding:12px">Comprar novamente →</button>'
+    +'</div>';
+
+  document.getElementById('odContent').innerHTML=html;
+  document.getElementById('odModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeOrderDetail(e){
+  if(e&&e.target!==document.getElementById('odModal'))return;
+  document.getElementById('odModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function reorderItems(orderId){
+  var o=ordersCache.find(function(x){return x.id===orderId;});
+  if(!o||!o.items)return;
+  o.items.forEach(function(i){
+    if(typeof addCart==='function') addCart(i.id);
+  });
+  closeOrderDetail();
+  showToast('Itens adicionados ao carrinho! 🛍️');
+  showTab('carrinho');
 }
 
 // ── Favorites tab ──
@@ -621,6 +730,7 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('loginEmail').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
   document.getElementById('regPass2').addEventListener('keydown',function(e){if(e.key==='Enter')doRegister();});
   document.getElementById('pCep').addEventListener('keydown',function(e){if(e.key==='Enter')buscarCep();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOrderDetail();});
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>
