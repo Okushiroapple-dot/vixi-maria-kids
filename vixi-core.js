@@ -457,7 +457,9 @@ function syncHeaderAuth(user){
       }
     },0);
   }
-  if(burger) icons.insertBefore(dd,burger);
+  var cartBtnEl=document.getElementById('cartBtn');
+  if(icons.classList.contains('acct-before-cart')&&cartBtnEl) icons.insertBefore(dd,cartBtnEl);
+  else if(burger) icons.insertBefore(dd,burger);
   else icons.appendChild(dd);
 }
 window.syncHeaderAuth=syncHeaderAuth;
@@ -532,7 +534,7 @@ function renderProds(filter='all'){
     const liked=favorites.includes(p.id);
     return `<article class="prod-card" data-cat="${p.cat}" onclick="window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="prod-img-wrap">
-        ${p.badge?`<span class="pbadge ${p.badge==='FAV'?'fav':String(p.badge).includes('%')?'off':'novo'}">${escapeHtml(p.badge)}</span>`:''}
+        ${(p.badge&&p.badge!=='FAV')?`<span class="pbadge ${String(p.badge).includes('%')?'off':'novo'}">${p.badge==='NOVO'?'Novo!':escapeHtml(p.badge)}</span>`:''}
         <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
         <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" data-edit-product="${p.id}" data-edit-field="img"/>
       </div>
@@ -609,7 +611,14 @@ function goBackOrHome(){
 }
 
 // ── DOMContentLoaded bootstrap ──
+function applyBadgeStyle(){
+  var s=localStorage.getItem('vixiBadgeStyle')||'soft';
+  document.body.dataset.badgeStyle=s;
+}
+window.applyBadgeStyle=applyBadgeStyle;
+
 document.addEventListener('DOMContentLoaded', function(){
+  applyBadgeStyle();
   updateCartBadge();
   syncCategoriesUI();
   syncHeaderAuth(window.currentUser || null); // show immediately, Firebase will update it

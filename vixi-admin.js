@@ -415,7 +415,23 @@ function buildAdminExtras(){
     <button class="on" data-admin-tab="products">Produtos</button>
     <button data-admin-tab="visual">✏️ Editar Textos</button>
     <button data-admin-tab="categories">Categorias</button>
+    <button data-admin-tab="badges">🏷️ Tags</button>
     <button data-admin-tab="backup">💾 Backups</button>
+  </div>
+  <div id="adminBadgesPanel" class="admin-extra-panel">
+    <p style="font-size:13px;font-weight:700;color:var(--gray);margin:0 0 14px">Estilo das tags dos produtos</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="badgeStyleBtns">
+      <button class="badge-preset-btn" data-style="soft" onclick="setBadgeStyle('soft')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
+        <span style="background:rgba(22,16,28,.72);color:#fff;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Suave
+      </button>
+      <button class="badge-preset-btn" data-style="classic" onclick="setBadgeStyle('classic')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
+        <span style="background:#1e101e;color:#fff;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Clássico
+      </button>
+      <button class="badge-preset-btn" data-style="outline" onclick="setBadgeStyle('outline')" style="padding:12px 8px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s">
+        <span style="box-shadow:inset 0 0 0 1.5px rgba(22,16,28,.55);color:#1e101e;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800">Novo!</span>Contorno
+      </button>
+    </div>
+    <p style="font-size:12px;color:var(--gray);font-weight:600;margin:0">A tag FAV aparece apenas no carrossel de favoritos. As tags de % e Novo! aparecem nos cards.</p>
   </div>
   <div id="adminVisual" class="admin-extra-panel">
     <div class="admin-visual-actions" style="margin-bottom:12px">
@@ -440,8 +456,17 @@ function buildAdminExtras(){
     document.getElementById('adminVisual').classList.toggle('on',b.dataset.adminTab==='visual');
     document.getElementById('adminCats').classList.toggle('on',b.dataset.adminTab==='categories');
     document.getElementById('adminBackupPanel').classList.toggle('on',b.dataset.adminTab==='backup');
+    document.getElementById('adminBadgesPanel').classList.toggle('on',b.dataset.adminTab==='badges');
     if(b.dataset.adminTab==='visual') buildContentEditorFields();
     if(b.dataset.adminTab==='backup') viewBackups();
+    if(b.dataset.adminTab==='badges'){
+      var cur=localStorage.getItem('vixiBadgeStyle')||'';
+      document.querySelectorAll('.badge-preset-btn').forEach(function(btn){
+        var on=btn.dataset.style===cur;
+        btn.style.borderColor=on?'var(--pink)':'var(--line)';
+        btn.style.background=on?'var(--pink-pale)':'#fff';
+      });
+    }
   });
   renderCatEditor();
   // Auto-backup once per 24h
@@ -858,6 +883,19 @@ async function deleteBackupItem(id){
   }
 }
 
+// ── Badge style picker ──
+function setBadgeStyle(style){
+  document.body.dataset.badgeStyle = style || '';
+  localStorage.setItem('vixiBadgeStyle', style || '');
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiBadgeStyle', style || '');
+  document.querySelectorAll('.badge-preset-btn').forEach(function(btn){
+    var on = btn.dataset.style === (style || '');
+    btn.style.borderColor = on ? 'var(--pink)' : 'var(--line)';
+    btn.style.background  = on ? 'var(--pink-pale)' : '#fff';
+  });
+  showToast('Estilo de tag atualizado ✅');
+}
+
 // ── Window exports ──
 window.openAdminPw=openAdminPw||window.openAdminPw;
 window.checkPw=typeof checkPw!=='undefined'?checkPw:window.checkPw;
@@ -885,3 +923,4 @@ window.startVisualEditor=typeof startVisualEditor!=='undefined'?startVisualEdito
 window.stopVisualEditor=typeof stopVisualEditor!=='undefined'?stopVisualEditor:window.stopVisualEditor;
 window.saveVisualNow=typeof saveVisualNow!=='undefined'?saveVisualNow:window.saveVisualNow;
 window.ensureAdminShell=typeof ensureAdminShell!=='undefined'?ensureAdminShell:window.ensureAdminShell;
+window.setBadgeStyle=typeof setBadgeStyle!=='undefined'?setBadgeStyle:window.setBadgeStyle;

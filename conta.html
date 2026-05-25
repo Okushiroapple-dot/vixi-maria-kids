@@ -706,6 +706,13 @@ function renderCartTab(){
 // ── Auth state ──
 window.onAuthStateChange = async function(user){
   document.getElementById('pageLoading').style.display='none';
+  // Reset orders cache whenever user changes so each account loads fresh
+  ordersLoaded = false;
+  ordersCache = [];
+  var el=document.getElementById('ordersList');
+  if(el) el.innerHTML='';
+  var loading=document.getElementById('ordersLoading');
+  if(loading) loading.style.display='';
   if(user){
     document.getElementById('authSection').style.display='none';
     document.getElementById('profileSection').style.display='';
