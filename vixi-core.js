@@ -463,8 +463,9 @@ function syncAdminNav(){
   ];
   var links=items.map(function(i){return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>';}).join('');
   var html='<div class="nav-dd nav-admin-dd"><button class="nav-dd-btn nav-admin-btn" type="button">⚙️ Admin ▾</button><div class="nav-dd-menu">'+links+'</div></div>';
-  var roupasDD=nav.querySelector('.nav-dd');
-  if(roupasDD) roupasDD.insertAdjacentHTML('afterend',html);
+  var allDDs=nav.querySelectorAll('.nav-dd:not(.nav-admin-dd)');
+  var lastDD=allDDs[allDDs.length-1];
+  if(lastDD) lastDD.insertAdjacentHTML('afterend',html);
   else nav.insertAdjacentHTML('beforeend',html);
   var dd=nav.querySelector('.nav-admin-dd');
   if(dd){
@@ -592,7 +593,8 @@ function syncCategoriesUI(){
   if(nav){
     nav.className='vixi-main-nav';
     var dd=cats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    nav.innerHTML='<a href="index.html">🏠 Início</a><div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+dd+'</div></div><a href="clothes.html" class="hot">🔥 Novidades</a><a href="conta.html">👤 Minha Conta</a>';
+    var menuHtml='<div class="nav-dd-label">Loja</div><a href="index.html">🏠 Início</a><a href="clothes.html" class="hot">🔥 Novidades</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Minha Conta</div><a href="conta.html">👤 Minha Conta</a><a href="cart.html">🛒 Carrinho</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Contato</div><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
+    nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div><div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+dd+'</div></div>';
   }
   var mob=document.getElementById('mobMenu');
   if(mob){
