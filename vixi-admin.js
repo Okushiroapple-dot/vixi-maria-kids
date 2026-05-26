@@ -17,9 +17,6 @@ let logoTaps = 0, logoTimer;
 
 function ensureAdminShell(){
   if(!document.body) return;
-  if(!document.getElementById('adminTrigger')){
-    document.body.insertAdjacentHTML('beforeend','<button id="adminTrigger" class="visible" title="Area Admin" onclick="openAdminPw()">⚙</button>');
-  }
   if(!document.getElementById('adminPwModal')){
     document.body.insertAdjacentHTML('beforeend',`<div id="adminPwModal">
       <div class="pw-card">
@@ -84,23 +81,19 @@ function ensureAdminShell(){
   }
 }
 
-// ── Secret logo tap ──
+// ── Secret logo tap → goes to admin.html ──
 (function(){
-  ensureAdminShell();
   const logo = document.querySelector('.logo-icon');
   if(logo) logo.addEventListener('click', ()=>{
     logoTaps++;
     clearTimeout(logoTimer);
-    if(logoTaps>=5){ logoTaps=0; showAdminTrigger(); }
+    if(logoTaps>=5){ logoTaps=0; window.location.href='admin.html'; }
     logoTimer = setTimeout(()=>logoTaps=0, 2000);
   });
-  if(location.search.includes('admin')){ showAdminTrigger(); }
 })();
 
 function showAdminTrigger(){
-  ensureAdminShell();
-  document.getElementById('adminTrigger').classList.add('visible');
-  showToast('🔐 Acesso admin liberado!');
+  if(typeof syncAdminNav==='function') syncAdminNav();
 }
 function openAdminPw(){
   ensureAdminShell();
