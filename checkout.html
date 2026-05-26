@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finalizar Compra — Vixi Maria Kids</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -255,6 +258,10 @@
         <div class="co-card" style="position:sticky;top:80px">
           <h3>🛍️ Resumo do pedido</h3>
           <div id="coCartItems"></div>
+          <div id="coFreightRow" style="display:none;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)">
+            <span style="font-size:13px;font-weight:700;color:var(--gray)">🚚 Frete</span>
+            <span id="coFreightVal" style="font-weight:900;font-size:14px;color:var(--ink)">R$ 0,00</span>
+          </div>
           <div class="co-total">
             <strong style="font-family:var(--font-d);font-size:18px;color:var(--ink)">Total</strong>
             <span id="coTotal">R$ 0,00</span>
@@ -337,7 +344,17 @@ async function coFetchCep(){
     document.getElementById('coCidade').value=d.localidade||'';
     document.getElementById('coEstado').value=d.uf||'';
     document.getElementById('coNumero').focus();
-    showToast('Endereço preenchido ✓');
+    var freight = calcFreight(coSubtotal);
+    var total = coSubtotal + freight;
+    var totalEl = document.getElementById('coTotal');
+    var pixEl   = document.getElementById('coPix');
+    if(totalEl) totalEl.textContent = money(total);
+    if(pixEl)   pixEl.textContent   = money(total*0.9);
+    if(freight===0 && cep.startsWith('14')){
+      showToast('Frete grátis para Ribeirão Preto! 🎉');
+    } else {
+      showToast('Endereço preenchido ✓');
+    }
   }catch(e){showToast('Erro ao buscar CEP');}
 }
 
@@ -414,17 +431,44 @@ async function coDoRegister(){
   }
 }
 
+// ── Frete ──
+window.coFreight = 0;
+var coSubtotal = 0;
+
+function calcFreight(subtotal){
+  var cep = document.getElementById('coCep').value.replace(/\D/g,'');
+  var freight = 0;
+  var frRow  = document.getElementById('coFreightRow');
+  var frVal  = document.getElementById('coFreightVal');
+  if(cep.length === 8){
+    var prefix = parseInt(cep.substring(0,5),10);
+    var isRibeiraoPreto = (prefix >= 14001 && prefix <= 14422);
+    if(isRibeiraoPreto){
+      freight = subtotal >= 250 ? 0 : 15;
+    } else {
+      freight = 25;
+    }
+    window.coFreight = freight;
+    if(frRow) frRow.style.display = 'flex';
+    if(frVal) frVal.textContent = freight === 0 ? 'GRÁTIS 🎉' : money(freight);
+  } else {
+    window.coFreight = 0;
+    if(frRow) frRow.style.display = 'none';
+  }
+  return freight;
+}
+
 // ── Render cart summary ──
 function renderCoCart(){
   var items=document.getElementById('coCartItems');
   var totalEl=document.getElementById('coTotal');
   var pixEl=document.getElementById('coPix');
   if(!items)return;
-  var total=0;
+  var subtotal=0;
   var html=cart.map(function(i){
     var p=getProduct(i.id); if(!p)return'';
     var price=Number(p.promo||p.price||0);
-    total+=price*(i.qty||1);
+    subtotal+=price*(i.qty||1);
     var img=p.img
       ?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
       :'<div class="co-item-img-placeholder">🌸</div>';
@@ -438,6 +482,9 @@ function renderCoCart(){
       +'</div>';
   }).join('');
   items.innerHTML=html;
+  coSubtotal = subtotal;
+  var freight = calcFreight(subtotal);
+  var total = subtotal + freight;
   if(totalEl) totalEl.textContent=money(total);
   if(pixEl)   pixEl.textContent=money(total*0.9);
 }
@@ -563,5 +610,6 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>
+<script src="ga.js"></script>
 </body>
 </html>

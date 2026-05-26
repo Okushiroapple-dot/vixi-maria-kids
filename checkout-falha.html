@@ -4,18 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pagamento não concluído — Vixi Maria Kids</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vixi-shared.css">
-<style>
-  .checkout-result{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:48px 24px}
-  .checkout-icon{font-size:80px;margin-bottom:16px}
-  .checkout-result h1{font-family:'Fredoka',sans-serif;font-size:clamp(28px,5vw,42px);color:var(--ink);margin-bottom:12px}
-  .checkout-result p{color:var(--gray);font-size:17px;max-width:480px;line-height:1.6;margin-bottom:32px}
-  .checkout-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-</style>
 </head>
-<body>
+<body style="background:linear-gradient(135deg,#FFF0F6 0%,#fff 50%,#FFF3B0 100%);min-height:100vh;display:flex;flex-direction:column">
 
+<!-- Header simples -->
 <header>
   <div class="hdr">
     <a href="index.html" class="logo">
@@ -28,18 +25,38 @@
   </div>
 </header>
 
-<div class="checkout-result">
-  <div class="checkout-icon">😕</div>
-  <h1>Pagamento não concluído</h1>
-  <p>
-    Não foi possível processar o pagamento.<br>
-    Tente novamente ou finalize pelo WhatsApp — estamos aqui para ajudar!
-  </p>
-  <div class="checkout-actions">
-    <a href="cart.html" class="btn-main">Tentar novamente</a>
-    <a href="https://wa.me/5516991781559" target="_blank" class="btn-ghost">Falar no WhatsApp 💬</a>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px">
+  <div class="checkout-card">
+    <span class="checkout-icon-big">😕</span>
+    <h1 style="color:var(--ink)">Pagamento não concluído</h1>
+    <p>Não se preocupe! Isso acontece às vezes. Veja o que você pode fazer:</p>
+
+    <div style="background:#FFF7F0;border-radius:16px;padding:20px;margin:20px 0;text-align:left;border:1.5px solid #FFE0C0">
+      <div class="checkout-step">
+        <span class="checkout-step-icon">💳</span>
+        <div class="checkout-step-text">Verifique os dados do cartão (número, validade e CVV) e tente novamente.</div>
+      </div>
+      <div class="checkout-step">
+        <span class="checkout-step-icon">💚</span>
+        <div class="checkout-step-text">Experimente pagar com <strong>PIX</strong> — aprovação instantânea e ainda tem 10% de desconto!</div>
+      </div>
+      <div class="checkout-step">
+        <span class="checkout-step-icon">💬</span>
+        <div class="checkout-step-text">Prefere pagar pelo WhatsApp? A Débora te ajuda pessoalmente a finalizar o pedido.</div>
+      </div>
+    </div>
+
+    <div class="checkout-card actions">
+      <a href="cart.html" class="btn-main" style="font-size:15px;padding:14px 24px">🔄 Tentar novamente</a>
+      <a href="https://wa.me/5516991781559?text=Oi+Débora%21+Tive+problema+no+pagamento+e+quero+finalizar+meu+pedido+🌸" target="_blank" class="btn-ghost" style="font-size:15px;padding:14px 24px">💬 Pedir ajuda no WhatsApp</a>
+    </div>
+
+    <p style="margin-top:20px;font-size:12px;color:var(--gray);font-weight:600">
+      Seus itens estão salvos no carrinho. Nenhuma cobrança foi realizada.
+    </p>
   </div>
 </div>
 
+<script src="ga.js"></script>
 </body>
 </html>

@@ -4,10 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Roupas — Vixi Maria Kids</title>
+<meta name="description" content="Explore o catálogo completo da Vixi Maria Kids. Roupas infantis e juvenis para meninas, meninos, bebês e acessórios com os melhores preços em Ribeirão Preto.">
+<meta property="og:title" content="Roupas Infantis — Vixi Maria Kids">
+<meta property="og:description" content="Do RN ao tamanho 20. Meninas, meninos, bebês e juvenil. Frete grátis em Ribeirão Preto acima de R$250.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://vixi-maria-kids-8c494.web.app/og-image.png">
+<meta property="og:url" content="https://vixi-maria-kids-8c494.web.app/clothes.html">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vixi-shared.css">
+<link rel="manifest" href="manifest.json">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://vixi-maria-kids-8c494.web.app/"},{"@type":"ListItem","position":2,"name":"Roupas","item":"https://vixi-maria-kids-8c494.web.app/clothes.html"}]}</script>
 </head>
 <body>
 
@@ -126,6 +136,23 @@
       <a class="sz-btn" onclick="filterSize('16')">16</a>
       <a class="sz-btn" onclick="filterSize('18')">18</a>
       <a class="sz-btn" onclick="filterSize('20')">20</a>
+    </div>
+
+    <!-- Sort + Count bar -->
+    <div class="filter-bar">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="prod-count" id="prodCount"></span>
+        <button class="size-clear-btn" id="clearSizeBtn" onclick="clearSizeFilter()"></button>
+      </div>
+      <label class="sort-wrap">
+        Ordenar:
+        <select class="sort-sel" onchange="sortBy(this.value)">
+          <option value="default">Relevância</option>
+          <option value="price-asc">Menor preço</option>
+          <option value="price-desc">Maior preço</option>
+          <option value="name">A → Z</option>
+        </select>
+      </label>
     </div>
 
     <!-- Product grid -->
@@ -306,5 +333,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>
+<script src="ga.js"></script>
 </body>
 </html>

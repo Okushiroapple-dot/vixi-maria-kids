@@ -413,10 +413,18 @@ function buildAdminExtras(){
   extra.className = 'admin-extra';
   extra.innerHTML = `<div class="admin-extra-tabs">
     <button class="on" data-admin-tab="products">Produtos</button>
+    <button data-admin-tab="orders">📦 Pedidos</button>
     <button data-admin-tab="visual">✏️ Editar Textos</button>
     <button data-admin-tab="categories">Categorias</button>
     <button data-admin-tab="badges">🏷️ Tags</button>
     <button data-admin-tab="backup">💾 Backups</button>
+  </div>
+  <div id="adminOrdersPanel" class="admin-extra-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <p style="font-size:13px;font-weight:700;color:var(--gray);margin:0">Últimos pedidos recebidos na loja</p>
+      <button class="mini-btn soft" onclick="loadAdminOrders()">↺ Atualizar</button>
+    </div>
+    <div id="adminOrdersList" style="display:grid;gap:10px;max-height:380px;overflow-y:auto;padding-right:4px"></div>
   </div>
   <div id="adminBadgesPanel" class="admin-extra-panel">
     <p style="font-size:13px;font-weight:700;color:var(--gray);margin:0 0 14px">Estilo das tags dos produtos</p>
@@ -453,10 +461,12 @@ function buildAdminExtras(){
   extra.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>{
     extra.querySelectorAll('[data-admin-tab]').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
+    document.getElementById('adminOrdersPanel').classList.toggle('on',b.dataset.adminTab==='orders');
     document.getElementById('adminVisual').classList.toggle('on',b.dataset.adminTab==='visual');
     document.getElementById('adminCats').classList.toggle('on',b.dataset.adminTab==='categories');
     document.getElementById('adminBackupPanel').classList.toggle('on',b.dataset.adminTab==='backup');
     document.getElementById('adminBadgesPanel').classList.toggle('on',b.dataset.adminTab==='badges');
+    if(b.dataset.adminTab==='orders') loadAdminOrders();
     if(b.dataset.adminTab==='visual') buildContentEditorFields();
     if(b.dataset.adminTab==='backup') viewBackups();
     if(b.dataset.adminTab==='badges'){
@@ -880,6 +890,57 @@ async function deleteBackupItem(id){
   }catch(e){
     showToast('Erro ao remover backup.');
     console.error('deleteBackupItem error',e);
+  }
+}
+
+// ── Admin Orders ──
+const ORDER_STATUS_LABELS = {
+  pendente:'🕐 Pendente', pago:'✅ Pago', recusado:'❌ Recusado',
+  processando:'⏳ Processando', cancelado:'🚫 Cancelado', estornado:'↩ Estornado'
+};
+const ORDER_STATUS_COLORS = {
+  pendente:'#f59e0b', pago:'#10b981', recusado:'#ef4444',
+  processando:'#6366f1', cancelado:'#6b7280', estornado:'#8b5cf6'
+};
+
+async function loadAdminOrders(){
+  const box = document.getElementById('adminOrdersList');
+  if(!box) return;
+  box.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Carregando pedidos...</p>';
+  if(!window.vixiGetAdminOrders){
+    const ok = await waitFirebase('vixiGetAdminOrders');
+    if(!ok){ box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado. Recarregue a página.</p>'; return; }
+  }
+  try{
+    const orders = await window.vixiGetAdminOrders(80);
+    if(!orders.length){
+      box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum pedido encontrado ainda.</p>';
+      return;
+    }
+    box.innerHTML = orders.map(o=>{
+      const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
+      const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
+      const status = o.status || 'pendente';
+      const color = ORDER_STATUS_COLORS[status] || '#6b7280';
+      const label = ORDER_STATUS_LABELS[status] || status;
+      const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
+      const itens = (o.items||[]).map(i=>`${i.name} (${i.qty}x)`).join(', ');
+      const nome = o.payer?.nome || o.payer?.email || '—';
+      return `<div style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <strong style="font-size:14px;color:var(--ink)">${nome}</strong>
+          <span style="background:${color}22;color:${color};font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">${label}</span>
+        </div>
+        <div style="color:var(--gray);margin-bottom:6px">${itens||'—'}</div>
+        <div style="display:flex;justify-content:space-between;color:var(--gray)">
+          <span>${date}</span>
+          <strong style="color:var(--pink);font-size:15px">${total}</strong>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos 😢</p>';
+    console.error('loadAdminOrders error',e);
   }
 }
 

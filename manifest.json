@@ -1,0 +1,20 @@
+{
+  "name": "Vixi Maria Kids",
+  "short_name": "Vixi Kids",
+  "description": "Moda infantil e juvenil em Ribeirão Preto — do RN ao tamanho 20",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFF0F6",
+  "theme_color": "#F2276E",
+  "lang": "pt-BR",
+  "categories": ["shopping"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

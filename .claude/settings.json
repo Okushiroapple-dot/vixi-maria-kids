@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(firebase *)",
+      "Bash(npm *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}

@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carrinho — Vixi Maria Kids</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vixi-shared.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -273,10 +276,17 @@ function renderCartPage() {
   }).join('');
 
   var pix = total * 0.9;
+  var FREE_SHIP = 250;
+  var remaining = Math.max(0, FREE_SHIP - total);
+  var progress = Math.min(100, (total / FREE_SHIP) * 100);
+  var shipHtml = remaining > 0
+    ? '<div class="ship-progress"><div class="ship-progress-text">Falta <strong>' + money(remaining) + '</strong> para <span class="ship-free">frete grátis em Ribeirão Preto 🚚</span></div><div class="ship-progress-bar"><div class="ship-progress-fill" style="width:' + progress.toFixed(1) + '%"></div></div></div>'
+    : '<div class="ship-progress ship-unlocked">🚚 <strong>Parabéns!</strong> Frete grátis em Ribeirão Preto desbloqueado! 🎉</div>';
   el.innerHTML = '<div class="cart-page-list">' + rows + '</div>'
     + '<div class="cart-page-summary">'
+      + shipHtml
       + '<div class="cart-page-total">Total: <span>' + money(total) + '</span></div>'
-      + '<p style="color:var(--gray);font-size:14px;font-weight:600;margin-bottom:20px">PIX com 10% de desconto: <strong style="color:var(--pink)">' + money(pix) + '</strong></p>'
+      + '<div style="background:#e8fff3;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px;font-weight:700;color:#128c4a">💚 No PIX: <strong style="font-size:16px">' + money(pix) + '</strong> <span style="font-size:12px;font-weight:600;color:#2d8a52">(10% off)</span></div>'
       + '<div style="display:flex;flex-direction:column;gap:12px">'
         + '<button class="btn-main" onclick="openMpCheckoutModal()" style="justify-content:center;font-size:17px;padding:16px 28px;background:var(--pink)">💳 Pagar Online (PIX / Cartão)</button>'
         + '<button class="btn-ghost" onclick="checkoutWhatsApp()" style="justify-content:center;font-size:15px;padding:14px 24px">📲 Finalizar pelo WhatsApp</button>'
@@ -301,5 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>
+<script src="ga.js"></script>
 </body>
 </html>

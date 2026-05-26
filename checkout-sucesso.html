@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagamento confirmado — Vixi Maria Kids</title>
+<title>Pedido confirmado! 🎉 — Vixi Maria Kids</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vixi-shared.css">
-<style>
-  .checkout-result{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:48px 24px}
-  .checkout-icon{font-size:80px;margin-bottom:16px}
-  .checkout-result h1{font-family:'Fredoka',sans-serif;font-size:clamp(28px,5vw,42px);color:var(--ink);margin-bottom:12px}
-  .checkout-result p{color:var(--gray);font-size:17px;max-width:480px;line-height:1.6;margin-bottom:32px}
-  .checkout-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-</style>
 </head>
-<body>
+<body style="background:linear-gradient(135deg,#FFF0F6 0%,#fff 50%,#EEE0FF 100%);min-height:100vh;display:flex;flex-direction:column">
 
-<header>
+<!-- Confetti -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<!-- Header simples -->
+<header style="position:relative;z-index:10">
   <div class="hdr">
     <a href="index.html" class="logo">
       <div class="logo-icon">🌸</div>
@@ -28,23 +28,73 @@
   </div>
 </header>
 
-<div class="checkout-result">
-  <div class="checkout-icon">🎉</div>
-  <h1>Pagamento confirmado!</h1>
-  <p>
-    Seu pedido foi recebido com sucesso.<br>
-    Em breve entraremos em contato pelo WhatsApp para confirmar a entrega.
-  </p>
-  <div class="checkout-actions">
-    <a href="index.html" class="btn-main">Continuar comprando</a>
-    <a href="https://wa.me/5516991781559" target="_blank" class="btn-ghost">Falar no WhatsApp 💬</a>
+<!-- Conteúdo principal -->
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px;position:relative;z-index:1">
+  <div class="checkout-card">
+    <span class="checkout-icon-big">🎉</span>
+    <h1>Pedido confirmado!</h1>
+    <p style="font-size:17px;color:var(--ink-mid);font-weight:600;margin-bottom:16px">
+      Seu pagamento foi aprovado com sucesso! 💖
+    </p>
+
+    <div style="background:var(--pink-pale);border-radius:16px;padding:20px;margin-bottom:24px;text-align:left">
+      <div class="checkout-step">
+        <span class="checkout-step-icon">📦</span>
+        <div class="checkout-step-text">Estamos preparando seu pedido com muito carinho.</div>
+      </div>
+      <div class="checkout-step">
+        <span class="checkout-step-icon">💬</span>
+        <div class="checkout-step-text">Em breve entraremos em contato pelo WhatsApp para confirmar a entrega ou retirada.</div>
+      </div>
+      <div class="checkout-step">
+        <span class="checkout-step-icon">📱</span>
+        <div class="checkout-step-text">Guarde o número <strong>(16) 99178-1559</strong> — é por lá que a Débora vai te chamar.</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:var(--gray);font-weight:600;margin-bottom:4px">
+      Dúvidas? Fale conosco diretamente:
+    </p>
+    <div class="checkout-card actions">
+      <a href="https://wa.me/5516991781559?text=Oi+Débora%21+Quero+saber+sobre+meu+pedido+🌸" target="_blank" class="btn-main" style="font-size:15px;padding:14px 24px">💬 WhatsApp da Débora</a>
+      <a href="clothes.html" class="btn-ghost" style="font-size:15px;padding:14px 24px">Continuar comprando →</a>
+    </div>
+
+    <p style="margin-top:24px;font-size:12px;color:var(--gray);font-weight:600">
+      🌸 Obrigada pela confiança! Vestindo crianças com charme e carinho.
+    </p>
   </div>
 </div>
 
 <script>
-  // Clear cart after successful payment
+  // Clear cart
   localStorage.removeItem('vixiCart');
-</script>
 
+  // GA4 purchase event
+  if(window.gtag){
+    var ref = new URLSearchParams(location.search).get('external_reference') || '';
+    gtag('event','purchase',{transaction_id:ref,currency:'BRL'});
+  }
+
+  // Confetti
+  (function(){
+    var colors = ['#F2276E','#FF8FAB','#FFD43B','#3DD6C3','#B66BFF','#5CC8FF','#FF7A6E'];
+    var wrap = document.getElementById('confettiWrap');
+    for(var i=0;i<80;i++){
+      var d = document.createElement('div');
+      d.className='conf-piece';
+      d.style.left = Math.random()*100+'%';
+      d.style.background = colors[Math.floor(Math.random()*colors.length)];
+      d.style.width = (6+Math.random()*8)+'px';
+      d.style.height = (6+Math.random()*8)+'px';
+      d.style.borderRadius = Math.random()>.5 ? '50%' : '2px';
+      d.style.animationDuration = (2+Math.random()*3)+'s';
+      d.style.animationDelay = (Math.random()*2)+'s';
+      wrap.appendChild(d);
+    }
+    setTimeout(function(){wrap.style.display='none';},6000);
+  })();
+</script>
+<script src="ga.js"></script>
 </body>
 </html>

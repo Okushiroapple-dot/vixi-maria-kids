@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produto — Vixi Maria Kids</title>
+<meta name="description" content="Roupa infantil de qualidade na Vixi Maria Kids. Confira detalhes, tamanhos disponíveis e adicione ao carrinho.">
+<meta property="og:title" content="Vixi Maria Kids — Moda Infantil">
+<meta property="og:description" content="Roupas infantis e juvenis de qualidade. Do RN ao tamanho 20.">
+<meta property="og:type" content="product">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://vixi-maria-kids-8c494.web.app/og-image.png">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -96,6 +104,14 @@
     </div>
   </div>
 </div>
+
+<!-- Recently Viewed -->
+<section class="recent-section" id="recentSection" style="display:none">
+  <div class="wrap">
+    <div class="recent-title">👀 Vistos recentemente</div>
+    <div class="recent-grid" id="recentGrid"></div>
+  </div>
+</section>
 
 <!-- Related Products -->
 <section class="section related-section" id="relatedSection" style="display:none">
@@ -232,12 +248,34 @@
   </div>
 </div>
 
+<!-- Sticky Mobile Buy Bar -->
+<div class="sticky-buy" id="stickyBuy">
+  <div class="sb-info">
+    <span class="sb-old" id="sbOld" style="display:none"></span>
+    <div class="sb-price" id="sbPrice"></div>
+    <span class="sb-pix" id="sbPix"></span>
+  </div>
+  <button class="sb-btn" id="sbBtn" type="button">🛍️ Adicionar ao carrinho</button>
+</div>
+
 <!-- Scripts -->
 <script src="vixi-products.js"></script>
 <script src="vixi-core.js"></script>
 <script src="vixi-admin.js"></script>
 <script>
 var _selectedSize = null;
+
+function shareProductWhatsApp(id){
+  var p = getProduct(id);
+  if(!p) return;
+  var pageUrl = window.location.origin + '/product.html?id=' + id;
+  var msg = encodeURIComponent(
+    'Olha que lindo! 😍\n\n*' + p.name + '*\n' +
+    money(p.price) + '\n\n' +
+    'Vi na Vixi Maria Kids 🌸\n' + pageUrl
+  );
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
 
 function selectDetailSize(btn, size){
   document.querySelectorAll('.product-detail-size-btn').forEach(function(b){ b.classList.remove('selected'); });
@@ -254,6 +292,24 @@ function addProductToCart(id){
   }
   addCart(id, null);
   renderCart();
+}
+
+function initStickyBuy(p){
+  var bar=document.getElementById('stickyBuy');
+  if(!bar)return;
+  document.getElementById('sbPrice').textContent=money(p.price);
+  var sbOld=document.getElementById('sbOld');
+  if(p.old&&sbOld){sbOld.textContent=money(p.old);sbOld.style.display='';}
+  var sbPix=document.getElementById('sbPix');
+  if(sbPix)sbPix.textContent='PIX '+money(Math.round(p.price*.9*100)/100);
+  document.getElementById('sbBtn').onclick=function(){addProductToCart(p.id);};
+  var trigger=document.querySelector('.product-detail-actions');
+  if(!trigger)return;
+  if(window._stickyIO)window._stickyIO.disconnect();
+  window._stickyIO=new IntersectionObserver(function(entries){
+    bar.classList.toggle('show',!entries[0].isIntersecting);
+  },{threshold:0,rootMargin:'0px 0px -60px 0px'});
+  window._stickyIO.observe(trigger);
 }
 
 function renderProduct(){
@@ -284,7 +340,7 @@ function renderProduct(){
     return '<button class="product-detail-size-btn" onclick="selectDetailSize(this,\'' + escapeHtml(s) + '\')">' + escapeHtml(s) + '</button>';
   }).join('');
   var descHtml = '<p class="product-detail-desc" data-edit-product="' + p.id + '" data-edit-field="desc">' + escapeHtml(p.desc || '') + '</p>';
-  var badgeHtml = p.badge ? '<span class="pbadge ' + (p.badge==='FAV'?'fav':String(p.badge).includes('%')?'off':'novo') + '" style="position:static;display:inline-block;margin-bottom:8px">' + escapeHtml(p.badge) + '</span>' : '';
+  var badgeHtml = p.badge && p.badge!=='FAV' ? '<span class="pbadge ' + (String(p.badge).includes('%')?'off':'novo') + '" style="position:static;display:inline-flex;margin-bottom:8px">' + (p.badge==='NOVO'?'✨ Novo!':String(p.badge).includes('%')?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)) + '</span>' : '';
 
   document.getElementById('productDetailWrap').innerHTML =
     '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" data-edit-product="' + p.id + '" data-edit-field="img"></div>' +
@@ -299,9 +355,26 @@ function renderProduct(){
         '<button class="btn-main" onclick="addProductToCart(\'' + p.id + '\')">🛍️ Adicionar ao carrinho</button>' +
         '<button class="product-detail-fav-btn ' + (liked?'liked':'') + '" onclick="toggleFav(\'' + p.id + '\',this,event)" id="detailFavBtn">' + (liked?'❤️':'🤍') + '</button>' +
       '</div>' +
-      '<p style="font-size:13px;color:var(--gray);font-weight:600">💖 PIX com 10% · 3× sem juros · Frete grátis acima R$250 em RP</p>' +
+      '<button class="btn-ghost" onclick="shareProductWhatsApp(\'' + p.id + '\')" style="width:100%;justify-content:center;margin-top:10px;font-size:14px;padding:12px">📲 Compartilhar no WhatsApp</button>' +
+      '<div style="display:flex;align-items:center;gap:10px;background:#e8fff3;border:1.5px solid #b2f5d4;border-radius:12px;padding:11px 14px;margin-bottom:10px">' +
+        '<span style="font-size:22px">💚</span>' +
+        '<div><div style="font-size:14px;font-weight:700;color:#128c4a">No PIX: <strong style="font-size:17px">' + money(Math.round(p.price*.9*100)/100) + '</strong></div>' +
+        '<div style="font-size:11px;color:#2d8a52;font-weight:600">10% de desconto à vista</div></div>' +
+      '</div>' +
+      '<p style="font-size:13px;color:var(--gray);font-weight:600">💳 3× sem juros no cartão · 🚚 Frete grátis acima R$250 em RP</p>' +
       '<p style="font-size:13px;color:var(--gray);font-weight:600">💬 Dúvidas? <a href="https://wa.me/5516991781559" target="_blank" style="color:var(--pink)">Fale com a Débora no WhatsApp</a></p>' +
     '</div>';
+
+  // JSON-LD Product structured data
+  (function(){
+    var ld=document.getElementById('productLd');
+    if(!ld){ld=document.createElement('script');ld.type='application/ld+json';ld.id='productLd';document.head.appendChild(ld);}
+    var imgUrl=p.img&&!p.img.startsWith('data:')?p.img:undefined;
+    ld.textContent=JSON.stringify({'@context':'https://schema.org','@type':'Product','name':p.name,'description':p.desc||p.name,'image':imgUrl,'brand':{'@type':'Brand','name':'Vixi Maria Kids'},'offers':{'@type':'Offer','price':Number(p.price).toFixed(2),'priceCurrency':'BRL','availability':'https://schema.org/InStock','seller':{'@type':'Organization','name':'Vixi Maria Kids'}}});
+  })();
+
+  // Sticky buy bar
+  initStickyBuy(p);
 
   // Related products
   var related = PRODS.filter(function(x){ return x.cat === p.cat && x.id !== p.id; }).slice(0,4);
@@ -328,9 +401,38 @@ function renderProduct(){
   }
 }
 
+function renderRecentlyViewed(currentId){
+  var rv=JSON.parse(localStorage.getItem('vixiRecentlyViewed')||'[]');
+  var list=rv.filter(function(id){return id!==currentId;}).map(getProduct).filter(Boolean).slice(0,4);
+  if(!list.length) return;
+  document.getElementById('recentSection').style.display='';
+  document.getElementById('recentGrid').innerHTML=list.map(function(p){
+    var liked=window.favorites&&window.favorites.includes(p.id);
+    return '<article class="prod-card" onclick="window.location.href=\'product.html?id='+p.id+'\'" style="cursor:pointer">'
+      +'<div class="prod-img-wrap">'
+        +(p.badge&&p.badge!=='FAV'?'<span class="pbadge '+(String(p.badge).includes('%')?'off':'novo')+'">'+(p.badge==='NOVO'?'Novo!':escapeHtml(p.badge))+'</span>':'')
+        +'<button class="fav-btn '+(liked?'liked':'')+'" onclick="toggleFav(\''+p.id+'\',this,event)">'+(liked?'❤️':'🤍')+'</button>'
+        +'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+      +'</div>'
+      +'<div class="prod-info">'
+        +'<div class="prod-cat">'+getCatLabel(p.cat)+'</div>'
+        +'<h4 class="prod-name">'+escapeHtml(p.name)+'</h4>'
+        +'<div class="prod-foot"><div class="prod-price">'
+          +(p.old?'<span class="pold">'+money(p.old)+'</span>':'')
+          +'<span class="pnew">'+money(p.price)+'</span>'
+          +'<span class="pix-price">PIX '+money(Math.round(p.price*.9*100)/100)+'</span>'
+        +'</div><button class="padd" onclick="addCart(\''+p.id+'\',event)">+</button></div>'
+      +'</div>'
+    +'</article>';
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   syncCategoriesUI();
   renderProduct();
+  // Render recently viewed
+  var params2=new URLSearchParams(location.search);
+  renderRecentlyViewed(params2.get('id')||'');
   // Re-render after Firebase sync (products may have just loaded)
   var origRender = window.renderProds;
   window.renderProds = function(f){
@@ -341,5 +443,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>
+<script src="ga.js"></script>
 </body>
 </html>

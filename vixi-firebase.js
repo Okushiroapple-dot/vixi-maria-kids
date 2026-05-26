@@ -31,6 +31,7 @@ import {
   query,
   orderBy,
   limit,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -230,6 +231,34 @@ window.vixiLoadOrders = async function(uid) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
+// ── Admin: all orders ──────────────────────────
+window.vixiGetAdminOrders = async function(limitCount = 80) {
+  try {
+    const q = query(
+      collection(db, 'orders'),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('vixiGetAdminOrders error', e);
+    return [];
+  }
+};
+
+// ── Newsletter subscribe ───────────────────────
+window.vixiSubscribeNewsletter = async function(email) {
+  if (!email || !email.includes('@')) throw new Error('E-mail inválido');
+  const normalized = email.trim().toLowerCase();
+  // Use email as doc ID to prevent duplicates
+  const docRef = doc(db, 'newsletter', normalized.replace(/[^a-z0-9]/g, '_'));
+  const snap = await getDoc(docRef);
+  if (snap.exists()) return 'ja_inscrito';
+  await setDoc(docRef, { email: normalized, subscribedAt: serverTimestamp() });
+  return 'ok';
+};
+
 // ── Auth state observer ────────────────────────
 onAuthStateChanged(auth, function(user) {
   window.currentUser = user || null;
@@ -238,5 +267,9 @@ onAuthStateChanged(auth, function(user) {
   }
   if (typeof window.onAuthStateChange === 'function') {
     window.onAuthStateChange(user || null);
+  }
+  // Auto-show admin trigger when admin account is logged in
+  if (user && user.email === 'viximariakids@viximariakids.com') {
+    if (typeof window.showAdminTrigger === 'function') window.showAdminTrigger();
   }
 });

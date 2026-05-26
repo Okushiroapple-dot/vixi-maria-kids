@@ -129,6 +129,7 @@ let cart = JSON.parse(localStorage.getItem('vixiCart')||'[]');
 let activeSizeFilter = null;
 let currentFilter = 'all';
 let visibleCount = 12;
+let currentSort = 'default';
 
 // ── Utilities ──
 function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
@@ -344,7 +345,8 @@ function renderCart(){
     total+=Number(p.price)*i.qty;
     return `<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}"><div><h4>${escapeHtml(p.name)}</h4><p>${money(p.price)} × ${i.qty}</p></div><div class="store-actions"><button class="store-mini light" onclick="changeQty('${i.id}',-1)">−</button><strong>${i.qty}</strong><button class="store-mini light" onclick="changeQty('${i.id}',1)">+</button><button class="store-mini" onclick="removeCart('${i.id}')">Remover</button></div></div>`;
   }).join('')||'<div class="empty-state">Seu carrinho está vazio.</div>';
-  const ct=document.getElementById('cartTotal'); if(ct) ct.textContent='Total: '+money(total);
+  const ct=document.getElementById('cartTotal');
+  if(ct) ct.innerHTML='<span>Total: <strong>'+money(total)+'</strong></span><span class="cart-pix-badge">PIX: '+money(Math.round(total*.9*100)/100)+'</span>';
 }
 
 // ── Favorites ──
@@ -362,7 +364,7 @@ function toggleFav(idOrBtn,btn,e){
 function renderFavs(){
   const box=document.getElementById('favResults'); if(!box)return;
   const list=favorites.map(getProduct).filter(Boolean);
-  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)}</p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">Adicionar</button><button class="store-mini light" onclick="toggleFav('${p.id}');renderFavs()">Remover</button></div></div>`).join('')||'<div class="empty-state">Você ainda não favoritou nenhum produto.</div>';
+  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state"><div style="font-size:48px;margin-bottom:8px">🤍</div>Você ainda não favoritou nenhum produto.</div>';
 }
 
 // ── Search ──
@@ -375,7 +377,7 @@ function runSearch(){
   if(!box) return;
   if(!q){box.innerHTML='<div class="empty-state">Digite algo para buscar.</div>';return;}
   const list = PRODS.filter(p=>foldText([p.name,p.desc,p.badge,p.cl,getCatLabel(p.cat),p.cat,(p.sizes||[]).join(' ')].join(' ')).includes(q)).slice(0,20);
-  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)}</p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">Carrinho</button><button class="store-mini light" onclick="toggleFav('${p.id}')">Favoritar</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado.</div>';
+  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado para "<em>'+escapeHtml(q)+'</em>".</div>';
 }
 
 // ── CPF encryption (AES-GCM + PBKDF2) ──
@@ -432,6 +434,7 @@ function syncHeaderAuth(user){
         +'<a class="acct-item" href="conta.html#favoritos">❤️ Meus Favoritos</a>'
         +'<a class="acct-item" href="conta.html#carrinho">🛒 Meu Carrinho</a>'
         +'<div class="acct-sep"></div>'
+        +(user.email==='viximariakids@viximariakids.com'?'<a class="acct-item" href="admin.html" style="color:var(--pink);font-weight:900">⚙️ Painel Admin</a>':'')
         +'<button class="acct-item" style="color:#c0392b" onclick="window.vixiLogout&&window.vixiLogout()">Sair da conta</button>'
       +'</div>';
     var toggle=document.getElementById('acctToggle');
@@ -467,6 +470,9 @@ async function submitMpCheckout(payerData){
       if(!p) return null;
       return { id: i.id, name: p.name, qty: i.qty || 1, price: Number(p.promo || p.price || 0) };
     }).filter(Boolean);
+    if(window.coFreight > 0){
+      items.push({ id: 'frete', name: 'Frete', qty: 1, price: Number(window.coFreight) });
+    }
 
     var res = await fetch(MP_FUNCTION_URL, {
       method: 'POST',
@@ -492,37 +498,57 @@ async function submitMpCheckout(payerData){
 function filterCategory(cat){
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f===cat));
   visibleCount=12; activeSizeFilter=null; renderProds(cat);
+  document.getElementById('colecao')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function filterSize(sz){
   activeSizeFilter=sz;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all'));
   visibleCount=12;
   renderProds('all');
+  var cb=document.getElementById('clearSizeBtn');
+  if(cb){cb.classList.add('show');cb.textContent='✕ Tamanho: '+sz;}
   document.getElementById('colecao')?.scrollIntoView({behavior:'smooth'});
   showToast(`Mostrando tamanho ${sz} 📏`);
 }
+function clearSizeFilter(){
+  activeSizeFilter=null;
+  visibleCount=12;
+  var cb=document.getElementById('clearSizeBtn');
+  if(cb) cb.classList.remove('show');
+  renderProds(currentFilter||'all');
+  showToast('Filtro de tamanho removido');
+}
+window.clearSizeFilter=clearSizeFilter;
 function loadMore(){visibleCount+=8;renderProds(document.querySelector('.tab.on')?.dataset.f||'all');}
+function sortBy(val){currentSort=val;visibleCount=12;renderProds(currentFilter||'all');}
+window.sortBy=sortBy;
 
 function renderProds(filter='all'){
   currentFilter=filter;
   const grid=document.getElementById('prodGrid'); if(!grid) return;
   let list=PRODS.filter(p=>filter==='all'||p.cat===filter);
   if(activeSizeFilter) list=list.filter(p=>(p.sizes||[]).includes(activeSizeFilter));
+  if(currentSort==='price-asc') list=[...list].sort((a,b)=>a.price-b.price);
+  else if(currentSort==='price-desc') list=[...list].sort((a,b)=>b.price-a.price);
+  else if(currentSort==='name') list=[...list].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+  var countEl=document.getElementById('prodCount');
+  if(countEl) countEl.textContent=list.length+' produto'+(list.length!==1?'s':'');
   const show=list.slice(0,visibleCount);
   grid.innerHTML=show.map(p=>{
     const liked=favorites.includes(p.id);
     return `<article class="prod-card" data-cat="${p.cat}" onclick="window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="prod-img-wrap">
-        ${(p.badge&&p.badge!=='FAV')?`<span class="pbadge ${String(p.badge).includes('%')?'off':'novo'}">${p.badge==='NOVO'?'Novo!':escapeHtml(p.badge)}</span>`:''}
+        ${(p.badge&&p.badge!=='FAV')?`<span class="pbadge ${String(p.badge).includes('%')?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':String(p.badge).includes('%')?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)}</span>`:''}
         <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
         <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" data-edit-product="${p.id}" data-edit-field="img"/>
+        <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="event.stopPropagation()">Ver produto →</a>
       </div>
       <div class="prod-info">
         <div class="prod-cat">${getCatLabel(p.cat)}</div>
         <h4 class="prod-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</h4>
         <p class="prod-desc" data-edit-product="${p.id}" data-edit-field="desc">${escapeHtml(p.desc||'')}</p>
         <div class="prod-sizes">${(p.sizes||[]).map(s=>`<span class="psz" onclick="selectSize(this)">${escapeHtml(s)}</span>`).join('')}</div>
-        <div class="prod-foot"><div class="prod-price">${p.old?`<span class="pold">${money(p.old)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
+        <div class="prod-foot"><div class="prod-price">${p.old?`<span class="pold">${money(p.old)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
       </div>
     </article>`;
   }).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';
@@ -570,6 +596,40 @@ function showToast(msg){
   tt=setTimeout(()=>t.classList.remove('on'),2600);
 }
 
+// ── Back-to-top button ──
+function initBackToTop(){
+  var btn=document.createElement('button');
+  btn.className='back-to-top';
+  btn.setAttribute('aria-label','Voltar ao topo');
+  btn.textContent='↑';
+  document.body.appendChild(btn);
+  window.addEventListener('scroll',function(){
+    btn.classList.toggle('show',window.scrollY>400);
+  },{passive:true});
+  btn.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+}
+
+// ── LGPD cookie consent banner ──
+function initLgpd(){
+  if(localStorage.getItem('vixiLgpdOk')) return;
+  var bar=document.createElement('div');
+  bar.className='lgpd-bar';
+  bar.innerHTML='<p>🍪 Usamos cookies para melhorar sua experiência de compra. Ao continuar, você concorda com nossa <a href="#">Política de Privacidade</a> (LGPD).</p>'
+    +'<div class="lgpd-bar-btns">'
+    +'<button class="lgpd-btn-ess" onclick="this.closest(\'.lgpd-bar\').classList.remove(\'show\');setTimeout(()=>this.closest(\'.lgpd-bar\').remove(),400)">Só essenciais</button>'
+    +'<button class="lgpd-btn-ok" onclick="acceptLgpd(this)">Aceitar tudo ✓</button>'
+    +'</div>';
+  document.body.appendChild(bar);
+  setTimeout(function(){bar.classList.add('show');},600);
+}
+function acceptLgpd(btn){
+  localStorage.setItem('vixiLgpdOk','1');
+  var bar=btn.closest('.lgpd-bar');
+  bar.classList.remove('show');
+  setTimeout(function(){bar.remove();},400);
+}
+window.acceptLgpd=acceptLgpd;
+
 // ── Size select (visual feedback on product cards) ──
 function selectSize(el){
   const container=el.closest('.prod-sizes');
@@ -604,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if(typeof loadContent==='function')loadContent();
   if(typeof applyProductImages==='function')applyProductImages();
   var sb=document.getElementById('searchBtn');
-  if(sb)sb.addEventListener('click',function(){openStoreModal('searchModal');});
+  if(sb)sb.addEventListener('click',function(){openStoreModal('searchModal');setTimeout(function(){var si=document.getElementById('searchInput');if(si)si.focus();},80);});
   var fb=document.getElementById('favBtn');
   if(fb)fb.addEventListener('click',function(){renderFavs();openStoreModal('favModal');});
   var cb=document.getElementById('cartBtn');
@@ -628,6 +688,58 @@ document.addEventListener('DOMContentLoaded', function(){
       e.preventDefault();
     }
   });
+  // Keyboard shortcuts: Escape closes modals; 's' opens search
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      document.querySelectorAll('.store-modal.open').forEach(function(m){m.classList.remove('open');});
+      var mob=document.getElementById('mobMenu');
+      if(mob&&mob.classList.contains('open'))closeMob();
+      return;
+    }
+    var tag=(document.activeElement||{}).tagName||'';
+    if(e.key==='s'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){
+      e.preventDefault();
+      openStoreModal('searchModal');
+      setTimeout(function(){var si=document.getElementById('searchInput');if(si){si.value='';si.focus();}},80);
+    }
+  });
+  // Image load error: show pink placeholder
+  document.addEventListener('error',function(e){
+    var img=e.target;
+    if(img.tagName==='IMG'&&!img.dataset.errHandled&&img.src&&!img.src.startsWith('data:')){
+      img.dataset.errHandled='1';
+      img.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FFF0F6'/%3E%3Ctext x='100' y='115' text-anchor='middle' font-size='80'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E";
+      img.style.objectFit='contain';
+    }
+  },true);
+  // Cart badge pop animation on add
+  var _origSaveCart=window.saveCart;
+  window.saveCart=function(){
+    if(typeof _origSaveCart==='function')_origSaveCart();
+    var b=document.getElementById('cartBadge');
+    if(b){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');setTimeout(function(){b.classList.remove('pop');},400);}
+  };
+  // Inject PWA manifest link
+  if(!document.querySelector('link[rel="manifest"]')){
+    var ml=document.createElement('link');ml.rel='manifest';ml.href='manifest.json';document.head.appendChild(ml);
+  }
+  // Inject theme-color for mobile browser UI
+  if(!document.querySelector('meta[name="theme-color"]')){
+    var tc=document.createElement('meta');tc.name='theme-color';tc.content='#F2276E';document.head.appendChild(tc);
+  }
+  // Init global enhancements
+  initBackToTop();
+  initLgpd();
+  // Track page view in recently viewed (product pages only)
+  if(location.pathname.includes('product.html')){
+    var pid=new URLSearchParams(location.search).get('id');
+    if(pid){
+      var rv=JSON.parse(localStorage.getItem('vixiRecentlyViewed')||'[]');
+      rv=rv.filter(function(x){return x!==pid;});
+      rv.unshift(pid);
+      localStorage.setItem('vixiRecentlyViewed',JSON.stringify(rv.slice(0,8)));
+    }
+  }
 });
 
 // ── Window exports ──
