@@ -162,6 +162,8 @@ function openAdmin(){
     liveProducts = liveProducts.filter(p=>!deleted.includes(p.id));
   }catch(e){}
   window.liveProducts = liveProducts;
+  var loginBg = document.getElementById('adminLoginBg');
+  if (loginBg) loginBg.style.display = 'none';
   document.getElementById('adminDash').classList.add('open');
   updateStats();
   renderAdminGrid();
