@@ -443,8 +443,38 @@ function syncHeaderAuth(user){
       document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.classList.remove('open');},{once:false});
     }
   }
+  if(typeof syncAdminNav==='function') syncAdminNav();
 }
 window.syncHeaderAuth=syncHeaderAuth;
+
+// ── Admin nav dropdown (all pages when admin is logged in) ──
+function syncAdminNav(){
+  var nav=document.querySelector('header nav');
+  if(!nav) return;
+  nav.querySelector('.nav-admin-dd')?.remove();
+  if(window.currentUser?.email!=='viximariakids@viximariakids.com') return;
+  var items=[
+    ['admin.html','📦','Produtos'],
+    ['admin.html?sec=add','➕','Adicionar'],
+    ['admin.html?sec=categories','🗂️','Categorias'],
+    ['admin.html?sec=visual','🎨','Editar Página'],
+    ['admin.html?sec=orders','📊','Pedidos'],
+    ['admin.html?sec=backup','💾','Backups'],
+  ];
+  var links=items.map(function(i){return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>';}).join('');
+  var html='<div class="nav-dd nav-admin-dd"><button class="nav-dd-btn nav-admin-btn" type="button">⚙️ Admin ▾</button><div class="nav-dd-menu">'+links+'</div></div>';
+  var roupasDD=nav.querySelector('.nav-dd');
+  if(roupasDD) roupasDD.insertAdjacentHTML('afterend',html);
+  else nav.insertAdjacentHTML('beforeend',html);
+  var dd=nav.querySelector('.nav-admin-dd');
+  if(dd){
+    dd.addEventListener('mouseenter',function(){dd.classList.add('open');});
+    dd.addEventListener('mouseleave',function(){dd.classList.remove('open');});
+    var btn=dd.querySelector('.nav-dd-btn');
+    if(btn) btn.addEventListener('click',function(){dd.classList.toggle('open');});
+  }
+}
+window.syncAdminNav=syncAdminNav;
 
 // ── checkoutWhatsApp ──
 function checkoutWhatsApp(){
@@ -583,6 +613,7 @@ function syncCategoriesUI(){
   }
   var sel=document.getElementById('admCat');
   if(sel){sel.innerHTML=cats.map(function(c){return '<option value="'+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</option>';}).join('');}
+  if(typeof syncAdminNav==='function') syncAdminNav();
 }
 
 // ── Toast ──

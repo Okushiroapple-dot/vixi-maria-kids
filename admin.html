@@ -14,9 +14,11 @@
 <style>
 body{background:#f5eff3;min-height:100vh}
 
-/* ── LOGIN ── */
-.adm-login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFF0F6 0%,#fff 55%,#F0EAFF 100%)}
-.adm-login-screen .pw-card{box-shadow:0 16px 60px rgba(242,39,110,.13)}
+/* ── LOADING ── */
+#admLoadingScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFF0F6 0%,#fff 55%,#F0EAFF 100%);z-index:999;flex-direction:column;gap:14px}
+#admLoadingScreen .spin{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--pink);border-radius:50%;animation:spinA .8s linear infinite}
+@keyframes spinA{to{transform:rotate(360deg)}}
+#admLoadingScreen p{font-family:var(--font-b);font-weight:700;color:var(--gray);font-size:14px}
 
 /* ── DASHBOARD ── */
 #adminDash{display:none;min-height:100vh;flex-direction:column}
@@ -78,22 +80,10 @@ body{background:#f5eff3;min-height:100vh}
 
 <div class="toast" id="toast">🌸 <span id="toastMsg">Pronto!</span></div>
 
-<!-- ── LOGIN SCREEN ── -->
-<div class="adm-login-screen" id="adminLoginBg">
-  <div id="adminPwModal" class="open">
-    <div class="pw-card">
-      <div class="pw-logo">🌸</div>
-      <div class="pw-title">Área da Débora</div>
-      <div class="pw-sub">Faça login para gerenciar a loja</div>
-      <input class="pw-input" type="text" id="adminUser" placeholder="Usuário" autocomplete="username"
-        onkeydown="if(event.key==='Enter')document.getElementById('adminPass').focus()">
-      <input class="pw-input" type="password" id="adminPass" placeholder="Senha" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')checkAdminLogin()" style="margin-top:10px">
-      <p class="pw-err" id="pwErr" style="display:none">Usuário ou senha incorretos.</p>
-      <button class="pw-btn" onclick="checkAdminLogin()">Entrar 🌸</button>
-      <button class="pw-cancel" onclick="window.location.href='index.html'">← Voltar à loja</button>
-    </div>
-  </div>
+<!-- ── LOADING SCREEN ── -->
+<div id="admLoadingScreen">
+  <div class="spin"></div>
+  <p>Verificando acesso...</p>
 </div>
 
 <!-- ── ADMIN DASHBOARD ── -->
@@ -177,6 +167,7 @@ body{background:#f5eff3;min-height:100vh}
             <option value="-50%">🔥 -50%</option>
           </select>
         </div>
+        <div class="adm-field"><span class="adm-label">📝 Descrição</span><textarea class="adm-input" id="admDescNew" placeholder="Descreva o produto..." rows="3" style="resize:vertical;min-height:72px"></textarea></div>
         <div class="adm-field"><span class="adm-label">📏 Tamanhos disponíveis</span><div class="adm-sizes-grid" id="sizesGridNew"></div></div>
         <div class="adm-modal-btns" style="margin-top:20px">
           <button class="adm-cancel-btn" onclick="switchAdmSection('products')">Cancelar</button>
@@ -275,7 +266,6 @@ body{background:#f5eff3;min-height:100vh}
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
           <button class="mini-btn primary" onclick="createBackupNow()">💾 Criar backup agora</button>
           <button class="mini-btn soft" onclick="viewBackups()">📋 Ver backups</button>
-          <button class="mini-btn" onclick="exportSite()">⬇️ Baixar site</button>
         </div>
         <div id="backupList" style="display:grid;gap:8px;max-height:320px;overflow-y:auto"></div>
       </div>
@@ -323,6 +313,7 @@ body{background:#f5eff3;min-height:100vh}
         <option value="-50%">🔥 -50%</option>
       </select>
     </div>
+    <div class="adm-field"><span class="adm-label">📝 Descrição</span><textarea class="adm-input" id="admDesc" placeholder="Descreva o produto..." rows="3" style="resize:vertical;min-height:72px"></textarea></div>
     <div class="adm-field"><span class="adm-label">📏 Tamanhos</span><div class="adm-sizes-grid" id="sizesGrid"></div></div>
     <div class="adm-modal-btns">
       <button class="adm-cancel-btn" onclick="closeAdmModal()">Cancelar</button>
@@ -418,6 +409,7 @@ function initAddNew() {
   document.getElementById('admPriceNew').value = '';
   document.getElementById('admOldNew').value = '';
   document.getElementById('admBadgeNew').value = '';
+  var dn = document.getElementById('admDescNew'); if (dn) dn.value = '';
   document.getElementById('photoPreviewNew').src = '';
   document.getElementById('photoUploadAreaNew').classList.remove('has-img');
   // Populate categories
@@ -464,6 +456,8 @@ function saveProductNew() {
   var cat = document.getElementById('admCatNew').value;
   var old = parseFloat(document.getElementById('admOldNew').value) || null;
   var badge = document.getElementById('admBadgeNew').value || null;
+  var descNewEl = document.getElementById('admDescNew');
+  var desc = descNewEl ? descNewEl.value.trim() : '';
   var sizes = (typeof ADM_SIZES_ALL !== 'undefined' ? ADM_SIZES_ALL : []).filter(function(sz){
     var el = document.getElementById('szN_' + sz); return el && el.checked;
   });
@@ -476,7 +470,7 @@ function saveProductNew() {
   liveProducts.push({
     id: newId, name, cat,
     cl: typeof getCatLabel === 'function' ? getCatLabel(cat) : cat,
-    price, old, badge, sizes, img: _newPhotoB64
+    price, old, badge, sizes, desc, img: _newPhotoB64
   });
   if (typeof saveToStorage === 'function') saveToStorage();
   PRODS.length = 0;
@@ -491,23 +485,16 @@ function saveProductNew() {
   switchAdmSection('products');
 }
 
-// ── Override login/dash open/close ──
+// ── Admin page: Firebase auth gated, no password ──
 var ADMIN_EMAIL_PAGE = 'viximariakids@viximariakids.com';
-
-window.openAdminPw = function() {
-  document.getElementById('adminLoginBg').style.display = 'flex';
-  document.getElementById('adminPwModal').classList.add('open');
-  setTimeout(function(){ var u = document.getElementById('adminUser'); if (u) u.focus(); }, 300);
-};
-
-window.closeAdminPw = function() {
-  document.getElementById('adminPwModal').classList.remove('open');
-};
 
 var _origOpen = window.openAdmin;
 window.openAdmin = function() {
-  document.getElementById('adminLoginBg').style.display = 'none';
+  document.getElementById('admLoadingScreen').style.display = 'none';
   if (typeof _origOpen === 'function') _origOpen();
+  // Handle ?sec= URL param
+  var sec = new URLSearchParams(window.location.search).get('sec');
+  if (sec) setTimeout(function(){ switchAdmSection(sec); }, 200);
   setTimeout(refreshBadgeBtns, 500);
 };
 
@@ -516,21 +503,23 @@ window.closeAdmin = function() {
   window.location.href = 'index.html';
 };
 
-// If already logged in as admin, skip login screen
+// Firebase auth → open or redirect
 window.onAuthStateChange = function(user) {
   if (user && user.email === ADMIN_EMAIL_PAGE) {
     sessionStorage.setItem('vixiAdminLogged', '1');
     openAdmin();
+  } else {
+    sessionStorage.removeItem('vixiAdminLogged');
+    window.location.href = 'index.html';
   }
 };
 
 document.addEventListener('DOMContentLoaded', function(){
-  // If already confirmed this session, open immediately
+  // If session already confirmed and Firebase user matches, open right away
   if (sessionStorage.getItem('vixiAdminLogged') === '1' && window.currentUser?.email === ADMIN_EMAIL_PAGE) {
     openAdmin();
-  } else {
-    openAdminPw();
   }
+  // Otherwise wait for onAuthStateChange — it will open or redirect
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>

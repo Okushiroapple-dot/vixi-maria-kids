@@ -211,8 +211,26 @@ function renderAdminGrid(){
   const q=(document.getElementById('admSearchInput')?.value||'').toLowerCase();
   const list=liveProducts.filter(p=>!q||p.name.toLowerCase().includes(q)||(getCatLabel?getCatLabel(p.cat):p.cl||'').toLowerCase().includes(q));
   const grid=document.getElementById('adminGrid'); if(!grid)return;
-  grid.innerHTML=list.map(p=>`<div class="adm-pcard">${p.badge?`<div class="apc-badge">${p.badge}</div>`:''}<img src="${p.img}" alt="${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}" loading="lazy"/><div class="apc-body"><div class="apc-cat">${typeof getCatIcon==='function'?getCatIcon(p.cat):''} ${typeof getCatLabel==='function'?getCatLabel(p.cat):p.cl||p.cat}</div><div class="apc-name">${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}</div><div class="apc-price">${typeof money==='function'?money(p.price):'R$ '+Number(p.price).toFixed(2)}</div><div class="apc-btns"><button class="apc-btn edit" onclick="openEditModal('${p.id}')">✏️ Editar</button><button class="apc-btn del" onclick="confirmDelete('${p.id}')">🗑️</button></div></div></div>`).join('')||'<p style="color:var(--gray);font-weight:600;grid-column:1/-1;text-align:center;padding:40px 0">Nenhum produto encontrado 🔍</p>';
+  grid.innerHTML=list.map((p,i)=>`<div class="adm-pcard" data-id="${p.id}">${p.badge?`<div class="apc-badge">${p.badge}</div>`:''}<img src="${p.img}" alt="${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}" loading="lazy"/><div class="apc-body"><div class="apc-cat">${typeof getCatIcon==='function'?getCatIcon(p.cat):''} ${typeof getCatLabel==='function'?getCatLabel(p.cat):p.cl||p.cat}</div><div class="apc-name">${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}</div><div class="apc-price">${typeof money==='function'?money(p.price):'R$ '+Number(p.price).toFixed(2)}</div><div class="apc-btns"><button class="apc-btn move" onclick="moveProduct('${p.id}',-1)" title="Mover para cima">↑</button><button class="apc-btn move" onclick="moveProduct('${p.id}',1)" title="Mover para baixo">↓</button><button class="apc-btn edit" onclick="openEditModal('${p.id}')">✏️ Editar</button><button class="apc-btn del" onclick="confirmDelete('${p.id}')">🗑️</button></div></div></div>`).join('')||'<p style="color:var(--gray);font-weight:600;grid-column:1/-1;text-align:center;padding:40px 0">Nenhum produto encontrado 🔍</p>';
 }
+
+// ── Reorder products ──
+function moveProduct(id, dir) {
+  if (!liveProducts) return;
+  var idx = liveProducts.findIndex(p => p.id === id);
+  if (idx < 0) return;
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= liveProducts.length) return;
+  var tmp = liveProducts[idx];
+  liveProducts[idx] = liveProducts[newIdx];
+  liveProducts[newIdx] = tmp;
+  if (typeof saveToStorage === 'function') saveToStorage();
+  PRODS.length = 0;
+  liveProducts.forEach(p => PRODS.push(p));
+  window.liveProducts = liveProducts;
+  renderAdminGrid();
+}
+window.moveProduct = moveProduct;
 
 // ── Edit Modal ──
 function openEditModal(id){
@@ -227,6 +245,8 @@ function openEditModal(id){
   document.getElementById('admPrice').value = p.price;
   document.getElementById('admOld').value = p.old||'';
   document.getElementById('admBadge').value = p.badge||'';
+  var descEl = document.getElementById('admDesc');
+  if (descEl) descEl.value = p.desc||'';
   // Photo preview
   const area = document.getElementById('photoUploadArea');
   const preview = document.getElementById('photoPreview');
@@ -317,17 +337,19 @@ function saveProduct(){
   const cat = document.getElementById('admCat').value;
   const old = parseFloat(document.getElementById('admOld').value)||null;
   const badge = document.getElementById('admBadge').value||null;
+  const descEl = document.getElementById('admDesc');
+  const desc = descEl ? descEl.value.trim() : '';
   const img = currentPhotoB64 || (editingProductId ? (liveProducts||PRODS).find(p=>p.id===editingProductId)?.img : null);
   if(!img){ showToast('Por favor, adicione uma foto do produto! 📸'); return; }
   if(!liveProducts) liveProducts=JSON.parse(JSON.stringify(PRODS));
   if(editingProductId){
     const idx = liveProducts.findIndex(p=>p.id===editingProductId);
     if(idx>=0){
-      liveProducts[idx]={...liveProducts[idx],name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img};
+      liveProducts[idx]={...liveProducts[idx],name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc};
     }
   } else {
     const newId = 'custom_'+Date.now();
-    liveProducts.push({id:newId,name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img});
+    liveProducts.push({id:newId,name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc});
   }
   if(typeof saveToStorage==='function') saveToStorage();
   renderAdminGrid();
