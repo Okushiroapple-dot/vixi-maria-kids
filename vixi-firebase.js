@@ -119,6 +119,7 @@ async function vixiApplyCloudData() {
       }
     } catch(e){}
     try{if(window.syncCategoriesUI)window.syncCategoriesUI();}catch(e){}
+    try{if(window.syncAdminNav)window.syncAdminNav();}catch(e){}
     try{if(window.renderProds)window.renderProds(window.currentFilter||'all');}catch(e){}
     try{if(window.loadContent)window.loadContent();}catch(e){}
     try{if(window.applyProductImages)window.applyProductImages();}catch(e){}
@@ -271,5 +272,7 @@ onAuthStateChanged(auth, function(user) {
   // Auto-show admin trigger when admin account is logged in
   if (user && user.email === 'viximariakids@viximariakids.com') {
     if (typeof window.showAdminTrigger === 'function') window.showAdminTrigger();
+    // Re-sync after cloud data may have rebuilt the nav
+    setTimeout(function(){if(typeof window.syncAdminNav==='function')window.syncAdminNav();}, 800);
   }
 });
