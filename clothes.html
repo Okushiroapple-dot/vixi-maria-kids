@@ -331,12 +331,13 @@ document.addEventListener('DOMContentLoaded', function(){
   var ls = document.getElementById('loadingState');
   if(ls) ls.style.display = 'none';
 
-  // Auto-start visual editor if ?admin=visual
-  if(location.search.includes('admin=visual')){
+  // Auto-start visual editor if ?admin=visual or previously active
+  if(location.search.includes('admin=visual') || sessionStorage.getItem('vixiEditorActive')==='1'){
     if(typeof showAdminTrigger==='function') showAdminTrigger();
-    var _clothesEditTimer = setTimeout(function(){
+    var _clothesEditDelay = sessionStorage.getItem('vixiAdminLogged')==='1' ? 500 : 1200;
+    setTimeout(function(){
       if(typeof startVisualEditor==='function') startVisualEditor();
-    }, window.currentUser?.email==='viximariakids@viximariakids.com' || sessionStorage.getItem('vixiAdminLogged')==='1' ? 500 : 1200);
+    }, _clothesEditDelay);
   }
 });
 </script>

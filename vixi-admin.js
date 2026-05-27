@@ -936,6 +936,7 @@ function startVisualEditor(){
   visualEditorOn = true;
   window.visualEditorOn = true;
   window.vixiAdminLogged = true;
+  sessionStorage.setItem('vixiEditorActive','1');
   document.body.classList.add('vixi-editing');
   document.body.classList.remove('vixi-preview');
   document.getElementById('veTglEdit')?.classList.add('ve-active');
@@ -952,6 +953,7 @@ function startVisualEditor(){
 function stopVisualEditor(){
   visualEditorOn = false;
   window.visualEditorOn = false;
+  sessionStorage.removeItem('vixiEditorActive');
   document.body.classList.remove('vixi-editing', 'vixi-preview', 'vixi-sidebar-open');
   disableVisualEditing();
   destroyProductDragDrop();
