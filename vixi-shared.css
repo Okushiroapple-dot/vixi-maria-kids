@@ -900,3 +900,171 @@ body.vixi-editing .lgpd-bar{display:none!important}
     scroll-behavior:auto!important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   VISUAL EDITOR SIDEBAR (Nuvemshop-style)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Sidebar container ── */
+.vixi-sidebar{
+  position:fixed;top:56px;left:0;bottom:0;width:280px;
+  background:#fff;z-index:8500;
+  transform:translateX(-100%);transition:transform .26s cubic-bezier(.4,0,.2,1);
+  box-shadow:4px 0 36px rgba(30,0,26,.14);
+  border-right:1.5px solid var(--line);
+  display:none;flex-direction:column;overflow:hidden;
+}
+body.vixi-editing .vixi-sidebar{display:flex}
+body.vixi-sidebar-open .vixi-sidebar{transform:translateX(0)}
+/* Dim page when sidebar open (subtle overlay on right side) */
+body.vixi-sidebar-open::after{
+  content:'';position:fixed;top:56px;left:280px;right:0;bottom:0;
+  background:rgba(30,0,26,.12);z-index:8000;pointer-events:none;
+}
+
+/* ── Top bar sidebar toggle ── */
+.ve-sidebar-btn{
+  background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);
+  border:none;border-radius:8px;padding:8px 12px;font-size:18px;
+  cursor:pointer;transition:all .15s;flex-shrink:0;line-height:1;
+}
+.ve-sidebar-btn:hover{background:rgba(255,255,255,.22)}
+body.vixi-sidebar-open .ve-sidebar-btn{background:var(--pink);color:#fff}
+
+/* ── Page tabs ── */
+.vsb-pages{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;
+  padding:10px 10px 8px;background:var(--pink-xpale);
+  border-bottom:1.5px solid var(--line);flex-shrink:0;
+}
+.vsb-page-tab{
+  border:1.5px solid var(--line);background:#fff;border-radius:9px;
+  padding:7px 4px;font-size:11px;font-weight:800;color:var(--ink-mid);
+  cursor:pointer;text-align:center;text-decoration:none;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.2;
+}
+.vsb-page-tab:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-pale)}
+.vsb-page-tab.vsb-active{background:var(--pink);color:#fff;border-color:var(--pink)}
+.vsb-page-tab .vsb-pt-icon{font-size:16px}
+
+/* ── Sidebar header row ── */
+.vsb-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px 6px;flex-shrink:0;
+}
+.vsb-title{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray)}
+.vsb-hdr-btn{
+  border:none;background:var(--pink-pale);color:var(--pink);
+  border-radius:6px;padding:3px 9px;font-size:16px;font-weight:900;
+  cursor:pointer;transition:all .15s;line-height:1;
+}
+.vsb-hdr-btn:hover{background:var(--pink);color:#fff}
+
+/* ── Scrollable section list ── */
+.vsb-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.vsb-scroll::-webkit-scrollbar{width:4px}
+.vsb-scroll::-webkit-scrollbar-thumb{background:var(--pink-soft);border-radius:2px}
+
+/* ── Section item ── */
+.vsb-item{border-bottom:1px solid var(--line)}
+.vsb-item-row{
+  display:flex;align-items:center;padding:9px 10px 9px 4px;
+  gap:6px;cursor:pointer;transition:background .1s;user-select:none;
+}
+.vsb-item-row:hover{background:var(--pink-xpale)}
+.vsb-item-row.vsb-selected{background:var(--pink-pale)}
+.vsb-item.vsb-drag-over .vsb-item-row{background:var(--pink-pale);outline:2px dashed var(--pink);outline-offset:-2px;border-radius:4px}
+.vsb-item.vsb-dragging{opacity:.35}
+
+.vsb-grip{
+  color:#ccc;cursor:grab;font-size:16px;letter-spacing:3px;
+  padding:3px 6px;user-select:none;flex-shrink:0;line-height:1;
+}
+.vsb-grip:active{cursor:grabbing}
+.vsb-item-icon{font-size:15px;flex-shrink:0}
+.vsb-item-name{
+  flex:1;font-size:13px;font-weight:700;color:var(--ink);
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.vsb-item-btns{display:flex;gap:2px;align-items:center;flex-shrink:0}
+.vsb-ib{
+  border:none;background:none;color:#ccc;border-radius:5px;
+  padding:3px 6px;font-size:13px;cursor:pointer;transition:all .12s;line-height:1;
+}
+.vsb-ib:hover{background:var(--pink-pale);color:var(--pink)}
+.vsb-ib.del:hover{background:#ffe4e4;color:#d02}
+.vsb-exp{transition:transform .2s;display:inline-block;font-size:12px}
+.vsb-item.vsb-open .vsb-exp{transform:rotate(90deg)}
+
+/* ── Sub-content (blocks / products) ── */
+.vsb-sub{display:none;background:var(--pink-xpale);border-top:1px solid var(--line)}
+.vsb-item.vsb-open .vsb-sub{display:block}
+
+.vsb-sub-item{
+  display:flex;align-items:center;padding:7px 10px 7px 22px;
+  gap:6px;font-size:12px;color:var(--ink-mid);cursor:pointer;
+  transition:background .1s;border-bottom:1px solid rgba(242,39,110,.08);
+  user-select:none;
+}
+.vsb-sub-item:hover{background:var(--pink-pale)}
+.vsb-sub-item.vsb-drag-over{background:var(--pink-pale);outline:1.5px dashed var(--pink);outline-offset:-2px}
+.vsb-sub-item.vsb-dragging{opacity:.35}
+.vsb-sub-grip{color:#ccc;cursor:grab;font-size:13px;letter-spacing:2px;user-select:none;flex-shrink:0;line-height:1}
+.vsb-sub-grip:active{cursor:grabbing}
+.vsb-sub-icon{font-size:13px;flex-shrink:0}
+.vsb-sub-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.vsb-sub-del{border:none;background:none;color:#ccc;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:11px;transition:all .1s;line-height:1}
+.vsb-sub-del:hover{background:#ffe4e4;color:#d02}
+
+.vsb-sub-actions{
+  display:flex;gap:6px;padding:8px 12px 8px 22px;
+  flex-wrap:wrap;
+}
+.vsb-sub-add{
+  border:1px solid rgba(242,39,110,.4);background:rgba(255,255,255,.8);
+  color:var(--pink);border-radius:7px;padding:4px 10px;font-size:11px;
+  font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap;
+}
+.vsb-sub-add:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
+
+/* ── Sidebar footer ── */
+.vsb-footer{padding:10px 10px;border-top:1.5px solid var(--line);flex-shrink:0}
+.vsb-add-section-btn{
+  width:100%;border:1.5px dashed rgba(242,39,110,.4);
+  background:rgba(255,255,255,.6);color:var(--pink);
+  border-radius:10px;padding:10px;font-size:13px;font-weight:800;
+  cursor:pointer;transition:all .15s;
+}
+.vsb-add-section-btn:hover{background:var(--pink-pale);border-color:var(--pink);transform:translateY(-1px)}
+
+/* ── Product drag handle visible grip ── */
+.vixi-prod-grip{
+  display:none;position:absolute;top:0;left:0;right:0;
+  height:28px;background:rgba(30,0,26,.65);
+  align-items:center;justify-content:center;gap:4px;
+  cursor:grab;user-select:none;z-index:12;border-radius:var(--r16) var(--r16) 0 0;
+  color:#fff;font-size:14px;letter-spacing:3px;
+  transition:background .15s;
+}
+.vixi-drag-mode .prod-card .vixi-prod-grip{display:flex}
+.vixi-prod-grip:hover{background:rgba(242,39,110,.8)}
+.vixi-prod-grip:active{cursor:grabbing}
+
+/* ── Custom block drag ── */
+.vixi-cb-drag-row{
+  display:none;align-items:center;justify-content:center;
+  padding:4px 8px;background:rgba(30,0,26,.06);
+  border-radius:8px 8px 0 0;cursor:grab;user-select:none;gap:6px;
+}
+body.vixi-editing .vixi-custom-block:hover .vixi-cb-drag-row{display:flex}
+.vixi-cb-drag-lbl{font-size:11px;color:#aaa;font-weight:600;letter-spacing:.5px}
+.vixi-cb-drag-dots{font-size:14px;color:#bbb;letter-spacing:3px;line-height:1}
+.vixi-custom-block.vcb-dragging{opacity:.3;outline:2px dashed rgba(242,39,110,.5)!important}
+.vixi-custom-block.vcb-drag-over{outline:2px dashed var(--pink)!important;background:var(--pink-xpale)}
+
+/* ── Section highlight animation (when clicked in sidebar) ── */
+@keyframes vsb-sect-flash{
+  0%,100%{outline:3px solid transparent;outline-offset:6px}
+  30%,70%{outline:3px solid var(--pink);outline-offset:6px}
+}
+.vsb-flash{animation:vsb-sect-flash 1.2s ease-out}

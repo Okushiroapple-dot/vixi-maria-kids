@@ -654,7 +654,7 @@ function ensureVisualChrome(){
     const bar = document.createElement('div');
     bar.id = 'vixiEditorBar';
     bar.className = 'vixi-editor-bar';
-    bar.innerHTML = '<span class="ve-brand">🎨 Vixi Editor</span><div class="ve-spacer"></div><div class="ve-mode-toggle"><button class="ve-toggle-btn" id="veTglView" onclick="window.setEditorMode&&window.setEditorMode(\'view\')">👁 Visualizar</button><button class="ve-toggle-btn ve-active" id="veTglEdit" onclick="window.setEditorMode&&window.setEditorMode(\'edit\')">✏️ Editando</button></div><div class="ve-spacer"></div><button class="ve-btn ve-back-btn" onclick="stopVisualEditor();if(typeof openAdmin===\'function\')openAdmin()">⚙️ Admin</button><button class="ve-btn ve-save-btn" onclick="saveVisualNow()">💾 Salvar</button><button class="ve-btn ve-exit-btn" onclick="stopVisualEditor()">✕</button>';
+    bar.innerHTML = '<button class="ve-sidebar-btn" title="Seções" onclick="window.toggleSidebar&&window.toggleSidebar()">☰</button><span class="ve-brand">🎨 Vixi Editor</span><div class="ve-spacer"></div><div class="ve-mode-toggle"><button class="ve-toggle-btn" id="veTglView" onclick="window.setEditorMode&&window.setEditorMode(\'view\')">👁 Visualizar</button><button class="ve-toggle-btn ve-active" id="veTglEdit" onclick="window.setEditorMode&&window.setEditorMode(\'edit\')">✏️ Editando</button></div><div class="ve-spacer"></div><button class="ve-btn ve-back-btn" onclick="stopVisualEditor();if(typeof openAdmin===\'function\')openAdmin()">⚙️ Admin</button><button class="ve-btn ve-save-btn" onclick="saveVisualNow()">💾 Salvar</button><button class="ve-btn ve-exit-btn" onclick="stopVisualEditor()">✕</button>';
     document.body.appendChild(bar);
   }
 }
@@ -676,6 +676,88 @@ function setEditorMode(mode){
   }
 }
 window.setEditorMode = setEditorMode;
+
+const VSB_META_ADM = {
+  hero:{icon:'🌟',name:'Hero'}, promises:{icon:'✨',name:'Promessas'},
+  categorias:{icon:'📂',name:'Categorias'}, sizes:{icon:'📏',name:'Tamanhos'},
+  colecao:{icon:'👗',name:'Coleção'}, promos:{icon:'🏷️',name:'Promoções'},
+  sobre:{icon:'💌',name:'Sobre'}, instagram:{icon:'📸',name:'Instagram'},
+  featured:{icon:'⭐',name:'Destaques'}
+};
+
+function buildSidebar(){
+  let sb = document.getElementById('vixiSidebar');
+  if(!sb){
+    sb = document.createElement('div');
+    sb.id = 'vixiSidebar';
+    sb.className = 'vixi-sidebar';
+    document.body.appendChild(sb);
+  }
+  const sections = [...document.querySelectorAll('[data-section-key]')];
+  const sectItems = sections.map(el=>{
+    const key = el.dataset.sectionKey;
+    const meta = VSB_META_ADM[key] || {icon:'📄', name: key};
+    return `<div class="vsb-item" data-sbkey="${key}" onclick="window._vsbClickAdm&&window._vsbClickAdm('${key}',event)">
+      <div class="vsb-item-row">
+        <span class="vsb-grip" draggable="true" data-sect-grip="${key}" title="Arrastar">⠿</span>
+        <span>${meta.icon}</span>
+        <span style="flex:1">${meta.name}</span>
+      </div>
+    </div>`;
+  }).join('');
+  sb.innerHTML = `<div class="vsb-header">
+    <span class="vsb-title">Seções</span>
+    <button class="vsb-hdr-btn" onclick="window.toggleSidebar&&window.toggleSidebar()" title="Fechar">✕</button>
+  </div>
+  <div class="vsb-scroll">${sectItems || '<div style="padding:16px;color:#999;font-size:13px">Nenhuma seção encontrada</div>'}</div>
+  <div class="vsb-footer">
+    <button class="vsb-add-section-btn" onclick="alert('Adicione seções pelo editor da home')">+ Adicionar seção</button>
+  </div>`;
+  _setupSidebarDragAdm();
+}
+window.buildSidebar = buildSidebar;
+
+window._vsbClickAdm = function(key, e){
+  const el = document.querySelector('[data-section-key="'+key+'"]');
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+  el.classList.add('vsb-flash');
+  setTimeout(()=>el.classList.remove('vsb-flash'), 1200);
+};
+
+function _setupSidebarDragAdm(){
+  const sb = document.getElementById('vixiSidebar');
+  if(!sb) return;
+  let dragKey = null;
+  sb.querySelectorAll('[data-sect-grip]').forEach(grip=>{
+    grip.addEventListener('dragstart', e=>{
+      dragKey = grip.dataset.sectGrip;
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    grip.addEventListener('dragend', ()=>{ dragKey = null; });
+    grip.closest('.vsb-item').addEventListener('dragover', e=>{
+      if(!dragKey) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    grip.closest('.vsb-item').addEventListener('drop', e=>{
+      if(!dragKey) return;
+      const targetKey = grip.dataset.sectGrip;
+      if(dragKey === targetKey) return;
+      const src = document.querySelector('[data-section-key="'+dragKey+'"]');
+      const tgt = document.querySelector('[data-section-key="'+targetKey+'"]');
+      if(src && tgt) tgt.parentNode.insertBefore(src, tgt);
+      if(typeof saveSectionOrder === 'function') saveSectionOrder();
+      buildSidebar();
+    });
+  });
+}
+
+function toggleSidebar(){
+  document.body.classList.toggle('vixi-sidebar-open');
+  if(document.body.classList.contains('vixi-sidebar-open')) buildSidebar();
+}
+window.toggleSidebar = toggleSidebar;
 
 function decorateVisualTargets(){
   const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
@@ -861,14 +943,16 @@ function startVisualEditor(){
   decorateVisualTargets();
   enableVisualEditing();
   initProductDragDrop();
+  buildSidebar();
+  document.body.classList.add('vixi-sidebar-open');
   window.scrollTo({top:0, behavior:'smooth'});
-  showToast('Editor ativo 🎨 — clique nos textos para editar, arraste produtos para reordenar');
+  showToast('Editor ativo 🎨 — use o painel lateral para navegar e reorganizar');
 }
 
 function stopVisualEditor(){
   visualEditorOn = false;
   window.visualEditorOn = false;
-  document.body.classList.remove('vixi-editing', 'vixi-preview');
+  document.body.classList.remove('vixi-editing', 'vixi-preview', 'vixi-sidebar-open');
   disableVisualEditing();
   destroyProductDragDrop();
 }
