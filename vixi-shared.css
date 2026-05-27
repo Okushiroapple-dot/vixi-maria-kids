@@ -1076,9 +1076,13 @@ body.vixi-sidebar-open .ve-sidebar-btn{background:var(--pink);color:#fff}
 .vixi-cb-drag-row{
   display:none;align-items:center;justify-content:center;
   padding:4px 8px;background:rgba(30,0,26,.06);
-  border-radius:8px 8px 0 0;cursor:grab;user-select:none;gap:6px;
+  border-radius:8px 8px 0 0;cursor:grab;user-select:none;touch-action:none;gap:6px;
 }
 body.vixi-editing .vixi-custom-block:hover .vixi-cb-drag-row{display:flex}
+/* always visible on touch screens — no hover available */
+@media(hover:none){
+  body.vixi-editing .vixi-custom-block .vixi-cb-drag-row{display:flex;padding:8px 12px}
+}
 .vixi-cb-drag-lbl{font-size:11px;color:#aaa;font-weight:600;letter-spacing:.5px}
 .vixi-cb-drag-dots{font-size:14px;color:#bbb;letter-spacing:3px;line-height:1}
 .vixi-custom-block.vcb-dragging{opacity:.3;outline:2px dashed rgba(242,39,110,.5)!important}
