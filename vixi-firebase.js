@@ -88,7 +88,7 @@ window.vixiLoadCloud = async function(key) {
 };
 
 async function vixiApplyCloudData() {
-  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle'];
+  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle', 'vixiProdOrder'];
   let changed = false;
   for (const key of keys) {
     const value = await window.vixiLoadCloud(key);
@@ -117,6 +117,8 @@ async function vixiApplyCloudData() {
             window.PRODS.push(Object.assign({}, item, {img: imgs[item.id]||item.img||''}));
         });
       }
+      // Apply saved product order after rebuilding PRODS
+      if(window.applyProdOrder) window.applyProdOrder();
     } catch(e){}
     try{if(window.syncCategoriesUI)window.syncCategoriesUI();}catch(e){}
     try{if(window.syncAdminNav)window.syncAdminNav();}catch(e){}

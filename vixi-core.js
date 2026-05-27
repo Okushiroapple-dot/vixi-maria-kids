@@ -696,6 +696,21 @@ function goBackOrHome(){
   else{window.location.href='index.html';}
 }
 
+// ── Product order persistence ──
+function applyProdOrder(){
+  try{
+    var saved=JSON.parse(localStorage.getItem('vixiProdOrder')||'null');
+    if(!Array.isArray(saved)||!saved.length) return;
+    var map=new Map(PRODS.map(function(p){return [p.id,p];}));
+    var ordered=saved.map(function(id){return map.get(id);}).filter(Boolean);
+    saved.forEach(function(id){map.delete(id);});
+    map.forEach(function(p){ordered.push(p);});
+    PRODS.length=0;
+    ordered.forEach(function(p){PRODS.push(p);});
+  }catch(e){}
+}
+window.applyProdOrder=applyProdOrder;
+
 // ── DOMContentLoaded bootstrap ──
 function applyBadgeStyle(){
   var s=localStorage.getItem('vixiBadgeStyle')||'';
