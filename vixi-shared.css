@@ -1038,17 +1038,18 @@ body.vixi-sidebar-open .ve-sidebar-btn{background:var(--pink);color:#fff}
 .vsb-add-section-btn:hover{background:var(--pink-pale);border-color:var(--pink);transform:translateY(-1px)}
 
 /* ── Product drag handle visible grip ── */
+.vixi-drag-mode .prod-card img{pointer-events:none;-webkit-user-drag:none}
 .vixi-prod-grip{
   display:none;position:absolute;top:0;left:0;right:0;
-  height:28px;background:rgba(30,0,26,.65);
+  height:34px;background:rgba(30,0,26,.72);
   align-items:center;justify-content:center;gap:4px;
-  cursor:grab;user-select:none;z-index:12;border-radius:var(--r16) var(--r16) 0 0;
-  color:#fff;font-size:14px;letter-spacing:3px;
+  cursor:grab;user-select:none;touch-action:none;z-index:12;border-radius:var(--r16) var(--r16) 0 0;
+  color:#fff;font-size:15px;letter-spacing:3px;
   transition:background .15s;
 }
 .vixi-drag-mode .prod-card .vixi-prod-grip{display:flex}
-.vixi-prod-grip:hover{background:rgba(242,39,110,.8)}
-.vixi-prod-grip:active{cursor:grabbing}
+.vixi-prod-grip:hover{background:rgba(242,39,110,.85)}
+.vixi-prod-grip:active{cursor:grabbing;background:rgba(242,39,110,.95)}
 
 /* ── Custom block drag ── */
 .vixi-cb-drag-row{

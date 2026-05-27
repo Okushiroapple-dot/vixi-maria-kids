@@ -729,8 +729,9 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   // Close store modals on backdrop click
   document.querySelectorAll('.store-modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-  // Prevent accidental drag on images and layout elements
+  // Prevent accidental drag on images and layout elements (skip when visual editor is active)
   document.addEventListener('dragstart',function(e){
+    if(document.body.classList.contains('vixi-editing')) return;
     if(e.target.tagName==='IMG'||e.target.closest('.prod-card,.hdr,header,.footer-sec,.ann')){
       e.preventDefault();
     }
