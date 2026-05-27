@@ -130,6 +130,7 @@ let activeSizeFilter = null;
 let currentFilter = 'all';
 let visibleCount = 12;
 let currentSort = 'default';
+let _cartBadgeFirst = true;
 
 // ── Utilities ──
 function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
@@ -143,7 +144,15 @@ function getCatIcon(id){const c=getCats().find(x=>x.id===id); return c ? c.icon 
 function getProduct(id){return PRODS.find(p=>p.id===id);}
 function openStoreModal(id){document.getElementById(id)?.classList.add('open');}
 function closeStoreModal(id){document.getElementById(id)?.classList.remove('open');}
-function updateCartBadge(){const total=cart.reduce((s,i)=>s+i.qty,0); const b=document.getElementById('cartBadge'); if(b)b.textContent=total;}
+function updateCartBadge(){
+  const total=cart.reduce((s,i)=>s+i.qty,0);
+  const b=document.getElementById('cartBadge');
+  if(b){
+    b.textContent=total;
+    if(!_cartBadgeFirst){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),400);}
+    _cartBadgeFirst=false;
+  }
+}
 
 // ── readJson / writeJson (from IIFE block) ──
 function readJson(key, fallback){
@@ -326,16 +335,14 @@ function saveToStorage(){
       return p;
     });
     writeJson(PRODUCT_IMAGE_KEY, productImgs);
-    if(window.vixiSaveCloud) window.vixiSaveCloud('vixiProductImages', productImgs);
-    localStorage.setItem('vixiAdmin_v2', JSON.stringify(toSave));
-    if(window.vixiSaveCloud) window.vixiSaveCloud('vixiAdmin_v2', toSave);
+    writeJson('vixiAdmin_v2', toSave);
   }catch(e){showToast('Armazenamento cheio. Baixe o site para salvar permanentemente.');}
 }
 
 // ── Cart operations ──
-function addCart(id,e){if(e)e.stopPropagation(); const p=getProduct(id); if(!p)return; const item=cart.find(x=>x.id===id); if(item)item.qty++; else cart.push({id,qty:1}); saveCart(); showToast(`${p.name} adicionado ao carrinho 🛍️`);}
-function changeQty(id,delta){const item=cart.find(x=>x.id===id); if(!item)return; item.qty+=delta; if(item.qty<=0) cart=cart.filter(x=>x.id!==id); saveCart(); renderCart();}
-function removeCart(id){cart=cart.filter(x=>x.id!==id); saveCart(); renderCart();}
+function addCart(id,e,size){if(e)e.stopPropagation(); const p=getProduct(id); if(!p)return; const sz=size||''; const item=cart.find(x=>x.id===id&&(x.size||'')===sz); if(item)item.qty++; else cart.push(sz?{id,qty:1,size:sz}:{id,qty:1}); saveCart(); showToast(`${p.name}${sz?' (tam. '+escapeHtml(sz)+')':''} adicionado ao carrinho 🛍️`);}
+function changeQty(id,delta,size){const sz=size||''; const item=cart.find(x=>x.id===id&&(x.size||'')===sz); if(!item)return; item.qty+=delta; if(item.qty<=0) cart=cart.filter(x=>!(x.id===id&&(x.size||'')===sz)); saveCart(); renderCart();}
+function removeCart(id,size){const sz=size||''; cart=cart.filter(x=>!(x.id===id&&(x.size||'')===sz)); saveCart(); renderCart();}
 
 function renderCart(){
   const box=document.getElementById('cartResults'); if(!box)return;
@@ -343,7 +350,8 @@ function renderCart(){
   box.innerHTML=cart.map(i=>{
     const p=getProduct(i.id); if(!p)return'';
     total+=Number(p.price)*i.qty;
-    return `<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}"><div><h4>${escapeHtml(p.name)}</h4><p>${money(p.price)} × ${i.qty}</p></div><div class="store-actions"><button class="store-mini light" onclick="changeQty('${i.id}',-1)">−</button><strong>${i.qty}</strong><button class="store-mini light" onclick="changeQty('${i.id}',1)">+</button><button class="store-mini" onclick="removeCart('${i.id}')">Remover</button></div></div>`;
+    const sz=i.size||'';
+    return `<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}${sz?` <span style="font-size:11px;font-weight:800;color:var(--pink);background:var(--pink-pale);border-radius:4px;padding:1px 6px">${escapeHtml(sz)}</span>`:''}</h4><p>${money(p.price)} × ${i.qty}</p></div><div class="store-actions"><button class="store-mini light" onclick="changeQty('${i.id}',-1,'${escapeHtml(sz)}')">−</button><strong>${i.qty}</strong><button class="store-mini light" onclick="changeQty('${i.id}',1,'${escapeHtml(sz)}')">+</button><button class="store-mini" onclick="removeCart('${i.id}','${escapeHtml(sz)}')">Remover</button></div></div>`;
   }).join('')||'<div class="empty-state">Seu carrinho está vazio.</div>';
   const ct=document.getElementById('cartTotal');
   if(ct) ct.innerHTML='<span>Total: <strong>'+money(total)+'</strong></span><span class="cart-pix-badge">PIX: '+money(Math.round(total*.9*100)/100)+'</span>';
@@ -364,7 +372,7 @@ function toggleFav(idOrBtn,btn,e){
 function renderFavs(){
   const box=document.getElementById('favResults'); if(!box)return;
   const list=favorites.map(getProduct).filter(Boolean);
-  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state"><div style="font-size:48px;margin-bottom:8px">🤍</div>Você ainda não favoritou nenhum produto.</div>';
+  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state"><div style="font-size:48px;margin-bottom:8px">🤍</div>Você ainda não favoritou nenhum produto.</div>';
 }
 
 // ── Search ──
@@ -377,7 +385,7 @@ function runSearch(){
   if(!box) return;
   if(!q){box.innerHTML='<div class="empty-state">Digite algo para buscar.</div>';return;}
   const list = PRODS.filter(p=>foldText([p.name,p.desc,p.badge,p.cl,getCatLabel(p.cat),p.cat,(p.sizes||[]).join(' ')].join(' ')).includes(q)).slice(0,20);
-  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado para "<em>'+escapeHtml(q)+'</em>".</div>';
+  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado para "<em>'+escapeHtml(q)+'</em>".</div>';
 }
 
 // ── CPF encryption (AES-GCM + PBKDF2) ──
@@ -440,7 +448,9 @@ function syncHeaderAuth(user){
     var toggle=document.getElementById('acctToggle');
     if(toggle){
       toggle.addEventListener('click',function(e){e.stopPropagation();dd.classList.toggle('open');});
-      document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.classList.remove('open');},{once:false});
+      if(dd._outsideClick) document.removeEventListener('click',dd._outsideClick);
+      dd._outsideClick = function(e){if(!dd.contains(e.target))dd.classList.remove('open');};
+      document.addEventListener('click',dd._outsideClick);
     }
   }
   if(typeof syncAdminNav==='function') syncAdminNav();
@@ -457,11 +467,14 @@ function syncAdminNav(){
     ['admin.html','📦','Produtos'],
     ['admin.html?sec=add','➕','Adicionar'],
     ['admin.html?sec=categories','🗂️','Categorias'],
-    ['admin.html?sec=visual','🎨','Editar Página'],
+    [null,'🎨','Editar Página'],
     ['admin.html?sec=orders','📊','Pedidos'],
     ['admin.html?sec=backup','💾','Backups'],
   ];
-  var links=items.map(function(i){return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>';}).join('');
+  var links=items.map(function(i){
+    if(!i[0]) return '<a href="#" onclick="(typeof startVisualEditor===\'function\'?startVisualEditor():window.location.href=\'admin.html?sec=visual\');return false">'+i[1]+' '+i[2]+'</a>';
+    return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>';
+  }).join('');
   var html='<div class="nav-dd nav-admin-dd"><button class="nav-dd-btn nav-admin-btn" type="button">⚙️ Admin ▾</button><div class="nav-dd-menu">'+links+'</div></div>';
   var allDDs=nav.querySelectorAll('.nav-dd:not(.nav-admin-dd)');
   var lastDD=allDDs[allDDs.length-1];
@@ -480,9 +493,10 @@ window.syncAdminNav=syncAdminNav;
 // ── checkoutWhatsApp ──
 function checkoutWhatsApp(){
   if(!cart.length){showToast('Seu carrinho está vazio 🛒');return;}
-  const lines = cart.map(i=>{const p=getProduct(i.id);return p?`• ${p.name} — ${i.qty}x — ${money(p.price)}`:''}).filter(Boolean);
+  const lines = cart.map(i=>{const p=getProduct(i.id);return p?`• ${p.name}${i.size?' (tam. '+i.size+')':''} — ${i.qty}x — ${money(p.price)}`:''}).filter(Boolean);
   const total = cart.reduce((s,i)=>{const p=getProduct(i.id);return s+(p?Number(p.price)*i.qty:0)},0);
-  const msg = encodeURIComponent(`Olá! Tenho interesse nestes produtos:\n\n${lines.join('\n')}\n\nTotal aproximado: ${money(total)}`);
+  const pix = Math.round(total * .9 * 100) / 100;
+  const msg = encodeURIComponent(`Olá! Tenho interesse nestes produtos:\n\n${lines.join('\n')}\n\nTotal: ${money(total)} (ou ${money(pix)} no PIX 💚)`);
   window.open(`https://wa.me/${VIXI_WHATSAPP}?text=${msg}`,'_blank');
 }
 
@@ -499,7 +513,7 @@ async function submitMpCheckout(payerData){
     var items = cart.map(function(i){
       var p = getProduct(i.id);
       if(!p) return null;
-      return { id: i.id, name: p.name, qty: i.qty || 1, price: Number(p.promo || p.price || 0) };
+      return { id: i.id, name: p.name, qty: i.qty || 1, price: Number(p.price || 0) };
     }).filter(Boolean);
     if(window.coFreight > 0){
       items.push({ id: 'frete', name: 'Frete', qty: 1, price: Number(window.coFreight) });
@@ -567,12 +581,12 @@ function renderProds(filter='all'){
   const show=list.slice(0,visibleCount);
   grid.innerHTML=show.map(p=>{
     const liked=favorites.includes(p.id);
-    return `<article class="prod-card" data-cat="${p.cat}" onclick="window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
+    return `<article class="prod-card" data-cat="${p.cat}" data-id="${p.id}" onclick="if(document.body.classList.contains('vixi-editing'))return;window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="prod-img-wrap">
         ${(p.badge&&p.badge!=='FAV')?`<span class="pbadge ${String(p.badge).includes('%')?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':String(p.badge).includes('%')?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)}</span>`:''}
         <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
-        <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" data-edit-product="${p.id}" data-edit-field="img"/>
-        <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="event.stopPropagation()">Ver produto →</a>
+        <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async" data-edit-product="${p.id}" data-edit-field="img"/>
+        <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="if(document.body.classList.contains('vixi-editing')){event.preventDefault();return;}event.stopPropagation()">Ver produto →</a>
       </div>
       <div class="prod-info">
         <div class="prod-cat">${getCatLabel(p.cat)}</div>
@@ -647,7 +661,7 @@ function initLgpd(){
   if(localStorage.getItem('vixiLgpdOk')) return;
   var bar=document.createElement('div');
   bar.className='lgpd-bar';
-  bar.innerHTML='<p>🍪 Usamos cookies para melhorar sua experiência de compra. Ao continuar, você concorda com nossa <a href="#">Política de Privacidade</a> (LGPD).</p>'
+  bar.innerHTML='<p>🍪 Usamos cookies para melhorar sua experiência de compra. Ao continuar, você concorda com nossa <a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+a+pol%C3%ADtica+de+privacidade" target="_blank" rel="noopener">Política de Privacidade</a> (LGPD).</p>'
     +'<div class="lgpd-bar-btns">'
     +'<button class="lgpd-btn-ess" onclick="this.closest(\'.lgpd-bar\').classList.remove(\'show\');setTimeout(()=>this.closest(\'.lgpd-bar\').remove(),400)">Só essenciais</button>'
     +'<button class="lgpd-btn-ok" onclick="acceptLgpd(this)">Aceitar tudo ✓</button>'
@@ -745,13 +759,6 @@ document.addEventListener('DOMContentLoaded', function(){
       img.style.objectFit='contain';
     }
   },true);
-  // Cart badge pop animation on add
-  var _origSaveCart=window.saveCart;
-  window.saveCart=function(){
-    if(typeof _origSaveCart==='function')_origSaveCart();
-    var b=document.getElementById('cartBadge');
-    if(b){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');setTimeout(function(){b.classList.remove('pop');},400);}
-  };
   // Inject PWA manifest link
   if(!document.querySelector('link[rel="manifest"]')){
     var ml=document.createElement('link');ml.rel='manifest';ml.href='manifest.json';document.head.appendChild(ml);

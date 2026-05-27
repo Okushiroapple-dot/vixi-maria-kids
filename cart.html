@@ -172,11 +172,11 @@
     <div>
       <h5>Ajuda</h5>
       <ul>
-        <li><a href="#">Tabela de medidas</a></li>
-        <li><a href="#">Trocas e devoluções</a></li>
-        <li><a href="#">Formas de pagamento</a></li>
-        <li><a href="#">Política de privacidade</a></li>
-        <li><a href="#">Frete e entrega</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+ver+a+tabela+de+medidas" target="_blank" rel="noopener">Tabela de medidas</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+trocas+e+devolu%C3%A7%C3%B5es" target="_blank" rel="noopener">Trocas e devoluções</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+as+formas+de+pagamento" target="_blank" rel="noopener">Formas de pagamento</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+pol%C3%ADtica+de+privacidade" target="_blank" rel="noopener">Política de privacidade</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+frete+e+entrega" target="_blank" rel="noopener">Frete e entrega</a></li>
       </ul>
     </div>
     <div class="foot-contact">
@@ -236,8 +236,7 @@ function renderCartPage() {
   var el = document.getElementById('cartPageContent');
   if (!el) return;
 
-  var cartData = [];
-  try { cartData = JSON.parse(localStorage.getItem('vixiCart') || '[]'); } catch(e){}
+  var cartData = window.cart || [];
 
   if (!cartData.length) {
     el.innerHTML = '<div class="cart-empty-state">'
@@ -253,25 +252,25 @@ function renderCartPage() {
   var rows = cartData.map(function(item) {
     var p = getProduct(item.id);
     if (!p) return '';
-    var price = p.promo || p.price || 0;
+    var price = p.price || 0;
     total += price * (item.qty || 1);
     var imgHtml = p.img
-      ? '<img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" loading="lazy">'
+      ? '<img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" loading="lazy" decoding="async">'
       : '<div style="width:90px;height:90px;border-radius:var(--r12);background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:32px">🌸</div>';
     var sizeLabel = item.size ? '<span style="font-size:12px;font-weight:700;color:var(--gray);margin-left:8px">Tam: ' + escapeHtml(item.size) + '</span>' : '';
     return '<div class="cart-page-row">'
       + imgHtml
       + '<div class="cart-page-row-info">'
-        + '<div class="cpcat">' + escapeHtml(p.cat || '') + '</div>'
+        + '<div class="cpcat">' + getCatLabel(p.cat) + '</div>'
         + '<h4>' + escapeHtml(p.name) + sizeLabel + '</h4>'
         + '<div class="cpprice">' + money(price) + '</div>'
         + '<div class="cart-qty-row">'
-          + '<button class="cart-qty-btn" onclick="changeQtyPage(\'' + item.id + '\',-1)">−</button>'
+          + '<button class="cart-qty-btn" onclick="changeQtyPage(\'' + item.id + '\',-1,\'' + escapeHtml(item.size||'') + '\')">−</button>'
           + '<span class="cart-qty-num">' + (item.qty || 1) + '</span>'
-          + '<button class="cart-qty-btn" onclick="changeQtyPage(\'' + item.id + '\',1)">+</button>'
+          + '<button class="cart-qty-btn" onclick="changeQtyPage(\'' + item.id + '\',1,\'' + escapeHtml(item.size||'') + '\')">+</button>'
         + '</div>'
       + '</div>'
-      + '<button class="cart-remove-btn" onclick="removeCartPage(\'' + item.id + '\')" title="Remover">✕</button>'
+      + '<button class="cart-remove-btn" onclick="removeCartPage(\'' + item.id + '\',\'' + escapeHtml(item.size||'') + '\')" title="Remover">✕</button>'
       + '</div>';
   }).join('');
 
@@ -295,13 +294,13 @@ function renderCartPage() {
     + '</div>';
 }
 
-function changeQtyPage(id, delta) {
-  changeQty(id, delta);
+function changeQtyPage(id, delta, size) {
+  changeQty(id, delta, size);
   renderCartPage();
 }
 
-function removeCartPage(id) {
-  removeCart(id);
+function removeCartPage(id, size) {
+  removeCart(id, size);
   renderCartPage();
 }
 

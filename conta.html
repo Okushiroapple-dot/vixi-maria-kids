@@ -591,7 +591,7 @@ function openOrderDetail(orderId){
   var itemsHtml=(o.items||[]).map(function(i){
     var prod=typeof getProduct==='function' ? getProduct(i.id) : null;
     var img=prod&&prod.img
-      ? '<img src="'+prod.img+'" alt="'+escapeHtml(i.name||'')+'" loading="lazy">'
+      ? '<img src="'+prod.img+'" alt="'+escapeHtml(i.name||'')+'" loading="lazy" decoding="async">'
       : '<div class="od-item-ph">🌸</div>';
     var subtotal=typeof money==='function' ? money(Number(i.price||0)*Number(i.qty||1)) : '';
     return '<div class="od-item">'
@@ -666,11 +666,11 @@ function renderFavTab(){
   }
   el.innerHTML='<div class="mini-prod-grid">'+list.map(function(p){
     return '<div class="mini-prod-card" onclick="window.location.href=\'product.html?id='+p.id+'\'">'
-      +(p.img?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+      +(p.img?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy" decoding="async">'
               :'<div class="mini-prod-img-ph">🌸</div>')
       +'<div class="mini-prod-info">'
         +'<div class="mini-prod-name">'+escapeHtml(p.name)+'</div>'
-        +'<div class="mini-prod-price">'+money(p.promo||p.price||0)+'</div>'
+        +'<div class="mini-prod-price">'+money(p.price||0)+'</div>'
       +'</div>'
       +'</div>';
   }).join('')+'</div>';
@@ -690,13 +690,14 @@ function renderCartTab(){
   var total=0;
   el.innerHTML=cart.map(function(i){
     var p=getProduct(i.id); if(!p)return'';
-    var price=Number(p.promo||p.price||0);
+    var price=Number(p.price||0);
     total+=price*(i.qty||1);
+    var sizeTag=i.size?'<span style="font-size:11px;font-weight:700;color:var(--pink);background:var(--pink-pale);border-radius:4px;padding:1px 6px;margin-left:6px">'+escapeHtml(i.size)+'</span>':'';
     return '<div class="cart-row">'
-      +(p.img?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+      +(p.img?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy" decoding="async">'
               :'<div class="cart-row-ph">🌸</div>')
       +'<div class="cart-row-info">'
-        +'<div class="cart-row-name">'+escapeHtml(p.name)+'</div>'
+        +'<div class="cart-row-name">'+escapeHtml(p.name)+sizeTag+'</div>'
         +'<div class="cart-row-qty">Qtd: '+(i.qty||1)+'</div>'
         +'<div class="cart-row-price">'+money(price*(i.qty||1))+'</div>'
       +'</div>'

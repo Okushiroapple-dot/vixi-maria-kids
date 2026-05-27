@@ -467,15 +467,16 @@ function renderCoCart(){
   var subtotal=0;
   var html=cart.map(function(i){
     var p=getProduct(i.id); if(!p)return'';
-    var price=Number(p.promo||p.price||0);
+    var price=Number(p.price||0);
     subtotal+=price*(i.qty||1);
     var img=p.img
-      ?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+      ?'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy" decoding="async">'
       :'<div class="co-item-img-placeholder">🌸</div>';
+    var sizeTag=i.size?'<span style="font-size:11px;font-weight:700;color:var(--pink);background:var(--pink-pale);border-radius:4px;padding:1px 5px;margin-left:6px">'+escapeHtml(i.size)+'</span>':'';
     return '<div class="co-item">'+img
       +'<div class="co-item-info">'
-        +'<div class="co-item-cat">'+escapeHtml(p.cat||'')+'</div>'
-        +'<div class="co-item-name">'+escapeHtml(p.name)+'</div>'
+        +'<div class="co-item-cat">'+(typeof getCatLabel==='function'?getCatLabel(p.cat):escapeHtml(p.cat||''))+'</div>'
+        +'<div class="co-item-name">'+escapeHtml(p.name)+sizeTag+'</div>'
         +'<div class="co-item-qty">Qtd: '+(i.qty||1)+'</div>'
       +'</div>'
       +'<div class="co-item-price">'+money(price*(i.qty||1))+'</div>'

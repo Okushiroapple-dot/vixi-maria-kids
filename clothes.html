@@ -235,11 +235,11 @@
     <div>
       <h5>Ajuda</h5>
       <ul>
-        <li><a href="#">Tabela de medidas</a></li>
-        <li><a href="#">Trocas e devoluções</a></li>
-        <li><a href="#">Formas de pagamento</a></li>
-        <li><a href="#">Política de privacidade</a></li>
-        <li><a href="#">Frete e entrega</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+ver+a+tabela+de+medidas" target="_blank" rel="noopener">Tabela de medidas</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+trocas+e+devolu%C3%A7%C3%B5es" target="_blank" rel="noopener">Trocas e devoluções</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+as+formas+de+pagamento" target="_blank" rel="noopener">Formas de pagamento</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+pol%C3%ADtica+de+privacidade" target="_blank" rel="noopener">Política de privacidade</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+frete+e+entrega" target="_blank" rel="noopener">Frete e entrega</a></li>
       </ul>
     </div>
     <div class="foot-contact">
@@ -330,6 +330,14 @@ document.addEventListener('DOMContentLoaded', function(){
   // Hide loading state after render
   var ls = document.getElementById('loadingState');
   if(ls) ls.style.display = 'none';
+
+  // Auto-start visual editor if ?admin=visual
+  if(location.search.includes('admin=visual')){
+    if(typeof showAdminTrigger==='function') showAdminTrigger();
+    var _clothesEditTimer = setTimeout(function(){
+      if(typeof startVisualEditor==='function') startVisualEditor();
+    }, window.currentUser?.email==='viximariakids@viximariakids.com' || sessionStorage.getItem('vixiAdminLogged')==='1' ? 500 : 1200);
+  }
 });
 </script>
 <script type="module" src="vixi-firebase.js"></script>

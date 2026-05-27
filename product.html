@@ -193,11 +193,11 @@
     <div>
       <h5>Ajuda</h5>
       <ul>
-        <li><a href="#">Tabela de medidas</a></li>
-        <li><a href="#">Trocas e devoluções</a></li>
-        <li><a href="#">Formas de pagamento</a></li>
-        <li><a href="#">Política de privacidade</a></li>
-        <li><a href="#">Frete e entrega</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+ver+a+tabela+de+medidas" target="_blank" rel="noopener">Tabela de medidas</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+trocas+e+devolu%C3%A7%C3%B5es" target="_blank" rel="noopener">Trocas e devoluções</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+as+formas+de+pagamento" target="_blank" rel="noopener">Formas de pagamento</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+pol%C3%ADtica+de+privacidade" target="_blank" rel="noopener">Política de privacidade</a></li>
+        <li><a href="https://wa.me/5516991781559?text=Oi%2C+quero+saber+sobre+frete+e+entrega" target="_blank" rel="noopener">Frete e entrega</a></li>
       </ul>
     </div>
     <div class="foot-contact">
@@ -290,7 +290,7 @@ function addProductToCart(id){
     showToast('Selecione um tamanho primeiro 📏');
     return;
   }
-  addCart(id, null);
+  addCart(id, null, _selectedSize || '');
   renderCart();
 }
 
@@ -343,7 +343,7 @@ function renderProduct(){
   var badgeHtml = p.badge && p.badge!=='FAV' ? '<span class="pbadge ' + (String(p.badge).includes('%')?'off':'novo') + '" style="position:static;display:inline-flex;margin-bottom:8px">' + (p.badge==='NOVO'?'✨ Novo!':String(p.badge).includes('%')?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)) + '</span>' : '';
 
   document.getElementById('productDetailWrap').innerHTML =
-    '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" data-edit-product="' + p.id + '" data-edit-field="img"></div>' +
+    '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" decoding="async" data-edit-product="' + p.id + '" data-edit-field="img"></div>' +
     '<div class="product-detail-info">' +
       badgeHtml +
       '<div class="product-detail-cat">' + getCatLabel(p.cat) + '</div>' +
@@ -384,9 +384,9 @@ function renderProduct(){
       var rliked = window.favorites && window.favorites.includes(rp.id);
       return '<article class="prod-card" onclick="window.location.href=\'product.html?id=' + rp.id + '\'" style="cursor:pointer">' +
         '<div class="prod-img-wrap">' +
-          (rp.badge ? '<span class="pbadge novo">' + escapeHtml(rp.badge) + '</span>' : '') +
+          ((rp.badge && rp.badge!=='FAV') ? '<span class="pbadge ' + (String(rp.badge).includes('%')?'off':'novo') + '">' + (rp.badge==='NOVO'?'✨ Novo!':String(rp.badge).includes('%')?'🔥 '+escapeHtml(rp.badge):escapeHtml(rp.badge)) + '</span>' : '') +
           '<button class="fav-btn ' + (rliked?'liked':'') + '" onclick="toggleFav(\'' + rp.id + '\',this,event)">' + (rliked?'❤️':'🤍') + '</button>' +
-          '<img src="' + rp.img + '" alt="' + escapeHtml(rp.name) + '" loading="lazy">' +
+          '<img src="' + rp.img + '" alt="' + escapeHtml(rp.name) + '" loading="lazy" decoding="async">' +
         '</div>' +
         '<div class="prod-info">' +
           '<div class="prod-cat">' + getCatLabel(rp.cat) + '</div>' +
@@ -412,7 +412,7 @@ function renderRecentlyViewed(currentId){
       +'<div class="prod-img-wrap">'
         +(p.badge&&p.badge!=='FAV'?'<span class="pbadge '+(String(p.badge).includes('%')?'off':'novo')+'">'+(p.badge==='NOVO'?'Novo!':escapeHtml(p.badge))+'</span>':'')
         +'<button class="fav-btn '+(liked?'liked':'')+'" onclick="toggleFav(\''+p.id+'\',this,event)">'+(liked?'❤️':'🤍')+'</button>'
-        +'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+        +'<img src="'+p.img+'" alt="'+escapeHtml(p.name)+'" loading="lazy" decoding="async">'
       +'</div>'
       +'<div class="prod-info">'
         +'<div class="prod-cat">'+getCatLabel(p.cat)+'</div>'

@@ -69,6 +69,7 @@ function ensureAdminShell(){
         </div>
         <div class="adm-field"><span class="adm-label">Destaque (badge)</span><select class="adm-input" id="admBadge"><option value="">Nenhum</option><option value="NOVO">NOVO</option><option value="FAV">FAVORITO</option><option value="-10%">-10%</option><option value="-20%">-20%</option><option value="-30%">-30%</option><option value="-40%">-40%</option><option value="-50%">-50%</option></select></div>
         <div class="adm-field"><span class="adm-label">Tamanhos disponiveis</span><div class="adm-sizes-grid" id="sizesGrid"></div></div>
+        <div class="adm-field"><span class="adm-label">Descrição (opcional)</span><textarea class="adm-input" id="admDesc" placeholder="Ex: Vestido com detalhes em renda, ideal para festas..." rows="2" style="resize:vertical;min-height:60px;font-family:inherit"></textarea></div>
         <div class="adm-modal-btns"><button class="adm-cancel-btn" onclick="closeAdmModal()">Cancelar</button><button class="adm-save-btn" onclick="saveProduct()">Salvar produto</button></div>
       </div>
     </div>`);
@@ -204,7 +205,66 @@ function renderAdminGrid(){
   const q=(document.getElementById('admSearchInput')?.value||'').toLowerCase();
   const list=liveProducts.filter(p=>!q||p.name.toLowerCase().includes(q)||(getCatLabel?getCatLabel(p.cat):p.cl||'').toLowerCase().includes(q));
   const grid=document.getElementById('adminGrid'); if(!grid)return;
-  grid.innerHTML=list.map((p,i)=>`<div class="adm-pcard" data-id="${p.id}">${p.badge?`<div class="apc-badge">${p.badge}</div>`:''}<img src="${p.img}" alt="${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}" loading="lazy"/><div class="apc-body"><div class="apc-cat">${typeof getCatIcon==='function'?getCatIcon(p.cat):''} ${typeof getCatLabel==='function'?getCatLabel(p.cat):p.cl||p.cat}</div><div class="apc-name">${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}</div><div class="apc-price">${typeof money==='function'?money(p.price):'R$ '+Number(p.price).toFixed(2)}</div><div class="apc-btns"><button class="apc-btn move" onclick="moveProduct('${p.id}',-1)" title="Mover para cima">↑</button><button class="apc-btn move" onclick="moveProduct('${p.id}',1)" title="Mover para baixo">↓</button><button class="apc-btn edit" onclick="openEditModal('${p.id}')">✏️ Editar</button><button class="apc-btn del" onclick="confirmDelete('${p.id}')">🗑️</button></div></div></div>`).join('')||'<p style="color:var(--gray);font-weight:600;grid-column:1/-1;text-align:center;padding:40px 0">Nenhum produto encontrado 🔍</p>';
+  grid.innerHTML=list.map((p,i)=>`<div class="adm-pcard" data-id="${p.id}" draggable="true"><div class="apc-drag-handle" title="Arraste para reordenar">⠿⠿</div>${p.badge?`<div class="apc-badge">${p.badge}</div>`:''}<img src="${p.img}" alt="${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}" loading="lazy"/><div class="apc-body"><div class="apc-cat">${typeof getCatIcon==='function'?getCatIcon(p.cat):''} ${typeof getCatLabel==='function'?getCatLabel(p.cat):p.cl||p.cat}</div><div class="apc-name">${typeof escapeHtml==='function'?escapeHtml(p.name):p.name}</div><div class="apc-price">${typeof money==='function'?money(p.price):'R$ '+Number(p.price).toFixed(2)}</div><div class="apc-btns"><button class="apc-btn move" onclick="moveProduct('${p.id}',-1)" title="Mover para cima">↑</button><button class="apc-btn move" onclick="moveProduct('${p.id}',1)" title="Mover para baixo">↓</button><button class="apc-btn edit" onclick="openEditModal('${p.id}')">✏️ Editar</button><button class="apc-btn del" onclick="confirmDelete('${p.id}')">🗑️</button></div></div></div>`).join('')||'<p style="color:var(--gray);font-weight:600;grid-column:1/-1;text-align:center;padding:40px 0">Nenhum produto encontrado 🔍</p>';
+  _attachAdmDragHandlers();
+}
+
+// ── Admin grid drag-and-drop ──
+var _admDragSrc = null;
+
+function _attachAdmDragHandlers(){
+  var grid = document.getElementById('adminGrid');
+  if(!grid) return;
+  grid.querySelectorAll('.adm-pcard').forEach(function(card){
+    card.addEventListener('dragstart', _admDragStart);
+    card.addEventListener('dragover',  _admDragOver);
+    card.addEventListener('dragleave', _admDragLeave);
+    card.addEventListener('drop',      _admDrop);
+    card.addEventListener('dragend',   _admDragEnd);
+  });
+}
+
+function _admDragStart(e){
+  if(e.target.tagName === 'BUTTON'){ e.preventDefault(); return; }
+  _admDragSrc = this.dataset.id;
+  var self = this;
+  setTimeout(function(){ self.classList.add('adm-dragging'); }, 0);
+  if(e.dataTransfer){ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', _admDragSrc||''); }
+}
+
+function _admDragOver(e){
+  e.preventDefault();
+  if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  if(this.dataset.id !== _admDragSrc) this.classList.add('adm-drag-over');
+}
+
+function _admDragLeave(e){
+  if(!this.contains(e.relatedTarget)) this.classList.remove('adm-drag-over');
+}
+
+function _admDrop(e){
+  e.preventDefault(); e.stopPropagation();
+  var targetId = this.dataset.id;
+  this.classList.remove('adm-drag-over');
+  if(!_admDragSrc || _admDragSrc === targetId || !liveProducts) return;
+  var srcIdx = liveProducts.findIndex(function(p){ return p.id === _admDragSrc; });
+  var tgtIdx = liveProducts.findIndex(function(p){ return p.id === targetId; });
+  if(srcIdx < 0 || tgtIdx < 0) return;
+  var moved = liveProducts.splice(srcIdx, 1)[0];
+  liveProducts.splice(tgtIdx, 0, moved);
+  PRODS.length = 0;
+  liveProducts.forEach(function(p){ PRODS.push(p); });
+  window.liveProducts = liveProducts;
+  if(typeof saveToStorage === 'function') saveToStorage();
+  renderAdminGrid();
+  if(typeof showToast === 'function') showToast('Ordem dos produtos atualizada ✅');
+}
+
+function _admDragEnd(){
+  _admDragSrc = null;
+  document.querySelectorAll('.adm-pcard').forEach(function(c){
+    c.classList.remove('adm-dragging', 'adm-drag-over');
+  });
 }
 
 // ── Reorder products ──
@@ -264,6 +324,7 @@ function openAddModal(){
   document.getElementById('admPrice').value='';
   document.getElementById('admOld').value='';
   document.getElementById('admBadge').value='';
+  var descEl=document.getElementById('admDesc'); if(descEl) descEl.value='';
   document.getElementById('photoPreview').src='';
   document.getElementById('photoUploadArea').classList.remove('has-img');
   buildSizesGrid([]);
@@ -564,6 +625,7 @@ function saveContentFromAdmin(){
 // ── Backup helpers ──
 let visualEditorOn = false;
 let visualImageTarget = null;
+let _dragSrcId = null;
 
 function getEditableContentFields(){
   const seen = new Set();
@@ -592,10 +654,28 @@ function ensureVisualChrome(){
     const bar = document.createElement('div');
     bar.id = 'vixiEditorBar';
     bar.className = 'vixi-editor-bar';
-    bar.innerHTML = '<span>Editor visual ativo</span><button class="save" onclick="saveVisualNow()">Salvar</button><button class="exit" onclick="stopVisualEditor()">Sair</button>';
+    bar.innerHTML = '<span class="ve-brand">🎨 Vixi Editor</span><div class="ve-spacer"></div><div class="ve-mode-toggle"><button class="ve-toggle-btn" id="veTglView" onclick="window.setEditorMode&&window.setEditorMode(\'view\')">👁 Visualizar</button><button class="ve-toggle-btn ve-active" id="veTglEdit" onclick="window.setEditorMode&&window.setEditorMode(\'edit\')">✏️ Editando</button></div><div class="ve-spacer"></div><button class="ve-btn ve-back-btn" onclick="stopVisualEditor();if(typeof openAdmin===\'function\')openAdmin()">⚙️ Admin</button><button class="ve-btn ve-save-btn" onclick="saveVisualNow()">💾 Salvar</button><button class="ve-btn ve-exit-btn" onclick="stopVisualEditor()">✕</button>';
     document.body.appendChild(bar);
   }
 }
+
+function setEditorMode(mode){
+  if(!visualEditorOn) return;
+  const editBtn = document.getElementById('veTglEdit');
+  const viewBtn = document.getElementById('veTglView');
+  if(mode === 'view'){
+    editBtn?.classList.remove('ve-active');
+    viewBtn?.classList.add('ve-active');
+    document.body.classList.add('vixi-preview');
+    disableVisualEditing();
+  } else {
+    viewBtn?.classList.remove('ve-active');
+    editBtn?.classList.add('ve-active');
+    document.body.classList.remove('vixi-preview');
+    enableVisualEditing();
+  }
+}
+window.setEditorMode = setEditorMode;
 
 function decorateVisualTargets(){
   const data = typeof readJson==='function' ? readJson('vixiContent',{}) : {};
@@ -759,30 +839,161 @@ async function handleVisualImageUpload(e){
 }
 
 function startVisualEditor(){
-  if(!window.vixiAdminLogged && sessionStorage.getItem('vixiAdminLogged') !== '1'){
+  const _isAdm = window.vixiAdminLogged ||
+                 sessionStorage.getItem('vixiAdminLogged')==='1' ||
+                 window.currentUser?.email==='viximariakids@viximariakids.com';
+  if(!_isAdm){
     openAdminPw();
     return;
   }
+  // Close admin panel if open
+  const dash = document.getElementById('adminDash');
+  if(dash && dash.classList.contains('open')) dash.classList.remove('open');
+
   ensureVisualChrome();
   visualEditorOn = true;
+  window.visualEditorOn = true;
   window.vixiAdminLogged = true;
   document.body.classList.add('vixi-editing');
+  document.body.classList.remove('vixi-preview');
+  document.getElementById('veTglEdit')?.classList.add('ve-active');
+  document.getElementById('veTglView')?.classList.remove('ve-active');
   decorateVisualTargets();
   enableVisualEditing();
-  showToast('Editor visual ativado nesta pagina');
+  initProductDragDrop();
+  window.scrollTo({top:0, behavior:'smooth'});
+  showToast('Editor ativo 🎨 — clique nos textos para editar, arraste produtos para reordenar');
 }
 
 function stopVisualEditor(){
   visualEditorOn = false;
-  document.body.classList.remove('vixi-editing');
+  window.visualEditorOn = false;
+  document.body.classList.remove('vixi-editing', 'vixi-preview');
   disableVisualEditing();
+  destroyProductDragDrop();
 }
 
 function saveVisualNow(){
   document.activeElement?.blur?.();
   if(typeof loadContent==='function') loadContent();
   if(typeof applyVisualImages==='function') applyVisualImages();
-  showToast('Pagina salva');
+  if(typeof saveToStorage==='function') saveToStorage();
+  showToast('Página salva ✅');
+}
+
+// ── Product drag-and-drop (visual editor) ──────────────
+
+function initProductDragDrop(){
+  var grid = document.getElementById('prodGrid');
+  if(!grid) return;
+  grid.classList.add('vixi-drag-mode');
+  _attachProdDragHandlers();
+}
+
+function _attachProdDragHandlers(){
+  if(!visualEditorOn) return;
+  var grid = document.getElementById('prodGrid');
+  if(!grid) return;
+  grid.querySelectorAll('.prod-card').forEach(function(card){
+    card.setAttribute('draggable','true');
+    card.removeEventListener('dragstart', _prodDragStart);
+    card.removeEventListener('dragenter', _prodDragEnter);
+    card.removeEventListener('dragover',  _prodDragOver);
+    card.removeEventListener('drop',      _prodDrop);
+    card.removeEventListener('dragend',   _prodDragEnd);
+    card.addEventListener('dragstart', _prodDragStart);
+    card.addEventListener('dragenter', _prodDragEnter);
+    card.addEventListener('dragover',  _prodDragOver);
+    card.addEventListener('drop',      _prodDrop);
+    card.addEventListener('dragend',   _prodDragEnd);
+    // Mobile sort arrows (hidden on desktop via CSS)
+    if(!card.querySelector('.vixi-sort-arrows')){
+      var arrows = document.createElement('div');
+      arrows.className = 'vixi-sort-arrows';
+      var upBtn = document.createElement('button');
+      upBtn.className = 'vixi-sort-btn';
+      upBtn.title = 'Mover para cima';
+      upBtn.textContent = '↑';
+      var downBtn = document.createElement('button');
+      downBtn.className = 'vixi-sort-btn';
+      downBtn.title = 'Mover para baixo';
+      downBtn.textContent = '↓';
+      arrows.appendChild(upBtn);
+      arrows.appendChild(downBtn);
+      card.insertBefore(arrows, card.firstChild);
+      upBtn.addEventListener('click', function(e){ e.stopPropagation(); _sortCard(card.dataset.id, -1); });
+      downBtn.addEventListener('click', function(e){ e.stopPropagation(); _sortCard(card.dataset.id, 1); });
+    }
+  });
+}
+
+function _sortCard(id, dir){
+  var list = window.liveProducts || PRODS;
+  var idx = list.findIndex(function(p){ return p.id === id; });
+  var newIdx = idx + dir;
+  if(idx < 0 || newIdx < 0 || newIdx >= list.length) return;
+  var moved = list.splice(idx, 1)[0];
+  list.splice(newIdx, 0, moved);
+  PRODS.length = 0;
+  list.forEach(function(p){ PRODS.push(p); });
+  window.liveProducts = list;
+  if(typeof saveToStorage === 'function') saveToStorage();
+  if(typeof renderProds === 'function') renderProds(window.currentFilter || 'all');
+  setTimeout(_attachProdDragHandlers, 80);
+  showToast(dir < 0 ? 'Produto movido para cima ↑' : 'Produto movido para baixo ↓');
+}
+
+function _prodDragStart(e){
+  _dragSrcId = this.dataset.id;
+  this.classList.add('vixi-dragging');
+  if(e.dataTransfer){ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', _dragSrcId||''); }
+}
+function _prodDragEnter(e){ e.preventDefault(); }
+function _prodDragOver(e){
+  e.preventDefault();
+  if(e.dataTransfer) e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.prod-card.vixi-drag-target').forEach(function(c){ c.classList.remove('vixi-drag-target'); });
+  if(this.dataset.id !== _dragSrcId) this.classList.add('vixi-drag-target');
+}
+function _prodDrop(e){
+  e.preventDefault(); e.stopPropagation();
+  var targetId = this.dataset.id;
+  if(!_dragSrcId || _dragSrcId === targetId) return;
+  var list = window.liveProducts || PRODS;
+  var srcIdx = list.findIndex(function(p){ return p.id === _dragSrcId; });
+  var tgtIdx = list.findIndex(function(p){ return p.id === targetId; });
+  if(srcIdx < 0 || tgtIdx < 0) return;
+  var moved = list.splice(srcIdx, 1)[0];
+  list.splice(tgtIdx, 0, moved);
+  PRODS.length = 0;
+  list.forEach(function(p){ PRODS.push(p); });
+  window.liveProducts = list;
+  if(typeof saveToStorage==='function') saveToStorage();
+  if(typeof renderProds==='function') renderProds(window.currentFilter||'all');
+  setTimeout(_attachProdDragHandlers, 80);
+  showToast('Ordem dos produtos atualizada ✅');
+}
+function _prodDragEnd(){
+  _dragSrcId = null;
+  document.querySelectorAll('.prod-card').forEach(function(c){
+    c.classList.remove('vixi-dragging','vixi-drag-target');
+  });
+}
+
+function destroyProductDragDrop(){
+  var grid = document.getElementById('prodGrid');
+  if(grid) grid.classList.remove('vixi-drag-mode');
+  document.querySelectorAll('.prod-card').forEach(function(card){
+    card.removeAttribute('draggable');
+    card.removeEventListener('dragstart', _prodDragStart);
+    card.removeEventListener('dragenter', _prodDragEnter);
+    card.removeEventListener('dragover',  _prodDragOver);
+    card.removeEventListener('drop',      _prodDrop);
+    card.removeEventListener('dragend',   _prodDragEnd);
+    card.classList.remove('vixi-dragging','vixi-drag-target');
+    var arrows = card.querySelector('.vixi-sort-arrows');
+    if(arrows) arrows.remove();
+  });
 }
 
 async function waitFirebase(key, ms=6000){
@@ -1002,3 +1213,5 @@ window.stopVisualEditor=typeof stopVisualEditor!=='undefined'?stopVisualEditor:w
 window.saveVisualNow=typeof saveVisualNow!=='undefined'?saveVisualNow:window.saveVisualNow;
 window.ensureAdminShell=typeof ensureAdminShell!=='undefined'?ensureAdminShell:window.ensureAdminShell;
 window.setBadgeStyle=typeof setBadgeStyle!=='undefined'?setBadgeStyle:window.setBadgeStyle;
+window.initProductDragDrop=typeof initProductDragDrop!=='undefined'?initProductDragDrop:window.initProductDragDrop;
+window.destroyProductDragDrop=typeof destroyProductDragDrop!=='undefined'?destroyProductDragDrop:window.destroyProductDragDrop;

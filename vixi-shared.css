@@ -451,6 +451,11 @@ footer ul li a:hover{color:var(--pink)}
 .apc-btn.move{background:#f5f5f5;color:var(--gray);flex:0;padding:8px 10px}
 .apc-btn.move:hover{background:var(--pink-pale);color:var(--pink)}
 .adm-pcard .apc-badge{position:absolute;top:8px;left:8px;background:var(--pink);color:#fff;padding:3px 10px;border-radius:var(--r99);font-size:10px;font-weight:900}
+.apc-drag-handle{text-align:center;padding:7px 0 4px;color:#ccc;font-size:16px;letter-spacing:4px;user-select:none;cursor:grab;transition:color .15s}
+.adm-pcard:hover .apc-drag-handle{color:var(--pink-soft)}
+.adm-pcard[draggable=true]:active{cursor:grabbing}
+.adm-pcard.adm-dragging{opacity:.3;border-style:dashed;transform:scale(.96);transition:none}
+.adm-pcard.adm-drag-over{border-color:var(--pink)!important;box-shadow:0 0 0 4px rgba(242,39,110,.18);transform:scale(1.03)}
 
 /* ── Edit/Add Modal ── */
 #admModal{position:fixed;inset:0;background:rgba(30,0,26,.6);backdrop-filter:blur(6px);z-index:400;display:none;align-items:flex-end;justify-content:center}
@@ -548,8 +553,19 @@ nav.vixi-main-nav{align-items:center;gap:8px}
 .admin-extra{display:grid;gap:14px}.admin-extra-tabs{align-items:center}
 .admin-visual-actions{display:flex;gap:10px;flex-wrap:wrap}.mini-btn.primary{background:var(--pink);color:#fff}.mini-btn.soft{background:#fff;color:var(--ink-mid)}
 .cat-row{grid-template-columns:64px 1fr 1fr auto auto auto}.cat-row .move{background:#fff;color:var(--ink-mid);border:1px solid var(--line)}
-.vixi-editor-bar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:700;background:#1e001a;color:#fff;border-radius:999px;box-shadow:0 20px 60px rgba(30,0,26,.28);padding:8px;display:none;align-items:center;gap:8px}
-body.vixi-editing .vixi-editor-bar{display:flex}.vixi-editor-bar span{font-weight:900;padding:0 10px}.vixi-editor-bar button{border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.vixi-editor-bar .save{background:var(--mint);color:#062b26}.vixi-editor-bar .exit{background:#fff;color:var(--ink)}
+/* ── Visual Editor Bar (top of page) ── */
+.vixi-editor-bar{position:fixed;top:0;left:0;right:0;height:56px;z-index:9999;background:#1e001a;color:#fff;display:none;align-items:center;padding:0 14px;gap:8px;box-shadow:0 4px 32px rgba(30,0,26,.5);border-bottom:2.5px solid var(--pink)}
+body.vixi-editing .vixi-editor-bar{display:flex}
+body.vixi-editing{padding-top:56px!important}
+body.vixi-editing header{top:56px!important}
+.ve-brand{font-family:var(--font-d);font-size:15px;font-weight:800;color:rgba(255,255,255,.9);white-space:nowrap;letter-spacing:.3px}
+.ve-spacer{flex:1;min-width:4px}
+.ve-mode-toggle{display:flex;background:rgba(255,255,255,.1);border-radius:999px;padding:3px;gap:2px;flex-shrink:0}
+.ve-toggle-btn{border:none;background:transparent;color:rgba(255,255,255,.55);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ve-toggle-btn.ve-active{background:var(--pink);color:#fff;box-shadow:0 2px 10px rgba(242,39,110,.4)}
+.ve-btn{border:none;border-radius:999px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.ve-back-btn,.ve-exit-btn{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9)}.ve-back-btn:hover,.ve-exit-btn:hover{background:rgba(255,255,255,.22)}
+.ve-save-btn{background:var(--mint);color:#062b26}.ve-save-btn:hover{filter:brightness(1.1)}
 body.vixi-editing [data-vixi-edit],body.vixi-editing [data-edit-product],body.vixi-editing [data-image-key],body.vixi-editing [data-banner-key],body.vixi-editing [data-visual-bg-key]{outline:2px dashed transparent;outline-offset:5px;transition:outline-color .15s,background .15s,box-shadow .15s}
 body.vixi-editing [data-vixi-edit]:hover,body.vixi-editing [data-edit-product]:hover,body.vixi-editing [data-image-key]:hover,body.vixi-editing [data-banner-key]:hover,body.vixi-editing [data-visual-bg-key]:hover{outline-color:var(--pink);background-color:rgba(255,240,246,.65);box-shadow:0 0 0 8px rgba(255,240,246,.35)}
 body.vixi-editing [contenteditable="true"]{cursor:text}
@@ -697,9 +713,87 @@ nav a.active{color:var(--pink);background:var(--pink-pale)}
 .conf-piece{position:absolute;top:-20px;width:10px;height:10px;border-radius:2px;animation:confettiFall linear forwards}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);outline-offset:8px}
+/* ──── VISUAL EDITOR ENHANCEMENTS ──── */
+body.vixi-editing .prod-card img{pointer-events:auto}
+.vixi-drag-mode .prod-card{cursor:grab;box-shadow:0 0 0 2.5px var(--pink-soft),var(--sh2) !important;transition:transform .15s,box-shadow .15s}
+.vixi-drag-mode .prod-card:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 0 0 2.5px var(--pink),var(--sh3) !important}
+.prod-card.vixi-dragging{opacity:.38;transform:scale(.96) !important;cursor:grabbing;transition:none !important}
+.prod-card.vixi-drag-target{outline:3px dashed var(--pink);outline-offset:5px;background:var(--pink-xpale);transform:scale(1.02) !important}
+/* ── Editor preview mode (bar stays, editing disabled) ── */
+body.vixi-editing.vixi-preview [data-vixi-edit],
+body.vixi-editing.vixi-preview [data-edit-product],
+body.vixi-editing.vixi-preview [data-section-key]{outline:none!important;background:transparent!important;box-shadow:none!important;cursor:default}
+body.vixi-editing.vixi-preview [contenteditable]{pointer-events:none!important}
+body.vixi-editing.vixi-preview .vixi-section-arrows,
+body.vixi-editing.vixi-preview .vixi-sort-arrows,
+body.vixi-editing.vixi-preview .vixi-section-insert,
+body.vixi-editing.vixi-preview .vixi-add-section-row,
+body.vixi-editing.vixi-preview .vixi-section-handle,
+body.vixi-editing.vixi-preview .vixi-cb-controls{display:none!important}
+/* ── Section move arrows ── */
+.vixi-section-arrows{display:none;position:absolute;top:10px;right:10px;z-index:200;background:rgba(30,0,26,.88);border-radius:8px;padding:4px 6px;gap:4px;align-items:center}
+body.vixi-editing [data-section-key]:hover .vixi-section-arrows{display:flex}
+.vs-arr-btn{border:none;background:rgba(255,255,255,.12);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer;line-height:1;transition:background .15s;white-space:nowrap}
+.vs-arr-btn:hover{background:var(--pink-soft)}
+.vs-arr-del{background:rgba(220,40,40,.3)!important}.vs-arr-del:hover{background:#d02!important}
+.vs-arr-sep{width:1px;height:14px;background:rgba(255,255,255,.2);margin:0 2px;flex-shrink:0}
+/* ── Section insert zone ── */
+.vixi-section-insert{display:none;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:10px 16px;border-top:1.5px dashed rgba(242,39,110,.3);margin-top:8px;background:rgba(255,240,246,.45)}
+body.vixi-editing [data-section-key]:hover .vixi-section-insert,
+body.vixi-editing .vixi-section-insert:focus-within{display:flex}
+.vsi-label{font-size:11px;font-weight:800;color:var(--pink);white-space:nowrap;opacity:.8}
+.vsi-btn{border:1.5px solid rgba(242,39,110,.4);background:rgba(255,255,255,.7);color:var(--pink);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.vsi-btn:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
+/* ── Custom content blocks ── */
+.vixi-custom-blocks{display:flex;flex-direction:column;gap:10px;padding:8px 0}
+.vixi-custom-block{position:relative;border-radius:10px}
+body.vixi-editing .vixi-custom-block{outline:1.5px dashed rgba(242,39,110,.32)}
+body.vixi-editing .vixi-custom-block:hover{outline-color:var(--pink)}
+.vixi-cb-controls{display:none;position:absolute;top:-18px;right:6px;z-index:100;background:#1e001a;border-radius:6px;padding:3px;gap:2px;flex-direction:row;align-items:center}
+body.vixi-editing .vixi-custom-block:hover .vixi-cb-controls{display:flex}
+.vcb-btn{border:none;background:rgba(255,255,255,.1);color:#fff;border-radius:4px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;line-height:1;transition:background .15s}
+.vcb-btn:hover{background:var(--pink-soft)}
+.vcb-del{background:rgba(220,40,40,.25)!important}.vcb-del:hover{background:#d02!important}
+.vixi-cb-text{min-height:36px;padding:10px 16px;font-size:15px;line-height:1.7;color:var(--ink);background:rgba(255,255,255,.6);border-radius:8px;word-break:break-word}
+.vixi-cb-image{width:100%;max-height:420px;object-fit:cover;display:block;border-radius:8px}
+body.vixi-editing .vixi-cb-image:hover{opacity:.78;cursor:pointer}
+.vixi-cb-img-placeholder{width:100%;height:160px;background:var(--pink-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--pink);cursor:pointer;border:2px dashed rgba(242,39,110,.35)}
+.vixi-cb-btn-wrap{display:flex;justify-content:center;padding:8px 0}
+.vixi-cb-button{display:inline-block;padding:13px 36px;border-radius:999px;background:var(--pink);color:#fff;font-weight:800;font-size:15px;text-decoration:none;border:none;cursor:pointer;transition:filter .15s}
+.vixi-cb-button:hover{filter:brightness(1.1)}
+/* ── Add section row ── */
+.vixi-add-section-row{display:none;padding:20px 28px;text-align:center}
+body.vixi-editing .vixi-add-section-row{display:block}
+.vas-btn{border:2px dashed rgba(242,39,110,.35);background:rgba(255,255,255,.55);color:var(--pink);border-radius:12px;padding:14px 28px;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s;max-width:340px;width:100%}
+.vas-btn:hover{background:var(--pink-pale);border-color:var(--pink);transform:translateY(-2px)}
+/* ── Section templates modal ── */
+#vixiSectionModal{display:none;position:fixed;inset:0;z-index:10100;background:rgba(30,0,26,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+#vixiSectionModal.open{display:flex}
+.vsm-box{background:#fff;border-radius:20px;padding:28px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(30,0,26,.3)}
+.vsm-title{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.vsm-sub{font-size:13px;color:var(--gray);font-weight:600;margin-bottom:20px}
+.vsm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.vsm-card{border:2px solid var(--line);border-radius:12px;padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.vsm-card:hover{border-color:var(--pink);background:var(--pink-pale);transform:translateY(-2px)}
+.vsm-icon{font-size:26px;display:block;margin-bottom:6px}
+.vsm-label{font-size:12px;font-weight:800;color:var(--ink)}
+.vsm-cancel{width:100%;border:none;background:var(--pink-pale);color:var(--ink-mid);border-radius:10px;padding:12px;font-weight:800;cursor:pointer;font-size:14px}
+/* ── Custom sections ── */
+.vixi-cs{padding:48px 28px;position:relative}
+.vixi-cs-inner{max-width:900px;margin:0 auto}
+.vixi-cs-text{background:var(--pink-xpale)}
+.vixi-cs-title{font-family:var(--font-d);font-size:clamp(24px,3.5vw,38px);font-weight:700;color:var(--ink);margin-bottom:14px}
+.vixi-cs-body{font-size:16px;color:var(--gray);line-height:1.7;max-width:680px}
+.vixi-cs-banner{background:var(--ink-mid);overflow:hidden;padding:0}
+.vixi-cs-banner-wrap{min-height:260px;background:var(--pink-pale) center/cover no-repeat;display:flex;align-items:flex-end;padding:28px;cursor:pointer}
+.vixi-cs-banner-overlay{background:rgba(30,0,26,.52);padding:14px 20px;border-radius:10px;display:inline-block}
+.vixi-cs-banner-title{color:#fff;font-family:var(--font-d);font-size:clamp(20px,3vw,34px);font-weight:700}
+.vixi-cs-cta{background:var(--pink);padding:56px 28px;text-align:center}
+.vixi-cs-cta .vixi-cs-title{color:#fff}
+.vixi-cs-cta .vixi-cs-body{color:rgba(255,255,255,.9);margin:0 auto 24px}
 .vixi-crop-modal{position:fixed;inset:0;z-index:900;background:rgba(30,0,26,.62);display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(6px)}
 .vixi-crop-modal.open{display:flex}.vixi-crop-box{width:min(720px,96vw);background:#fff;border-radius:8px;box-shadow:var(--sh3);padding:18px;display:grid;gap:14px}.vixi-crop-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.vixi-crop-head h3{font-family:var(--font-d);font-size:22px;color:var(--ink)}.vixi-crop-close{width:36px;height:36px;border:0;border-radius:50%;background:var(--pink-pale);color:var(--pink);font-weight:900;cursor:pointer}.vixi-crop-frame{width:min(420px,82vw);aspect-ratio:1;margin:0 auto;background:#f7edf2;border-radius:8px;overflow:hidden;position:relative}.vixi-crop-frame img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center}.vixi-crop-controls{display:grid;gap:10px}.vixi-crop-controls label{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:10px;font-size:13px;font-weight:900;color:var(--ink-mid)}.vixi-crop-controls input{width:100%;accent-color:var(--pink)}.vixi-crop-actions{display:flex;justify-content:flex-end;gap:10px}.vixi-crop-actions button{border:0;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer}.vixi-crop-actions .cancel{background:var(--pink-pale);color:var(--ink-mid)}.vixi-crop-actions .save{background:var(--pink);color:#fff}
-@media(max-width:760px){.hero-inner{grid-template-columns:1fr}.hero-art{order:-1}.hdr{height:auto;min-height:68px}.hdr-cta{display:none}.vixi-editor-bar{left:12px;right:12px;transform:none;justify-content:center;flex-wrap:wrap;border-radius:8px}.cat-row{grid-template-columns:1fr}.nav-dd-menu{position:static;transform:none;box-shadow:none;margin-top:6px}.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{transform:none}}
+@media(max-width:760px){.hero-inner{grid-template-columns:1fr}.hero-art{order:-1}.hdr{height:auto;min-height:68px}.hdr-cta{display:none}.vixi-editor-bar{padding:0 8px;gap:4px}.ve-brand{display:none}.ve-toggle-btn{padding:6px 10px;font-size:12px}.ve-btn{padding:7px 12px;font-size:12px}.cat-row{grid-template-columns:1fr}.nav-dd-menu{position:static;transform:none;box-shadow:none;margin-top:6px}.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{transform:none}}
 
 /* ──── PRODUCT DETAIL PAGE ──── */
 .product-detail-wrap{max-width:1100px;margin:0 auto;padding:48px 28px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
@@ -774,3 +868,35 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 .backup-btns{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .mini-btn.danger{background:#fff0f0;color:#e53935;border:1.5px solid #ffcdd2}
 .mini-btn.danger:hover{background:#e53935;color:#fff;border-color:#e53935}
+
+/* ──── EDIT MODE: ALLOW TEXT SELECTION IN EDITABLE NODES ──── */
+body.vixi-editing [contenteditable="true"]{
+  -webkit-user-select:text!important;
+  user-select:text!important;
+}
+
+/* ──── PERFORMANCE HINTS (continuously animating elements) ──── */
+.ann-track{will-change:transform}
+.hero-art .main-card,.float-el{will-change:transform}
+.wa-float{will-change:transform}
+
+/* ──── EDITOR MODE: FLOATING ELEMENT ADJUSTMENTS ──── */
+body.vixi-editing .lgpd-bar{display:none!important}
+
+/* ──── MOBILE SORT ARROWS (visible only on touch devices in drag mode) ──── */
+.vixi-drag-mode .prod-card{position:relative}
+.vixi-sort-arrows{position:absolute;top:8px;left:8px;z-index:10;display:none;flex-direction:column;gap:3px;pointer-events:auto}
+.vixi-drag-mode .prod-card .vixi-sort-arrows{display:flex}
+@media(min-width:769px){.vixi-drag-mode .prod-card .vixi-sort-arrows{display:none}}
+.vixi-sort-btn{width:26px;height:26px;border-radius:50%;background:rgba(255,240,246,.95);border:1.5px solid var(--pink-soft);color:var(--pink);font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s;line-height:1;padding:0;box-shadow:0 2px 8px rgba(242,39,110,.18)}
+.vixi-sort-btn:hover,.vixi-sort-btn:active{background:var(--pink);color:#fff;border-color:var(--pink)}
+
+/* ──── ACCESSIBILITY: REDUCED MOTION ──── */
+@media(prefers-reduced-motion:reduce){
+  *,::before,::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+    scroll-behavior:auto!important;
+  }
+}
