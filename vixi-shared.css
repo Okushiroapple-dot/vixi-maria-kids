@@ -1050,6 +1050,9 @@ body.vixi-sidebar-open .ve-sidebar-btn{background:var(--pink);color:#fff}
 .vixi-drag-mode .prod-card .vixi-prod-grip{display:flex}
 .vixi-prod-grip:hover{background:rgba(242,39,110,.85)}
 .vixi-prod-grip:active{cursor:grabbing;background:rgba(242,39,110,.95)}
+@media(max-width:760px){
+  .vixi-prod-grip{height:40px;font-size:18px;letter-spacing:4px}
+}
 
 /* ── Save pill (appears after product reorder) ── */
 .vixi-save-pill{
