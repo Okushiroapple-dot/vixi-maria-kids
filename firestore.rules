@@ -14,23 +14,32 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.token.email == "viximariakids@viximariakids.com";
     }
 
-    // Top-level orders — customer reads own orders, admin email reads all, only server writes
+    // Top-level orders — customer reads own, admin reads/writes all, server writes via Cloud Functions
     match /orders/{orderId} {
       allow read: if request.auth != null && (
         resource.data.userId == request.auth.uid ||
         request.auth.token.email == "viximariakids@viximariakids.com"
       );
-      allow write: if false;
+      allow write: if request.auth != null &&
+        request.auth.token.email == "viximariakids@viximariakids.com";
+      allow delete: if request.auth != null &&
+        request.auth.token.email == "viximariakids@viximariakids.com";
     }
 
     // Customer profiles — each customer can only read/write their own data
     match /customers/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // Orders subcollection — customer can read, only server can write
+      // Orders subcollection — customer reads own, admin reads/writes all
       match /orders/{orderId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if false;
+        allow read: if request.auth != null && (
+          request.auth.uid == userId ||
+          request.auth.token.email == "viximariakids@viximariakids.com"
+        );
+        allow write: if request.auth != null &&
+          request.auth.token.email == "viximariakids@viximariakids.com";
+        allow delete: if request.auth != null &&
+          request.auth.token.email == "viximariakids@viximariakids.com";
       }
     }
 
