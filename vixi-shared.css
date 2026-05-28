@@ -164,6 +164,8 @@ nav a.hot{color:var(--pink)}
 .cat-tile .cat-range{font-size:13px;color:rgba(255,255,255,.8);font-weight:700;margin-top:3px;display:block}
 .cat-tile .cat-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#fff;border-radius:50%;margin-top:12px;color:var(--pink);font-size:18px;transition:transform .2s}
 .cat-tile:hover .cat-arrow{transform:translate(3px,-3px)}
+.cat-photo-hint{display:none}
+.vixi-editing .cat-photo-hint{display:block;position:absolute;top:8px;left:8px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;border-radius:8px;padding:4px 8px;z-index:10}
 
 .ct-girl{background:linear-gradient(135deg,#FFB3CC,#FF6FA0)}
 .ct-boy{background:linear-gradient(135deg,#5CC8FF,#2D9FE0)}
@@ -309,7 +311,7 @@ footer,.footer-sec{background:var(--pink-pale);color:var(--ink-mid);padding:64px
 .fsoc{width:40px;height:40px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink-mid);font-size:17px;transition:all .2s}
 .fsoc:hover{background:var(--pink);color:#fff;transform:translateY(-2px)}
 footer h5,.footer-sec h5{font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--ink-mid);margin-bottom:18px}
-footer ul,.footer-sec ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+footer ul,.footer-sec ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
 footer ul li a,.footer-sec ul li a{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:var(--pink-pale);text-decoration:none;color:var(--ink-mid);font-size:13px;font-weight:700;transition:all .2s;border:1.5px solid var(--line)}
 footer ul li a:hover,.footer-sec ul li a:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
 .foot-contact p{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--gray);margin-bottom:10px;font-weight:600}
