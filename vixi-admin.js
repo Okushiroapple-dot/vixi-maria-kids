@@ -1312,7 +1312,7 @@ function showOrderDetail(idx){
 
   // Address with complement
   const ruaNum = [addr.rua||addr.street||'', addr.numero||addr.number||''].filter(Boolean).join(', ');
-  const compl  = addr.complemento||addr.complement||'';
+  const compl  = addr.complemento||addr.complement||addr.compl||'';
   const bairro = addr.bairro||addr.neighborhood||'';
   const cidEst = [addr.cidade||addr.city||addr.municipio||'', addr.estado||addr.state||addr.uf||''].filter(Boolean).join(' — ');
   const cep    = addr.cep ? 'CEP ' + addr.cep : '';
