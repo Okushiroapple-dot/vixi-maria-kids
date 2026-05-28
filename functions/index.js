@@ -70,6 +70,100 @@ async function notifyDeboraPedido(orderData, status) {
   }
 }
 
+// ── Email de notificação para a admin (Débora) ───
+async function notifyAdminByEmail(orderData, status) {
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const adminEmail = process.env.ADMIN_EMAIL || 'viximariakids@viximariakids.com';
+  if (!smtpUser || !smtpPass) return;
+
+  const nome   = orderData.payer?.nome  || orderData.payer?.email || 'Cliente';
+  const tel    = orderData.payer?.telefone || '';
+  const total  = `R$ ${Number(orderData.total || 0).toFixed(2).replace('.', ',')}`;
+  const pix    = `R$ ${(Number(orderData.total || 0) * 0.9).toFixed(2).replace('.', ',')}`;
+  const ref    = orderData.externalRef || orderData.id || '';
+  const e      = orderData.endereco || {};
+  const addr   = [e.rua, e.numero, e.compl, e.bairro, e.cidade, e.estado].filter(Boolean).join(', ');
+  const cep    = e.cep ? `CEP ${e.cep}` : '';
+
+  const statusEmoji = { pago:'✅', pendente:'🕐', recusado:'❌', cancelado:'🚫' };
+  const emoji  = statusEmoji[status] || '📦';
+
+  const itemRows = (orderData.items || []).map(i => {
+    const sub = `R$ ${(Number(i.price) * (Number(i.qty) || 1)).toFixed(2).replace('.', ',')}`;
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e6f6;">${i.name}${i.size ? ` <span style="background:#fce4ec;color:#e75480;padding:1px 6px;border-radius:4px;font-size:11px">${i.size}</span>` : ''}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e6f6;text-align:center">${i.qty}x</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e6f6;text-align:right">${sub}</td>
+    </tr>`;
+  }).join('');
+
+  const waBtn = tel
+    ? `<a href="https://wa.me/55${tel.replace(/\D/g,'')}" style="display:inline-block;background:#25d366;color:#fff;padding:10px 20px;border-radius:20px;text-decoration:none;font-weight:700;font-size:14px;margin-top:12px">💬 Chamar no WhatsApp</a>`
+    : '';
+
+  const html = `
+<!DOCTYPE html><html lang="pt-BR">
+<body style="margin:0;padding:0;background:#f5f0ff;font-family:'Nunito',Arial,sans-serif;">
+  <div style="max-width:540px;margin:30px auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(100,0,200,.12)">
+    <div style="background:linear-gradient(135deg,#1e001a,#4a0040);padding:28px 24px;text-align:center">
+      <div style="font-size:36px">${emoji}</div>
+      <h1 style="color:#fff;margin:8px 0 4px;font-size:22px">Novo Pedido — ${status.toUpperCase()}</h1>
+      <p style="color:rgba(255,255,255,.7);margin:0;font-size:13px">Ref: ${ref}</p>
+    </div>
+    <div style="padding:24px">
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+        <tr style="background:#f5f0ff">
+          <th style="padding:10px 12px;text-align:left;color:#4a0040;font-size:13px">Produto</th>
+          <th style="padding:10px 12px;text-align:center;color:#4a0040;font-size:13px">Qtd</th>
+          <th style="padding:10px 12px;text-align:right;color:#4a0040;font-size:13px">Subtotal</th>
+        </tr>
+        ${itemRows}
+      </table>
+      <p style="text-align:right;font-weight:700;font-size:18px;color:#1e001a;margin:0 0 4px">Total: ${total}</p>
+      <p style="text-align:right;font-size:13px;color:#888;margin:0 0 20px">PIX: ${pix} (−10%)</p>
+
+      <div style="background:#f5f0ff;border-radius:12px;padding:16px;font-size:14px;color:#333">
+        <div style="margin-bottom:6px"><strong>👤 Cliente:</strong> ${nome}</div>
+        ${tel ? `<div style="margin-bottom:6px"><strong>📱 Telefone:</strong> ${tel}</div>` : ''}
+        ${addr ? `<div style="margin-bottom:6px"><strong>📍 Endereço:</strong> ${addr}${cep ? ', '+cep : ''}</div>` : ''}
+        <div>${waBtn}</div>
+      </div>
+
+      <div style="text-align:center;margin-top:20px">
+        <a href="https://vixi-maria-kids-8c494.web.app/admin.html?sec=orders" style="display:inline-block;background:#1e001a;color:#fff;padding:12px 28px;border-radius:20px;text-decoration:none;font-weight:700;font-size:14px">Ver pedido no painel →</a>
+      </div>
+    </div>
+    <div style="background:#f5f0ff;padding:14px 24px;text-align:center">
+      <p style="margin:0;color:#888;font-size:12px">🌸 Vixi Maria Kids — Painel Admin</p>
+    </div>
+  </div>
+</body></html>`;
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+
+  const subjects = {
+    pago:     `✅ Pedido PAGO — ${nome} — ${total}`,
+    pendente: `🕐 Novo pedido pendente — ${nome} — ${total}`,
+    recusado: `❌ Pagamento recusado — ${nome}`,
+  };
+
+  try {
+    await transporter.sendMail({
+      from:    `"Vixi Maria Kids 🌸" <${smtpUser}>`,
+      to:      adminEmail,
+      subject: subjects[status] || `📦 Pedido ${status} — ${nome}`,
+      html,
+    });
+    console.log(`Admin notified by email: ${status} — ${ref}`);
+  } catch(e) {
+    console.error('Admin email error:', e?.message);
+  }
+}
+
 // ── Email de confirmação para o cliente ──────────
 async function sendConfirmationEmail(orderData) {
   const smtpUser = process.env.SMTP_USER;
@@ -321,6 +415,9 @@ exports.createMpPreference = onRequest(async (req, res) => {
       // Top-level orders collection — used by webhook and admin panel
       await db.collection("orders").doc(externalRef).set(orderData);
 
+      // Notify admin by email when new order is created
+      notifyAdminByEmail({ ...orderData, externalRef }, 'pendente').catch(() => {});
+
       // Customer subcollection — used by the customer's account page
       if (payer.uid) {
         await db
@@ -408,6 +505,11 @@ exports.mpWebhook = onRequest(async (req, res) => {
     // Notify Débora via WhatsApp on paid or rejected orders
     if (newStatus === 'pago' || newStatus === 'recusado') {
       notifyDeboraPedido(orderSnap.data(), newStatus).catch(() => {});
+    }
+
+    // Notify admin by email on paid or rejected
+    if (newStatus === 'pago' || newStatus === 'recusado') {
+      notifyAdminByEmail({ ...orderSnap.data(), externalRef }, newStatus).catch(() => {});
     }
 
     // Send confirmation email to customer on paid orders
