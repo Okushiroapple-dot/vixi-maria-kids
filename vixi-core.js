@@ -442,7 +442,6 @@ function syncHeaderAuth(user){
         +'<a class="acct-item" href="conta.html#favoritos">❤️ Meus Favoritos</a>'
         +'<a class="acct-item" href="conta.html#carrinho">🛒 Meu Carrinho</a>'
         +'<div class="acct-sep"></div>'
-        +(user.email==='viximariakids@viximariakids.com'?'<a class="acct-item" href="admin.html" style="color:var(--pink);font-weight:900">⚙️ Painel Admin</a>':'')
         +'<button class="acct-item" style="color:#c0392b" onclick="window.vixiLogout&&window.vixiLogout()">Sair da conta</button>'
       +'</div>';
     var toggle=document.getElementById('acctToggle');

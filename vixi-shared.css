@@ -289,7 +289,7 @@ nav a.hot{color:var(--pink)}
 .news-form button:hover{background:var(--pink-mid)}
 
 /* ──── FOOTER ──── */
-footer{background:var(--pink-pale);color:var(--ink-mid);padding:64px 28px 28px;border-top:2px solid var(--line)}
+footer,.footer-sec{background:var(--pink-pale);color:var(--ink-mid);padding:64px 28px 28px;border-top:2px solid var(--line)}
 .foot-grid{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:50px;padding-bottom:48px;border-bottom:1px solid var(--line)}
 .foot-brand .logo{margin-bottom:18px;display:inline-flex}
 .foot-brand .logo .logo-name{color:var(--pink)}
@@ -298,13 +298,17 @@ footer{background:var(--pink-pale);color:var(--ink-mid);padding:64px 28px 28px;b
 .foot-socials{display:flex;gap:8px}
 .fsoc{width:40px;height:40px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink-mid);font-size:17px;transition:all .2s}
 .fsoc:hover{background:var(--pink);color:#fff;transform:translateY(-2px)}
-footer h5{font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--ink-mid);margin-bottom:18px}
-footer ul{list-style:none;display:flex;flex-direction:column;gap:10px}
-footer ul li a{text-decoration:none;color:var(--gray);font-size:14px;font-weight:600;transition:color .2s}
-footer ul li a:hover{color:var(--pink)}
+footer h5,.footer-sec h5{font-family:var(--font-d);font-size:18px;font-weight:600;color:var(--ink-mid);margin-bottom:18px}
+footer ul,.footer-sec ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+footer ul li a,.footer-sec ul li a{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;background:var(--pink-pale);text-decoration:none;color:var(--ink-mid);font-size:13px;font-weight:700;transition:all .2s;border:1.5px solid var(--line)}
+footer ul li a:hover,.footer-sec ul li a:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
 .foot-contact p{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--gray);margin-bottom:10px;font-weight:600}
 .foot-contact p .ic{flex-shrink:0;font-size:16px}
 .foot-bot{max-width:1360px;margin:24px auto 0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--gray)}
+
+/* ──── MINI BUTTON BASE ──── */
+.mini-btn{border:none;border-radius:999px;padding:10px 18px;font-weight:900;cursor:pointer;font-family:var(--font-b);font-size:13px;background:var(--pink-pale);color:var(--pink);transition:all .2s}
+.mini-btn:hover{filter:brightness(.92)}
 
 /* ──── FLOATING WA ──── */
 .wa-float{position:fixed;bottom:28px;right:28px;width:60px;height:60px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.45);text-decoration:none;font-size:28px;z-index:100;transition:all .25s;animation:waBounce 3s ease-in-out infinite}

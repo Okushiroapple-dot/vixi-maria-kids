@@ -28,9 +28,9 @@ service cloud.firestore {
       }
     }
 
-    // Backups — server-side only
+    // Backups — admin only
     match /backups/{document} {
-      allow read, write: if false;
+      allow read, write: if request.auth != null && request.auth.token.email == "viximariakids@viximariakids.com";
     }
   }
 }
