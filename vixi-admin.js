@@ -8,7 +8,7 @@
 
 // ── Admin constants ──
 const ADMIN_EMAIL = 'viximariakids@viximariakids.com';
-const ADM_SIZES_ALL = ['RN','P','M','G','GG','2','4','6','8','10','12','14','16','18','20','Único'];
+const ADM_SIZES_ALL = ['RN','1','2','4','6','8','10','12','14','16','18','20','Único'];
 const CAT_LABELS = {meninos:'Meninos',acessorios:'Acessórios',bebes:'Bebês',meninas:'Meninas',juvenil:'Juvenil'};
 let liveProducts = null;  // working copy
 let currentPhotoB64 = null;
@@ -389,8 +389,10 @@ function saveProduct(){
   const sizes = getSelectedSizes();
   if(!sizes.length){ showToast('Selecione pelo menos um tamanho! 📏'); return; }
   const cat = document.getElementById('admCat').value;
-  const old = parseFloat(document.getElementById('admOld').value)||null;
   const badge = document.getElementById('admBadge').value||null;
+  const oldRaw = parseFloat(document.getElementById('admOld').value)||null;
+  const pctMatch = badge ? String(badge).match(/^-?(\d+)%$/) : null;
+  const old = oldRaw || (pctMatch && price > 0 ? Math.ceil(price / (1 - parseInt(pctMatch[1],10)/100)) : null);
   const descEl = document.getElementById('admDesc');
   const desc = descEl ? descEl.value.trim() : '';
   const img = currentPhotoB64 || (editingProductId ? (liveProducts||PRODS).find(p=>p.id===editingProductId)?.img : null);
@@ -1135,7 +1137,7 @@ async function viewBackups(){
   try{
     const list = await window.vixiListBackups();
     if(!list.length){
-      box.innerHTML='<p style="color:var(--gray);font-size:13px">Nenhum backup encontrado.</p>';
+      box.innerHTML='<p style="color:var(--gray);font-size:13px">Nenhum backup criado ainda. Clique em "Criar backup agora" para começar.</p>';
       return;
     }
     box.innerHTML = list.map(b=>{
@@ -1154,8 +1156,9 @@ async function viewBackups(){
       </div>`;
     }).join('');
   }catch(e){
-    box.innerHTML='<p style="color:var(--gray);font-size:13px">Erro ao carregar backups 😢</p>';
     console.error('viewBackups error',e);
+    var errMsg = e?.code ? ('Erro Firebase: ' + e.code) : (e?.message || 'Erro desconhecido');
+    box.innerHTML='<p style="color:#e53935;font-size:13px;font-weight:700">⚠️ '+errMsg+'</p><p style="color:var(--gray);font-size:12px;margin-top:6px">Verifique as regras de segurança do Firebase Console (coleção "backups").</p>';
   }
 }
 
@@ -1306,8 +1309,40 @@ function showOrderDetail(idx){
   const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
   const payer = o.payer||{};
   const addr = o.address||o.endereco||payer.address||{};
-  const addrStr = [addr.rua||addr.street||'',addr.numero||addr.number||'',addr.bairro||addr.neighborhood||'',addr.cidade||addr.city||addr.municipio||'',addr.estado||addr.state||addr.uf||'',addr.cep||''].filter(Boolean).join(', ') || '—';
-  const itens = (o.items||[]).map(i=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><strong>${i.name||i.id}</strong> × ${i.qty} — ${typeof money==='function'?money((i.price||0)*i.qty):'—'}</div>`).join('');
+
+  // Address with complement
+  const ruaNum = [addr.rua||addr.street||'', addr.numero||addr.number||''].filter(Boolean).join(', ');
+  const compl  = addr.complemento||addr.complement||'';
+  const bairro = addr.bairro||addr.neighborhood||'';
+  const cidEst = [addr.cidade||addr.city||addr.municipio||'', addr.estado||addr.state||addr.uf||''].filter(Boolean).join(' — ');
+  const cep    = addr.cep ? 'CEP ' + addr.cep : '';
+  const addrLines = [ruaNum, compl, bairro, cidEst, cep].filter(Boolean);
+
+  // WA link
+  const phone = payer.telefone||payer.phone||'';
+  const waLink = phone ? `<a href="https://wa.me/55${phone.replace(/\D/g,'')}" target="_blank" rel="noopener" style="color:var(--pink);text-decoration:none;font-weight:800">💬 ${phone}</a>` : '—';
+
+  // Items table
+  const itens = (o.items||[]).map(i=>{
+    const itemTotal = typeof money==='function' ? money((i.price||0)*i.qty) : '—';
+    const sz = i.size ? ` <span style="background:var(--pink-pale);color:var(--pink);padding:1px 8px;border-radius:99px;font-size:11px;font-weight:800">${i.size}</span>` : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:8px;flex-wrap:wrap">
+      <span><strong>${i.name||i.id}</strong>${sz} × ${i.qty}</span>
+      <strong style="color:var(--ink);white-space:nowrap">${itemTotal}</strong>
+    </div>`;
+  }).join('');
+
+  function row(icon, label, value, html) {
+    if(!value && !html) return '';
+    return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)">
+      <span style="font-size:16px;flex-shrink:0">${icon}</span>
+      <div>
+        <div style="font-size:10px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">${label}</div>
+        <div style="font-size:14px;color:var(--ink);font-weight:600">${html || value}</div>
+      </div>
+    </div>`;
+  }
+
   var modal = document.getElementById('orderDetailModal');
   if(!modal){
     modal = document.createElement('div');
@@ -1316,24 +1351,28 @@ function showOrderDetail(idx){
     modal.onclick=function(e){if(e.target===modal)modal.style.display='none';};
     document.body.appendChild(modal);
   }
-  modal.innerHTML=`<div style="background:#fff;border-radius:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
+  modal.innerHTML=`<div style="background:#fff;border-radius:24px;max-width:540px;width:100%;max-height:88vh;overflow-y:auto;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
       <strong style="font-size:18px;font-family:var(--font-d)">📋 Detalhes do Pedido</strong>
       <button onclick="document.getElementById('orderDetailModal').style.display='none'" style="border:none;background:var(--pink-pale);color:var(--pink);border-radius:99px;padding:6px 14px;font-weight:900;cursor:pointer">✕</button>
     </div>
-    <div style="display:grid;gap:12px;font-size:14px">
-      <div><strong>Cliente:</strong> ${payer.nome||'—'}</div>
-      <div><strong>E-mail:</strong> ${payer.email||'—'}</div>
-      <div><strong>Telefone:</strong> ${payer.telefone||payer.phone||'—'}</div>
-      <div><strong>Endereço:</strong> ${addrStr}</div>
-      <div><strong>Data:</strong> ${date}</div>
-      <div><strong>Status:</strong> <span style="background:${color}22;color:${color};padding:3px 10px;border-radius:99px;font-weight:800">${label}</span></div>
-      <hr style="border:none;border-top:1.5px solid var(--line)">
-      <strong>Itens:</strong>
-      ${itens||'<div style="color:var(--gray)">—</div>'}
-      <hr style="border:none;border-top:1.5px solid var(--line)">
-      <div style="display:flex;justify-content:space-between"><strong>Total:</strong><strong style="color:var(--pink);font-size:17px">${total}</strong></div>
+    <div style="background:${color}14;border-left:4px solid ${color};border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span style="font-weight:800;color:${color};font-size:13px">${label}</span>
+      <span style="color:var(--gray);font-size:12px">📅 ${date}</span>
     </div>
+    <div style="display:grid;gap:0">
+      ${row('👤','Cliente', payer.nome||'—')}
+      ${row('✉️','E-mail', payer.email||'—')}
+      ${row('📱','Telefone', '', waLink)}
+      ${addrLines.length ? row('📍','Endereço', '', addrLines.map(function(l){return '<div>'+l+'</div>';}).join('')) : ''}
+    </div>
+    <div style="margin-top:20px;margin-bottom:8px;font-size:12px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px">🛍️ Itens do Pedido</div>
+    ${itens||'<div style="color:var(--gray);font-size:13px;padding:8px 0">—</div>'}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:16px;border-top:2px solid var(--line)">
+      <strong style="font-size:14px;color:var(--ink)">Total</strong>
+      <strong style="color:var(--pink);font-size:20px;font-family:var(--font-d)">${total}</strong>
+    </div>
+    ${phone ? '<div style="margin-top:16px"><a href="https://wa.me/55'+phone.replace(/\D/g,'')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;border-radius:99px;padding:12px 20px;font-weight:900;text-decoration:none;font-size:14px">💬 Chamar no WhatsApp</a></div>' : ''}
   </div>`;
   modal.style.display='flex';
 }

@@ -157,14 +157,9 @@ window.vixiCreateBackup = async function(data) {
 };
 
 window.vixiListBackups = async function() {
-  try {
-    const q = query(collection(db, 'backups'), orderBy('createdAt', 'desc'), limit(10));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch(e) {
-    console.error('vixiListBackups error', e);
-    return [];
-  }
+  const q = query(collection(db, 'backups'), orderBy('createdAt', 'desc'), limit(10));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
 window.vixiDeleteBackup = async function(id) {

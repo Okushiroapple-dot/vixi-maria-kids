@@ -167,96 +167,141 @@ function vixiCropImageFile(file, opts={}){
   return new Promise((resolve,reject)=>{
     if(!file || !String(file.type||'').startsWith('image/')){resolve(null);return;}
     const aspect = Number(opts.aspect || 1);
-    const outW = Number(opts.width || 1200);
-    const outH = Number(opts.height || Math.round(outW / aspect));
+    const outW   = Number(opts.width  || 1200);
+    const outH   = Math.round(outW / aspect);
+
     let modal = document.getElementById('vixiCropModal');
     if(!modal){
       modal = document.createElement('div');
       modal.id = 'vixiCropModal';
       modal.className = 'vixi-crop-modal';
       modal.innerHTML = `<div class="vixi-crop-box" role="dialog" aria-modal="true">
-        <div class="vixi-crop-head"><h3>Enquadrar imagem</h3><button class="vixi-crop-close" type="button">X</button></div>
-        <div class="vixi-crop-frame"><img alt=""></div>
-        <div class="vixi-crop-controls">
-          <label>Zoom <input type="range" min="1" max="3" step=".01" value="1.12" data-crop-zoom></label>
-          <label>Horizontal <input type="range" min="-100" max="100" step="1" value="0" data-crop-x></label>
-          <label>Vertical <input type="range" min="-100" max="100" step="1" value="0" data-crop-y></label>
+        <div class="vixi-crop-head">
+          <h3>Enquadrar imagem</h3>
+          <button class="vixi-crop-close" type="button">✕</button>
         </div>
-        <div class="vixi-crop-actions"><button class="cancel" type="button">Cancelar</button><button class="save" type="button">Usar imagem</button></div>
+        <div class="vixi-crop-frame" style="touch-action:none;cursor:grab"><img alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center"></div>
+        <div class="vixi-crop-controls">
+          <label>Zoom <input type="range" min="0.5" max="8" step="0.01" value="1" data-crop-zoom></label>
+        </div>
+        <p style="font-size:11px;color:var(--gray);font-weight:600;text-align:center;margin:-4px 0 4px">Arraste com o dedo / mouse • Belisque para zoom</p>
+        <div class="vixi-crop-actions">
+          <button class="cancel" type="button">Cancelar</button>
+          <button class="save"   type="button">✅ Usar imagem</button>
+        </div>
       </div>`;
       document.body.appendChild(modal);
     }
-    const title = modal.querySelector('h3');
-    const frame = modal.querySelector('.vixi-crop-frame');
-    const img = modal.querySelector('img');
-    const zoom = modal.querySelector('[data-crop-zoom]');
-    const posX = modal.querySelector('[data-crop-x]');
-    const posY = modal.querySelector('[data-crop-y]');
-    const close = modal.querySelector('.vixi-crop-close');
-    const cancel = modal.querySelector('.cancel');
-    const save = modal.querySelector('.save');
-    const url = URL.createObjectURL(file);
-    let baseScale = 1;
-    let finished = false;
-    title.textContent = opts.title || 'Enquadrar imagem';
+
+    const titleEl = modal.querySelector('h3');
+    const frame   = modal.querySelector('.vixi-crop-frame');
+    const img     = modal.querySelector('img');
+    const zoomEl  = modal.querySelector('[data-crop-zoom]');
+    const closeEl = modal.querySelector('.vixi-crop-close');
+    const cancelEl= modal.querySelector('.cancel');
+    const saveEl  = modal.querySelector('.save');
+
+    titleEl.textContent = opts.title || 'Enquadrar imagem';
     frame.style.aspectRatio = String(aspect);
-    zoom.value = opts.zoom || 1.12;
-    posX.value = 0;
-    posY.value = 0;
-    img.src = url;
-    modal.classList.add('open');
+
+    let state = {x:0, y:0, scale:1, dragging:false, sx:0, sy:0, pinchDist:null};
+    let finished = false;
+    const url = URL.createObjectURL(file);
+
+    function applyT(){
+      img.style.transform = `translate(-50%,-50%) translate(${state.x}px,${state.y}px) scale(${state.scale})`;
+      zoomEl.value = state.scale;
+    }
+    function initScale(){
+      const fw = frame.offsetWidth  || 420;
+      const fh = frame.offsetHeight || Math.round(fw/aspect);
+      const s  = Math.max(fw/img.naturalWidth, fh/img.naturalHeight);
+      state = {x:0,y:0,scale:s,dragging:false,sx:0,sy:0,pinchDist:null};
+      zoomEl.min  = String(Math.max(0.1, s*0.5));
+      zoomEl.max  = String(s*10);
+      zoomEl.step = String(s*0.01);
+      applyT();
+    }
+
+    img.onload = initScale;
+    zoomEl.oninput = function(){ state.scale = parseFloat(this.value); applyT(); };
+
+    // Mouse drag
+    frame.addEventListener('mousedown', function(e){
+      state.dragging=true; state.sx=e.clientX-state.x; state.sy=e.clientY-state.y;
+      frame.style.cursor='grabbing'; e.preventDefault();
+    });
+    const mmove = function(e){ if(!state.dragging)return; state.x=e.clientX-state.sx; state.y=e.clientY-state.sy; applyT(); };
+    const mup   = function(){ state.dragging=false; frame.style.cursor='grab'; };
+    window.addEventListener('mousemove',mmove);
+    window.addEventListener('mouseup',mup);
+
+    // Wheel zoom
+    frame.addEventListener('wheel', function(e){
+      e.preventDefault();
+      state.scale = Math.max(parseFloat(zoomEl.min), Math.min(parseFloat(zoomEl.max), state.scale*(e.deltaY<0?1.1:0.9)));
+      applyT();
+    },{passive:false});
+
+    // Touch drag + pinch
+    frame.addEventListener('touchstart', function(e){
+      e.preventDefault();
+      if(e.touches.length===1){
+        state.dragging=true;
+        state.sx=e.touches[0].clientX-state.x; state.sy=e.touches[0].clientY-state.y;
+        state.pinchDist=null;
+      }else if(e.touches.length===2){
+        state.dragging=false;
+        state.pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      }
+    },{passive:false});
+    frame.addEventListener('touchmove', function(e){
+      e.preventDefault();
+      if(e.touches.length===1&&state.dragging){
+        state.x=e.touches[0].clientX-state.sx; state.y=e.touches[0].clientY-state.sy;
+      }else if(e.touches.length===2&&state.pinchDist){
+        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        state.scale=Math.max(parseFloat(zoomEl.min),Math.min(parseFloat(zoomEl.max),state.scale*(d/state.pinchDist)));
+        state.pinchDist=d;
+      }
+      applyT();
+    },{passive:false});
+    frame.addEventListener('touchend',function(e){
+      if(e.touches.length<1) state.dragging=false;
+      if(e.touches.length<2) state.pinchDist=null;
+    });
+
     function cleanup(){
       modal.classList.remove('open');
       URL.revokeObjectURL(url);
-      img.removeEventListener('load',onLoad);
-      zoom.removeEventListener('input',render);
-      posX.removeEventListener('input',render);
-      posY.removeEventListener('input',render);
-      close.removeEventListener('click',onCancel);
-      cancel.removeEventListener('click',onCancel);
-      save.removeEventListener('click',onSave);
+      window.removeEventListener('mousemove',mmove);
+      window.removeEventListener('mouseup',mup);
     }
-    function render(){
-      const fw = frame.clientWidth || 420;
-      const fh = frame.clientHeight || (fw / aspect);
-      baseScale = Math.max(fw / img.naturalWidth, fh / img.naturalHeight);
-      const x = Number(posX.value) / 100 * fw / 2;
-      const y = Number(posY.value) / 100 * fh / 2;
-      img.style.width = (img.naturalWidth * baseScale) + 'px';
-      img.style.height = (img.naturalHeight * baseScale) + 'px';
-      img.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px) scale(${zoom.value})`;
-    }
-    function onLoad(){render();}
-    function onCancel(){if(finished)return;finished=true;cleanup();resolve(null);}
+    function onCancel(){ if(finished)return; finished=true; cleanup(); resolve(null); }
     function onSave(){
-      if(finished)return;
-      finished = true;
+      if(finished)return; finished=true;
+      const fw = frame.offsetWidth, fh = frame.offsetHeight;
+      const cropW = fw/state.scale, cropH = fh/state.scale;
+      const cx = img.naturalWidth/2 - state.x/state.scale;
+      const cy = img.naturalHeight/2 - state.y/state.scale;
       const canvas = document.createElement('canvas');
-      canvas.width = outW;
-      canvas.height = outH;
-      const ctx = canvas.getContext('2d');
-      const scale = Math.max(outW / img.naturalWidth, outH / img.naturalHeight) * Number(zoom.value || 1);
-      const x = Number(posX.value) / 100 * outW / 2;
-      const y = Number(posY.value) / 100 * outH / 2;
-      const dw = img.naturalWidth * scale;
-      const dh = img.naturalHeight * scale;
-      ctx.drawImage(img, (outW - dw) / 2 + x, (outH - dh) / 2 + y, dw, dh);
+      canvas.width=outW; canvas.height=outH;
+      canvas.getContext('2d').drawImage(img, cx-cropW/2, cy-cropH/2, cropW, cropH, 0, 0, outW, outH);
       canvas.toBlob(blob=>{
         if(!blob){cleanup();reject(new Error('Falha ao cortar imagem'));return;}
-        const name = String(file.name || 'imagem.jpg').replace(/\.[^.]+$/,'') + '-enquadrada.jpg';
-        const croppedFile = new File([blob], name, {type:'image/jpeg'});
-        const dataUrl = canvas.toDataURL('image/jpeg', .9);
+        const name = String(file.name||'imagem.jpg').replace(/\.[^.]+$/,'')+'-enquadrada.jpg';
+        const dataUrl = canvas.toDataURL('image/jpeg',.9);
         cleanup();
-        resolve({file:croppedFile, dataUrl});
-      }, 'image/jpeg', .9);
+        resolve({file:new File([blob],name,{type:'image/jpeg'}), dataUrl});
+      },'image/jpeg',.9);
     }
-    img.addEventListener('load',onLoad);
-    zoom.addEventListener('input',render);
-    posX.addEventListener('input',render);
-    posY.addEventListener('input',render);
-    close.addEventListener('click',onCancel);
-    cancel.addEventListener('click',onCancel);
-    save.addEventListener('click',onSave);
+
+    closeEl.onclick  = onCancel;
+    cancelEl.onclick = onCancel;
+    saveEl.onclick   = onSave;
+
+    img.src = url;
+    modal.classList.add('open');
   });
 }
 
@@ -449,6 +494,7 @@ function syncHeaderAuth(user){
         +'<a class="acct-item" href="conta.html#perfil">👤 Meu Perfil</a>'
         +'<a class="acct-item" href="conta.html#favoritos">❤️ Meus Favoritos</a>'
         +'<a class="acct-item" href="conta.html#carrinho">🛒 Meu Carrinho</a>'
+        +(user.email==='viximariakids@viximariakids.com' ? '<div class="acct-sep"></div><a class="acct-item" href="admin.html">⚙️ Painel de Admin</a>' : '')
         +'<div class="acct-sep"></div>'
         +'<button class="acct-item" style="color:#c0392b" onclick="window.vixiLogout&&window.vixiLogout()">Sair da conta</button>'
       +'</div>';
@@ -474,7 +520,7 @@ function syncAdminNav(){
     ['admin.html','📦','Produtos'],
     ['admin.html?sec=add','➕','Adicionar'],
     ['admin.html?sec=categories','🗂️','Categorias'],
-    [null,'🎨','Editar Página'],
+    ['index.html?admin=visual','🎨','Editar Página'],
     ['admin.html?sec=orders','📊','Pedidos'],
     ['admin.html?sec=backup','💾','Backups'],
   ];

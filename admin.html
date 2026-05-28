@@ -118,7 +118,7 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Loja</div>
           <button class="adm-menu-item" data-sec="categories" onclick="switchAdmSection('categories')"><span class="mi">🗂️</span> Categorias</button>
-          <a class="adm-menu-item" href="index.html?admin=visual" data-sec="visual"><span class="mi">🎨</span> Editar Página Inicial</a>
+          <a class="adm-menu-item" href="index.html?admin=visual"><span class="mi">🎨</span> Editar Página Inicial</a>
           <button class="adm-menu-item" data-sec="photos" onclick="switchAdmSection('photos')"><span class="mi">🖼️</span> Galeria de Fotos</button>
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Configurações</div>
@@ -233,26 +233,7 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
 
-    <!-- ── REMODELAR PÁGINA ── -->
-    <div class="adm-section" id="admSecVisual">
-      <div class="adm-sec-hdr">
-        <div class="adm-sec-title">🎨 Remodelar Página</div>
-      </div>
-      <div class="adm-card" style="max-width:600px">
-        <p style="font-size:14px;color:var(--gray);font-weight:600;margin-bottom:18px">Edite textos, títulos e imagens diretamente na página da loja.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
-          <a href="index.html?admin=visual" class="btn-main" style="font-size:14px;padding:12px 20px;text-decoration:none">🖊️ Editar página inicial</a>
-          <a href="clothes.html?admin=visual" class="btn-ghost" style="font-size:14px;padding:12px 20px;text-decoration:none">👗 Página de roupas</a>
-        </div>
-        <div style="background:var(--pink-pale);border-radius:14px;padding:14px 16px;font-size:13px;font-weight:600;color:var(--ink-mid);margin-bottom:20px">
-          💡 Na página da loja, clique em qualquer texto ou imagem para editar. Use a barra de edição no rodapé da tela para salvar ou sair.
-        </div>
-        <hr style="border:none;border-top:2px solid var(--line);margin-bottom:18px">
-        <p style="font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Editar textos aqui:</p>
-        <div id="contentEditorFields" style="display:grid;gap:10px;max-height:320px;overflow-y:auto;padding-right:4px;margin-bottom:14px"></div>
-        <button class="mini-btn primary" onclick="saveContentFromAdmin();buildContentEditorFields()" style="width:100%">💾 Salvar textos</button>
-      </div>
-    </div>
+    <!-- admSecVisual removed — menu item goes directly to index.html?admin=visual -->
 
     <!-- ── GALERIA DE FOTOS ── -->
     <div class="adm-section" id="admSecPhotos">
@@ -501,7 +482,7 @@ function switchAdmSection(sec) {
   if (stats) stats.style.display = (sec === 'orders' || sec === 'backup') ? 'none' : '';
   // Section init
   if (sec === 'orders') loadAdminOrders();
-  if (sec === 'visual') buildContentEditorFields();
+  if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
   if (sec === 'categories') renderCatEditor();
   if (sec === 'add') initAddNew();
@@ -648,8 +629,10 @@ function saveProductNew() {
   var name = document.getElementById('admNameNew').value.trim();
   var price = parseFloat(document.getElementById('admPriceNew').value);
   var cat = document.getElementById('admCatNew').value;
-  var old = parseFloat(document.getElementById('admOldNew').value) || null;
   var badge = document.getElementById('admBadgeNew').value || null;
+  var oldRaw = parseFloat(document.getElementById('admOldNew').value) || null;
+  var pctMatchNew = badge ? String(badge).match(/^-?(\d+)%$/) : null;
+  var old = oldRaw || (pctMatchNew && price > 0 ? Math.ceil(price / (1 - parseInt(pctMatchNew[1],10)/100)) : null);
   var descNewEl = document.getElementById('admDescNew');
   var desc = descNewEl ? descNewEl.value.trim() : '';
   var sizes = (typeof ADM_SIZES_ALL !== 'undefined' ? ADM_SIZES_ALL : []).filter(function(sz){
