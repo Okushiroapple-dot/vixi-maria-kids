@@ -180,6 +180,14 @@ nav a.hot{color:var(--pink)}
 .sz-divider{width:2px;height:56px;background:var(--line);border-radius:2px;align-self:center;margin:0 6px;flex-shrink:0}
 .sizes-section-hint{font-size:13px;color:var(--gray);font-weight:600;margin-top:20px;display:block}
 
+/* ──── CATEGORY GROUP SECTIONS ──── */
+.cat-group-sec{margin-bottom:48px}
+.cat-group-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.cat-group-title{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+.cat-group-title::after{content:'';flex:1;height:2px;background:linear-gradient(to right,var(--line),transparent);display:block;min-width:40px;max-width:200px;margin-left:12px}
+.cat-group-more{flex-shrink:0;padding:8px 20px;border-radius:99px;border:2px solid var(--pink);background:transparent;color:var(--pink);font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.cat-group-more:hover{background:var(--pink);color:#fff}
+
 /* ──── PRODUCTS ──── */
 .prod-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px}
 .tab{padding:10px 22px;border-radius:var(--r99);border:2.5px solid var(--line);background:transparent;font-family:var(--font-b);font-size:14px;font-weight:800;color:var(--gray);cursor:pointer;transition:all .2s}

@@ -155,6 +155,9 @@
       </label>
     </div>
 
+    <!-- Category group sections (shown when filter=all and no size filter) -->
+    <div id="catGroupSections" style="display:none"></div>
+
     <!-- Product grid -->
     <div class="prod-grid" id="prodGrid"></div>
 
@@ -287,6 +290,81 @@
 <script src="vixi-core.js"></script>
 <script src="vixi-admin.js"></script>
 <script>
+// ── Category group sections (show "all" view grouped by category) ──
+function renderCategoryGroups() {
+  var cats = typeof getCats === 'function' ? getCats() : [];
+  var catGroupBox = document.getElementById('catGroupSections');
+  var prodGrid = document.getElementById('prodGrid');
+  var viewMore = document.getElementById('viewMoreBtn') ? document.getElementById('viewMoreBtn').parentNode : null;
+  var filterBar = document.querySelector('.filter-bar');
+
+  if (!catGroupBox) return;
+
+  var filter = window.currentFilter || 'all';
+  var sizeFilter = window.activeSizeFilter || null;
+  var isAllView = filter === 'all' && !sizeFilter;
+
+  if (isAllView) {
+    catGroupBox.style.display = '';
+    if (prodGrid) prodGrid.style.display = 'none';
+    if (viewMore) viewMore.style.display = 'none';
+    if (filterBar) filterBar.querySelector('.sort-wrap') && (filterBar.querySelector('.sort-wrap').style.display = 'none');
+
+    var html = cats.map(function(c) {
+      var catProds = PRODS.filter(function(p){ return p.cat === c.id; }).slice(0, 4);
+      if (!catProds.length) return '';
+      var totalCount = PRODS.filter(function(p){ return p.cat === c.id; }).length;
+      var cards = catProds.map(function(p){
+        var liked = typeof favorites !== 'undefined' && Array.isArray(favorites) && favorites.includes(p.id);
+        var badgeStr = String(p.badge||'');
+        var pctMatch = badgeStr.match(/^-?(\d+)%$/);
+        var dispOld = p.old || null;
+        if (pctMatch && !dispOld && p.price) {
+          var pct = parseInt(pctMatch[1], 10);
+          if (pct > 0 && pct < 100) dispOld = Math.ceil(p.price / (1 - pct/100));
+        }
+        return `<article class="prod-card" data-id="${p.id}" onclick="window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
+          <div class="prod-img-wrap">
+            ${(p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN')?`<span class="pbadge ${pctMatch?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+p.badge:p.badge}</span>`:''}
+            <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
+            <img src="${p.img}" alt="${p.name||''}" loading="lazy">
+            <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="event.stopPropagation()">Ver produto →</a>
+          </div>
+          <div class="prod-info">
+            <h4 class="prod-name">${p.name||''}</h4>
+            <div class="prod-foot"><div class="prod-price">${dispOld?`<span class="pold">${typeof money==='function'?money(dispOld):'R$ '+dispOld}</span>`:''}<span class="pnew">${typeof money==='function'?money(p.price):'R$ '+p.price}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar">+</button></div>
+          </div>
+        </article>`;
+      }).join('');
+
+      return `<div class="cat-group-sec">
+        <div class="cat-group-hdr">
+          <div class="cat-group-title">${c.icon} ${c.label}</div>
+          ${totalCount > 4 ? `<a href="clothes.html?cat=${c.id}" class="cat-group-more">Ver todos (${totalCount}) →</a>` : ''}
+        </div>
+        <div class="prod-grid">${cards}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+
+    catGroupBox.innerHTML = html || '<p style="color:var(--gray);text-align:center;padding:40px">Nenhum produto disponível.</p>';
+
+    var countEl = document.getElementById('prodCount');
+    if (countEl) countEl.textContent = PRODS.length + ' produto' + (PRODS.length !== 1 ? 's' : '');
+  } else {
+    catGroupBox.style.display = 'none';
+    if (prodGrid) prodGrid.style.display = '';
+    if (filterBar) filterBar.querySelector('.sort-wrap') && (filterBar.querySelector('.sort-wrap').style.display = '');
+  }
+}
+
+// Override renderProds for clothes.html to show category groups when all
+var _origRenderProds = typeof renderProds === 'function' ? renderProds : null;
+window.renderProds = function(filter) {
+  if (_origRenderProds) _origRenderProds(filter);
+  // Show category groups when showing all and no size filter
+  setTimeout(renderCategoryGroups, 50);
+};
+
 document.addEventListener('DOMContentLoaded', function(){
   var params = new URLSearchParams(location.search);
   var cat = params.get('cat');
