@@ -74,6 +74,18 @@ body{background:#f5eff3;min-height:100vh}
   .adm-tb-btn.hide-mob{display:none}
   .adm-content{padding:16px}
 }
+
+/* ── DASHBOARD ── */
+.dash-stat-card{background:#fff;border-radius:20px;border:1.5px solid var(--line);padding:20px 24px;display:flex;flex-direction:column;gap:6px;transition:box-shadow .2s}
+.dash-stat-card:hover{box-shadow:0 4px 20px rgba(242,39,110,.12)}
+.dash-stat-icon{font-size:28px}
+.dash-stat-num{font-family:var(--font-d);font-size:32px;font-weight:700;color:var(--pink);line-height:1}
+.dash-stat-label{font-size:12px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.dash-shortcut{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;font-size:26px;font-family:var(--font-b);font-weight:800;color:var(--ink-mid);cursor:pointer;transition:all .2s}
+.dash-shortcut span{font-size:13px;text-align:center}
+.dash-shortcut:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-pale);transform:translateY(-2px);box-shadow:0 4px 16px rgba(242,39,110,.15)}
+.dash-order-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:12px;background:#fafafa;margin-bottom:8px;font-size:13px;cursor:pointer;transition:background .15s}
+.dash-order-row:hover{background:var(--pink-pale)}
 </style>
 </head>
 <body>
@@ -98,6 +110,8 @@ body{background:#f5eff3;min-height:100vh}
       <div class="adm-menu-wrap">
         <button class="adm-menu-btn" id="admMenuBtn" onclick="toggleAdmMenu()">⚙️ Menu ▾</button>
         <div class="adm-menu-dd" id="admMenuDd">
+          <button class="adm-menu-item" data-sec="dashboard" onclick="switchAdmSection('dashboard')"><span class="mi">🏠</span> Painel de Controle</button>
+          <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Produtos</div>
           <button class="adm-menu-item active" data-sec="products" onclick="switchAdmSection('products')"><span class="mi">📦</span> Gerenciar Produtos</button>
           <button class="adm-menu-item" data-sec="add" onclick="switchAdmSection('add')"><span class="mi">➕</span> Adicionar Produto</button>
@@ -126,6 +140,24 @@ body{background:#f5eff3;min-height:100vh}
 
   <!-- Main content -->
   <div class="adm-content">
+
+    <!-- ── PAINEL DE CONTROLE ── -->
+    <div class="adm-section" id="admSecDashboard">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">🏠 Painel de Controle</div>
+      </div>
+      <div id="dashStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px">
+        <button class="dash-shortcut" onclick="switchAdmSection('add')">➕<span>Adicionar Produto</span></button>
+        <button class="dash-shortcut" onclick="switchAdmSection('orders')">📊<span>Ver Pedidos</span></button>
+        <button class="dash-shortcut" onclick="switchAdmSection('photos')">🖼️<span>Galeria de Fotos</span></button>
+        <button class="dash-shortcut" onclick="switchAdmSection('backup')">💾<span>Backups</span></button>
+        <button class="dash-shortcut" onclick="window.open('index.html','_blank')">🏠<span>Ver Loja</span></button>
+        <button class="dash-shortcut" onclick="switchAdmSection('pagebuilder')">📄<span>Criar Página</span></button>
+      </div>
+      <div class="adm-sec-title" style="font-size:16px;margin-bottom:14px">📬 Pedidos Recentes</div>
+      <div id="dashRecentOrders" style="font-size:13px;color:var(--gray)">Carregando...</div>
+    </div>
 
     <!-- ── PRODUTOS ── -->
     <div class="adm-section active" id="admSecProducts">
@@ -476,6 +508,56 @@ function switchAdmSection(sec) {
   if (sec === 'badges') refreshBadgeBtns();
   if (sec === 'photos') { setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]'); renderGalleryList(); }, 100); }
   if (sec === 'pagebuilder') loadPagesList();
+  if (sec === 'dashboard') loadDashboard();
+}
+
+async function loadDashboard() {
+  // Stats cards
+  var prods = typeof PRODS !== 'undefined' ? PRODS : [];
+  var cats = typeof getCats === 'function' ? getCats() : [];
+  var catCounts = {};
+  cats.forEach(function(c){ catCounts[c.id] = prods.filter(function(p){ return p.cat===c.id; }).length; });
+
+  var statsEl = document.getElementById('dashStats');
+  if (statsEl) {
+    var catCards = cats.slice(0,4).map(function(c){
+      return '<div class="dash-stat-card"><div class="dash-stat-icon">'+c.icon+'</div><div class="dash-stat-num">'+(catCounts[c.id]||0)+'</div><div class="dash-stat-label">'+c.label+'</div></div>';
+    }).join('');
+    statsEl.innerHTML = '<div class="dash-stat-card"><div class="dash-stat-icon">📦</div><div class="dash-stat-num">'+prods.length+'</div><div class="dash-stat-label">Produtos</div></div>'+catCards;
+  }
+
+  // Recent orders
+  var ordersEl = document.getElementById('dashRecentOrders');
+  if (!ordersEl) return;
+  if (!window.vixiGetAdminOrders) {
+    await new Promise(function(r){ setTimeout(r, 1500); });
+  }
+  try {
+    var orders = window.vixiGetAdminOrders ? await window.vixiGetAdminOrders(5) : [];
+    if (!orders || !orders.length) {
+      ordersEl.innerHTML = '<p style="color:var(--gray);font-size:13px">Nenhum pedido ainda.</p>';
+      return;
+    }
+    // Update total stat
+    if (statsEl) {
+      var existing = statsEl.querySelector('[data-dash="orders"]');
+      if (!existing) {
+        var card = document.createElement('div');
+        card.className = 'dash-stat-card';
+        card.dataset.dash = 'orders';
+        card.innerHTML = '<div class="dash-stat-icon">📬</div><div class="dash-stat-num">'+orders.length+'</div><div class="dash-stat-label">Pedidos recentes</div>';
+        statsEl.prepend(card);
+      }
+    }
+    ordersEl.innerHTML = orders.map(function(o, i){
+      var nome = (o.payer&&(o.payer.nome||o.payer.email)) || '—';
+      var total = o.total ? 'R$ '+parseFloat(o.total).toFixed(2).replace('.',',') : '—';
+      var data = o.createdAt ? new Date(o.createdAt.seconds*1000).toLocaleDateString('pt-BR') : '—';
+      return '<div class="dash-order-row" onclick="switchAdmSection(\'orders\')"><span style="font-weight:700;color:var(--ink)">'+nome+'</span><span style="color:var(--pink);font-weight:800">'+total+'</span><span style="color:var(--gray)">'+data+'</span></div>';
+    }).join('');
+  } catch(e) {
+    ordersEl.innerHTML = '<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos.</p>';
+  }
 }
 
 function refreshBadgeBtns() {
