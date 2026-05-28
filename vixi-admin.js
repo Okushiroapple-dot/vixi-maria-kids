@@ -1438,7 +1438,7 @@ function showOrderDetail(orderId){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         ${status!=='pronto'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'pronto\')" style="flex:1;border:none;background:#f9731622;color:#f97316;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">📦 Pronto</button>':''}
         ${status!=='em_entrega'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'em_entrega\')" style="flex:1;border:none;background:#3b82f622;color:#3b82f6;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🚚 Em entrega</button>':''}
-        <button onclick="changeOrderStatus(\''+o.id+'\',\'entregue\')" style="flex:1;border:none;background:#05966922;color:#059669;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🎉 Entregue</button>
+        ${'<button onclick="changeOrderStatus(\''+o.id+'\',\'entregue\')" style="flex:1;border:none;background:#05966922;color:#059669;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🎉 Entregue</button>'}
       </div>
       <button onclick="cancelAdminOrder('${o.id}')" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#6b72801a'" onmouseout="this.style.background='#fff'">Cancelar pedido</button>
     </div>` : ''}
