@@ -1177,6 +1177,14 @@ async function restoreBackup(id, dateLabel){
       liveProducts = JSON.parse(JSON.stringify(b.products));
       PRODS.length=0;
       liveProducts.forEach(p=>PRODS.push(p));
+      // Rebuild vixiProductImages from backup so images are restored
+      const restoredImgs = {};
+      b.products.forEach(function(p){ if(p.img) restoredImgs[p.id]=p.img; });
+      localStorage.setItem('vixiProductImages', JSON.stringify(restoredImgs));
+      if(window.vixiSaveCloud){
+        window.vixiSaveCloud('vixiAdmin_v2', b.products);
+        window.vixiSaveCloud('vixiProductImages', restoredImgs);
+      }
     }
     // Restore content
     if(b.siteContent&&Object.keys(b.siteContent).length){
@@ -1308,7 +1316,7 @@ function showOrderDetail(idx){
   const label = ORDER_STATUS_LABELS[status] || status;
   const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
   const payer = o.payer||{};
-  const addr = o.address||o.endereco||payer.address||{};
+  const addr = o.address||o.endereco||payer.address||payer.endereco||{};
 
   // Address with complement
   const ruaNum = [addr.rua||addr.street||'', addr.numero||addr.number||''].filter(Boolean).join(', ');
@@ -1373,10 +1381,35 @@ function showOrderDetail(idx){
       <strong style="color:var(--pink);font-size:20px;font-family:var(--font-d)">${total}</strong>
     </div>
     ${phone ? '<div style="margin-top:16px"><a href="https://wa.me/55'+phone.replace(/\D/g,'')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;border-radius:99px;padding:12px 20px;font-weight:900;text-decoration:none;font-size:14px">💬 Chamar no WhatsApp</a></div>' : ''}
+    ${(status!=='cancelado'&&status!=='estornado') ? '<div style="margin-top:12px"><button onclick="cancelAdminOrder('+idx+')" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#6b72801a\'" onmouseout="this.style.background=\'#fff\'">Cancelar pedido</button></div>' : ''}
   </div>`;
   modal.style.display='flex';
 }
 window.showOrderDetail=showOrderDetail;
+
+async function cancelAdminOrder(idx){
+  const o = _adminOrders[idx];
+  if(!o) return;
+  const nome = o.payer?.nome || o.payer?.email || 'este pedido';
+  if(!confirm(`Cancelar o pedido de ${nome}?\n\nO status será marcado como "cancelado" no sistema. O reembolso deve ser feito manualmente pelo painel do Mercado Pago (mercadopago.com.br > Atividades > buscar o pedido).`)) return;
+  const modal = document.getElementById('orderDetailModal');
+  const btn = modal?.querySelector('button[onclick^="cancelAdminOrder"]');
+  if(btn){ btn.textContent='Cancelando...'; btn.disabled=true; }
+  try{
+    if(window.vixiUpdateOrderStatus){
+      await window.vixiUpdateOrderStatus(o.id, 'cancelado');
+    }
+    _adminOrders[idx].status = 'cancelado';
+    document.getElementById('orderDetailModal').style.display='none';
+    renderOrdersList();
+    if(typeof showToast==='function') showToast('Pedido cancelado.');
+  }catch(e){
+    if(btn){ btn.textContent='Cancelar pedido'; btn.disabled=false; }
+    if(typeof showToast==='function') showToast('Erro ao cancelar pedido.');
+    console.error('cancelAdminOrder error', e);
+  }
+}
+window.cancelAdminOrder=cancelAdminOrder;
 
 // ── Badge style picker ──
 function setBadgeStyle(style){

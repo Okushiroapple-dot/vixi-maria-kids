@@ -272,7 +272,7 @@
           <button class="btn-main" id="coPayBtn" onclick="doCheckout()" style="justify-content:center;width:100%;font-size:17px;padding:16px;margin-bottom:12px">
             Ir para pagamento →
           </button>
-          <button class="btn-ghost" onclick="checkoutWhatsApp()" style="justify-content:center;width:100%;font-size:14px;padding:12px">
+          <button class="btn-ghost" onclick="checkoutWhatsAppFull()" style="justify-content:center;width:100%;font-size:14px;padding:12px">
             📲 Finalizar pelo WhatsApp
           </button>
         </div>
@@ -577,6 +577,42 @@ async function doCheckout(){
     errEl.style.display='block';
     btn.textContent='Ir para pagamento →'; btn.disabled=false;
   }
+}
+
+// ── WhatsApp com endereço completo ──
+function checkoutWhatsAppFull(){
+  if(!cart||!cart.length){showToast('Seu carrinho está vazio 🛒');return;}
+  var lines = cart.map(function(i){
+    var p=getProduct(i.id);
+    return p?'• '+p.name+(i.size?' (tam. '+i.size+')':'')+' — '+(i.qty||1)+'x — '+money(p.price):'';
+  }).filter(Boolean);
+  var subtotal = cart.reduce(function(s,i){var p=getProduct(i.id);return s+(p?Number(p.price)*(i.qty||1):0);},0);
+  var freight = window.coFreight||0;
+  var total = subtotal+freight;
+  var pix = Math.round(total*.9*100)/100;
+
+  var nome     = document.getElementById('coNome')?.value.trim()||'';
+  var telefone = document.getElementById('coTelefone')?.value.trim()||'';
+  var cep      = document.getElementById('coCep')?.value.trim()||'';
+  var rua      = document.getElementById('coRua')?.value.trim()||'';
+  var numero   = document.getElementById('coNumero')?.value.trim()||'';
+  var compl    = document.getElementById('coCompl')?.value.trim()||'';
+  var bairro   = document.getElementById('coBairro')?.value.trim()||'';
+  var cidade   = document.getElementById('coCidade')?.value.trim()||'';
+  var estado   = document.getElementById('coEstado')?.value.trim()||'';
+
+  var addrParts = [rua+(numero?' '+numero:''), compl, bairro, cidade+(estado?' — '+estado:''), cep?'CEP '+cep:''].filter(Boolean);
+  var addrLine  = addrParts.length ? '\n\n📍 Endereço:\n'+addrParts.join('\n') : '';
+  var clientLine = nome ? '\n\n👤 Cliente: '+nome+(telefone?' | '+telefone:'') : '';
+  var freightLine = freight>0 ? '\n🚚 Frete: '+money(freight) : '';
+
+  var msg = encodeURIComponent(
+    'Olá! Gostaria de finalizar meu pedido:\n\n'+lines.join('\n')+
+    '\n'+freightLine+
+    '\n💰 Total: '+money(total)+' (ou '+money(pix)+' no PIX 💚)'+
+    clientLine+addrLine
+  );
+  window.open('https://wa.me/'+VIXI_WHATSAPP+'?text='+msg,'_blank');
 }
 
 // ── Auth state ──

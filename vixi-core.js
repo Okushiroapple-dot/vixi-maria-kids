@@ -375,7 +375,7 @@ function saveToStorage(){
     const toSave = (window.liveProducts||PRODS).map(p=>{
       if(origIds.has(p.id)){
         if(p.img && p.img !== ORIGINAL_PRODUCT_IMAGES[p.id]) productImgs[p.id]=p.img;
-        return {id:p.id,name:p.name,cat:p.cat,cl:p.cl,price:p.price,old:p.old,badge:p.badge,sizes:p.sizes,desc:p.desc||''};
+        return {id:p.id,name:p.name,cat:p.cat,cl:p.cl,price:p.price,old:p.old,badge:p.badge,sizes:p.sizes,desc:p.desc||'',img:p.img||''};
       }
       return p;
     });
@@ -638,9 +638,16 @@ function renderProds(filter='all'){
   const show=list.slice(0,visibleCount);
   grid.innerHTML=show.map(p=>{
     const liked=favorites.includes(p.id);
+    // Auto-generate % badge when old price exists but no badge set
+    var autoBadge='';
+    if(!p.badge&&p.old&&Number(p.old)>Number(p.price)){
+      var autoPct=Math.floor((1-Number(p.price)/Number(p.old))*100);
+      if(autoPct>0&&autoPct<100) autoBadge='-'+autoPct+'%';
+    }
+    var effectiveBadge=p.badge||autoBadge;
     // Calculate displayed old price for % badges
     var dispOld=p.old||null;
-    var badgeStr=String(p.badge||'');
+    var badgeStr=String(effectiveBadge);
     var pctMatch=badgeStr.match(/^-?(\d+)%$/);
     if(pctMatch&&!dispOld&&p.price){
       var pct=parseInt(pctMatch[1],10);
@@ -648,7 +655,7 @@ function renderProds(filter='all'){
     }
     return `<article class="prod-card" data-cat="${p.cat}" data-id="${p.id}" onclick="if(document.body.classList.contains('vixi-editing'))return;window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="prod-img-wrap">
-        ${(p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN')?`<span class="pbadge ${pctMatch?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)}</span>`:''}
+        ${(effectiveBadge&&effectiveBadge!=='FAV'&&effectiveBadge!=='NOVO_HIDDEN')?`<span class="pbadge ${pctMatch?'off':'novo'}">${effectiveBadge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+escapeHtml(effectiveBadge):escapeHtml(effectiveBadge)}</span>`:''}
         <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
         <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async" data-edit-product="${p.id}" data-edit-field="img"/>
         <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="if(document.body.classList.contains('vixi-editing')){event.preventDefault();return;}event.stopPropagation()">Ver produto →</a>

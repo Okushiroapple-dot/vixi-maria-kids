@@ -27,6 +27,7 @@ import {
   doc,
   setDoc,
   getDoc,
+  updateDoc,
   deleteDoc,
   query,
   orderBy,
@@ -243,6 +244,11 @@ window.vixiGetAdminOrders = async function(limitCount = 80) {
     console.error('vixiGetAdminOrders error', e);
     return [];
   }
+};
+
+// ── Update order status ───────────────────────
+window.vixiUpdateOrderStatus = async function(orderId, status) {
+  await updateDoc(doc(db, 'orders', orderId), { status, updatedAt: serverTimestamp() });
 };
 
 // ── Newsletter subscribe ───────────────────────
