@@ -303,13 +303,8 @@ function renderCategoryGroups() {
   var sizeFilter = window.activeSizeFilter || null;
   var isAllView = filter === 'all' && !sizeFilter;
 
-  if (isAllView) {
-    catGroupBox.style.display = '';
-    if (prodGrid) prodGrid.style.display = 'none';
-    if (viewMore) viewMore.style.display = 'none';
-    if (filterBar) filterBar.querySelector('.sort-wrap') && (filterBar.querySelector('.sort-wrap').style.display = 'none');
-
-    var html = cats.map(function(c) {
+  if (isAllView && PRODS.length > 0) {
+    var html_pre = cats.map(function(c) {
       var catProds = PRODS.filter(function(p){ return p.cat === c.id; }).slice(0, 4);
       if (!catProds.length) return '';
       var totalCount = PRODS.filter(function(p){ return p.cat === c.id; }).length;
@@ -345,10 +340,20 @@ function renderCategoryGroups() {
       </div>`;
     }).filter(Boolean).join('');
 
-    catGroupBox.innerHTML = html || '<p style="color:var(--gray);text-align:center;padding:40px">Nenhum produto disponível.</p>';
-
-    var countEl = document.getElementById('prodCount');
-    if (countEl) countEl.textContent = PRODS.length + ' produto' + (PRODS.length !== 1 ? 's' : '');
+    if (html_pre) {
+      // Temos produtos: mostra seções por categoria, esconde grid normal
+      catGroupBox.style.display = '';
+      catGroupBox.innerHTML = html_pre;
+      if (prodGrid) prodGrid.style.display = 'none';
+      if (viewMore) viewMore.style.display = 'none';
+      if (filterBar) filterBar.querySelector('.sort-wrap') && (filterBar.querySelector('.sort-wrap').style.display = 'none');
+      var countEl = document.getElementById('prodCount');
+      if (countEl) countEl.textContent = PRODS.length + ' produto' + (PRODS.length !== 1 ? 's' : '');
+    } else {
+      // Sem produtos ainda (Firebase ainda carregando): mostra grid normal como fallback
+      catGroupBox.style.display = 'none';
+      if (prodGrid) prodGrid.style.display = '';
+    }
   } else {
     catGroupBox.style.display = 'none';
     if (prodGrid) prodGrid.style.display = '';
