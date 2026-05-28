@@ -1433,25 +1433,30 @@ function showOrderDetail(orderId){
       <strong style="color:var(--pink);font-size:20px;font-family:var(--font-d)">${total}</strong>
     </div>
     ${phone ? '<div style="margin-top:16px"><a href="https://wa.me/55'+phone.replace(/\D/g,'')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;border-radius:99px;padding:12px 20px;font-weight:900;text-decoration:none;font-size:14px">💬 Chamar no WhatsApp</a></div>' : ''}
-    ${(status!=='cancelado'&&status!=='estornado'&&status!=='entregue') ? `<div style="margin-top:14px">
-      <div style="font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Mudar status</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-        ${status!=='pronto'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'pronto\')" style="flex:1;border:none;background:#f9731622;color:#f97316;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">📦 Pronto</button>':''}
-        ${status!=='em_entrega'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'em_entrega\')" style="flex:1;border:none;background:#3b82f622;color:#3b82f6;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🚚 Em entrega</button>':''}
-        ${'<button onclick="changeOrderStatus(\''+o.id+'\',\'entregue\')" style="flex:1;border:none;background:#05966922;color:#059669;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🎉 Entregue</button>'}
-      </div>
-      <button onclick="cancelAdminOrder('${o.id}')" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#6b72801a'" onmouseout="this.style.background='#fff'">Cancelar pedido</button>
-    </div>` : ''}
+    ${(status!=='cancelado'&&status!=='estornado'&&status!=='entregue') ? (
+      '<div style="margin-top:14px">'
+      +'<div style="font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Mudar status</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'
+      +(status!=='pronto' ? '<button onclick="changeOrderStatus(this)" data-oid="'+o.id+'" data-ns="pronto" style="flex:1;border:none;background:#f9731622;color:#f97316;border-radius:99px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit">📦 Pronto</button>' : '')
+      +(status!=='em_entrega' ? '<button onclick="changeOrderStatus(this)" data-oid="'+o.id+'" data-ns="em_entrega" style="flex:1;border:none;background:#3b82f622;color:#3b82f6;border-radius:99px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit">🚚 Em entrega</button>' : '')
+      +'<button onclick="changeOrderStatus(this)" data-oid="'+o.id+'" data-ns="entregue" style="flex:1;border:none;background:#05966922;color:#059669;border-radius:99px;padding:8px 12px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit">🎉 Entregue</button>'
+      +'</div>'
+      +'<button onclick="cancelAdminOrder(this)" data-oid="'+o.id+'" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit">Cancelar pedido</button>'
+      +'</div>'
+    ) : ''}
   </div>`;
   modal.style.display='flex';
 }
 window.showOrderDetail=showOrderDetail;
 
-async function changeOrderStatus(orderId, newStatus){
+async function changeOrderStatus(btn){
+  var orderId = btn.dataset.oid;
+  var newStatus = btn.dataset.ns;
   const o = _adminOrders.find(function(x){return x.id===orderId;});
   if(!o) return;
   const label = ORDER_STATUS_LABELS[newStatus]||newStatus;
   if(!confirm('Mudar status do pedido de '+(o.payer?.nome||'—')+' para "'+label+'"?')) return;
+  btn.textContent='Salvando...'; btn.disabled=true;
   try{
     if(window.vixiUpdateOrderStatus) await window.vixiUpdateOrderStatus(o.id, newStatus);
     o.status = newStatus;
@@ -1459,13 +1464,15 @@ async function changeOrderStatus(orderId, newStatus){
     renderOrdersCards();
     if(typeof showToast==='function') showToast('Status atualizado: '+label);
   }catch(e){
+    btn.disabled=false;
     if(typeof showToast==='function') showToast('Erro ao atualizar status.');
     console.error('changeOrderStatus error', e);
   }
 }
 window.changeOrderStatus=changeOrderStatus;
 
-async function cancelAdminOrder(orderId){
+async function cancelAdminOrder(btn){
+  var orderId = typeof btn==='string' ? btn : btn.dataset.oid;
   const o = _adminOrders.find(function(x){return x.id===orderId;});
   if(!o) return;
   const nome = o.payer?.nome || o.payer?.email || 'este pedido';
