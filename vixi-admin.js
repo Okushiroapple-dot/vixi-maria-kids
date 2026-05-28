@@ -1221,15 +1221,19 @@ async function deleteBackupItem(id){
 // ── Admin Orders ──
 const ORDER_STATUS_LABELS = {
   pendente:'🕐 Pendente', pago:'✅ Pago', recusado:'❌ Recusado',
-  processando:'⏳ Processando', cancelado:'🚫 Cancelado', estornado:'↩ Estornado'
+  processando:'⏳ Processando', cancelado:'🚫 Cancelado', estornado:'↩ Estornado',
+  pronto:'📦 Pronto', em_entrega:'🚚 Em entrega', entregue:'🎉 Entregue'
 };
 const ORDER_STATUS_COLORS = {
   pendente:'#f59e0b', pago:'#10b981', recusado:'#ef4444',
-  processando:'#6366f1', cancelado:'#6b7280', estornado:'#8b5cf6'
+  processando:'#6366f1', cancelado:'#6b7280', estornado:'#8b5cf6',
+  pronto:'#f97316', em_entrega:'#3b82f6', entregue:'#059669'
 };
 
 let _adminOrders = [];
 let _orderSort = 'date';
+let _orderSearch = '';
+let _orderStatusFilters = new Set();
 
 async function loadAdminOrders(){
   const box = document.getElementById('adminOrdersList');
@@ -1251,64 +1255,112 @@ async function loadAdminOrders(){
 function renderOrdersList(){
   const box = document.getElementById('adminOrdersList');
   if(!box) return;
-  const orders = [..._adminOrders];
-  // Update count badge in header
+  // Update count badge
   var hdr = document.querySelector('#admSecOrders .adm-sec-hdr');
   if(hdr){
     var badge = hdr.querySelector('.orders-count-badge');
     if(!badge){ badge=document.createElement('span'); badge.className='orders-count-badge'; badge.style.cssText='background:var(--pink);color:#fff;border-radius:99px;padding:3px 12px;font-size:12px;font-weight:900;margin-left:8px'; hdr.querySelector('.adm-sec-title').appendChild(badge); }
-    badge.textContent=orders.length+' pedido'+(orders.length!==1?'s':'');
+    badge.textContent=_adminOrders.length+' pedido'+(_adminOrders.length!==1?'s':'');
   }
-  // Render sort buttons if not present
-  if(!document.getElementById('orderSortBtns')){
-    var sortRow = document.createElement('div');
-    sortRow.id='orderSortBtns';
-    sortRow.style.cssText='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap';
-    sortRow.innerHTML='<button class="mini-btn soft" onclick="sortOrders(\'date\')">📅 Por data</button><button class="mini-btn soft" onclick="sortOrders(\'name\')">🔤 A–Z nome</button>';
-    box.parentNode.insertBefore(sortRow, box);
-  }
-  if(_orderSort==='name') orders.sort((a,b)=>{const na=a.payer?.nome||a.payer?.email||''; const nb=b.payer?.nome||b.payer?.email||''; return na.localeCompare(nb,'pt-BR');});
-  else orders.sort((a,b)=>{const ta=a.createdAt?.seconds?a.createdAt.seconds*1000:(a.createdAt||0); const tb=b.createdAt?.seconds?b.createdAt.seconds*1000:(b.createdAt||0); return tb-ta;});
-  if(!orders.length){
-    box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum pedido encontrado ainda.</p>';
+  // Rebuild controls bar (search + filters + sort)
+  document.getElementById('orderControls')?.remove();
+  document.getElementById('orderSortBtns')?.remove();
+  var ctrl = document.createElement('div');
+  ctrl.id = 'orderControls';
+  ctrl.style.cssText = 'margin-bottom:14px';
+  var allStatuses = [
+    ['pendente',ORDER_STATUS_LABELS.pendente,ORDER_STATUS_COLORS.pendente],
+    ['pago',ORDER_STATUS_LABELS.pago,ORDER_STATUS_COLORS.pago],
+    ['pronto',ORDER_STATUS_LABELS.pronto,ORDER_STATUS_COLORS.pronto],
+    ['em_entrega',ORDER_STATUS_LABELS.em_entrega,ORDER_STATUS_COLORS.em_entrega],
+    ['entregue',ORDER_STATUS_LABELS.entregue,ORDER_STATUS_COLORS.entregue],
+    ['cancelado',ORDER_STATUS_LABELS.cancelado,ORDER_STATUS_COLORS.cancelado],
+    ['recusado',ORDER_STATUS_LABELS.recusado,ORDER_STATUS_COLORS.recusado],
+    ['processando',ORDER_STATUS_LABELS.processando,ORDER_STATUS_COLORS.processando],
+    ['estornado',ORDER_STATUS_LABELS.estornado,ORDER_STATUS_COLORS.estornado],
+  ];
+  ctrl.innerHTML =
+    '<input id="orderSearch" type="text" placeholder="🔍 Buscar por nome do cliente..." oninput="filterOrders()" value="'+(_orderSearch||'')+'" style="width:100%;box-sizing:border-box;padding:10px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;margin-bottom:10px;outline:none;transition:border-color .2s" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'
+    +allStatuses.map(function(s){
+      var checked = (_orderStatusFilters.size===0||_orderStatusFilters.has(s[0])) ? 'checked' : '';
+      return '<label style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;border:1.5px solid '+s[2]+'44;background:'+s[2]+'11;cursor:pointer;font-size:12px;font-weight:700;color:'+s[2]+';user-select:none">'
+        +'<input type="checkbox" class="order-status-cb" value="'+s[0]+'" '+checked+' onchange="filterOrders()" style="accent-color:'+s[2]+';width:13px;height:13px">'
+        +s[1]+'</label>';
+    }).join('')
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<button class="mini-btn soft" onclick="sortOrders(\'date\')">📅 Por data</button>'
+    +'<button class="mini-btn soft" onclick="sortOrders(\'name\')">🔤 A–Z nome</button>'
+    +'</div>';
+  box.parentNode.insertBefore(ctrl, box);
+  renderOrdersCards();
+}
+
+function filterOrders(){
+  _orderSearch = (document.getElementById('orderSearch')?.value||'').toLowerCase().trim();
+  var checked = Array.from(document.querySelectorAll('.order-status-cb:checked')).map(function(cb){return cb.value;});
+  _orderStatusFilters = new Set(checked);
+  renderOrdersCards();
+}
+window.filterOrders=filterOrders;
+
+function renderOrdersCards(){
+  const box = document.getElementById('adminOrdersList');
+  if(!box) return;
+  var sorted = [..._adminOrders];
+  if(_orderSort==='name') sorted.sort(function(a,b){var na=a.payer?.nome||a.payer?.email||''; var nb=b.payer?.nome||b.payer?.email||''; return na.localeCompare(nb,'pt-BR');});
+  else sorted.sort(function(a,b){var ta=a.createdAt?.seconds?a.createdAt.seconds*1000:(a.createdAt||0); var tb=b.createdAt?.seconds?b.createdAt.seconds*1000:(b.createdAt||0); return tb-ta;});
+  // Apply search + status filters
+  var filtered = sorted.filter(function(o){
+    if(_orderSearch){
+      var nome=(o.payer?.nome||o.payer?.email||'').toLowerCase();
+      if(!nome.includes(_orderSearch)) return false;
+    }
+    if(_orderStatusFilters.size>0 && !_orderStatusFilters.has(o.status||'pendente')) return false;
+    return true;
+  });
+  if(!filtered.length){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum pedido encontrado com esses filtros.</p>';
     return;
   }
-  box.innerHTML = orders.map((o,i)=>{
-    const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
-    const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
-    const status = o.status || 'pendente';
-    const color = ORDER_STATUS_COLORS[status] || '#6b7280';
-    const label = ORDER_STATUS_LABELS[status] || status;
-    const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
-    const itens = (o.items||[]).map(i=>`${i.name||i.id} (${i.qty}x)`).join(', ');
-    const nome = o.payer?.nome || o.payer?.email || '—';
-    return `<div class="order-card" onclick="showOrderDetail(${i})" style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 20px rgba(242,39,110,.15)'" onmouseout="this.style.boxShadow=''">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-        <strong style="font-size:14px;color:var(--ink)">${nome}</strong>
-        <span style="background:${color}22;color:${color};font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">${label}</span>
-      </div>
-      <div style="color:var(--gray);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${itens||'—'}</div>
-      <div style="display:flex;justify-content:space-between;color:var(--gray)">
-        <span>${date}</span>
-        <strong style="color:var(--pink);font-size:15px">${total}</strong>
-      </div>
-    </div>`;
+  box.innerHTML = filtered.map(function(o){
+    var ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
+    var date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
+    var status = o.status||'pendente';
+    var color = ORDER_STATUS_COLORS[status]||'#6b7280';
+    var label = ORDER_STATUS_LABELS[status]||status;
+    var total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
+    var itens = (o.items||[]).map(function(i){return (i.name||i.id)+' ('+i.qty+'x)';}).join(', ');
+    var nome = o.payer?.nome||o.payer?.email||'—';
+    var oid = escapeHtml(o.id||'');
+    return '<div class="order-card" onclick="showOrderDetail(\''+oid+'\')" style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(242,39,110,.15)\'" onmouseout="this.style.boxShadow=\'\'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">'
+      +'<strong style="font-size:14px;color:var(--ink)">'+escapeHtml(nome)+'</strong>'
+      +'<span style="background:'+color+'22;color:'+color+';font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">'+label+'</span>'
+      +'</div>'
+      +'<div style="color:var(--gray);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(itens||'—')+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;color:var(--gray)">'
+      +'<span>'+date+'</span>'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<strong style="color:var(--pink);font-size:15px">'+total+'</strong>'
+      +'<button onclick="event.stopPropagation();deleteAdminOrder(\''+oid+'\')" title="Apagar pedido" style="border:none;background:#fff0f3;color:#ef4444;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#ef4444\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'#fff0f3\';this.style.color=\'#ef4444\'">🗑️ Apagar</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
 function sortOrders(by){
   _orderSort=by;
-  document.querySelectorAll('#orderSortBtns .mini-btn').forEach(function(b){
-    b.style.background = b.textContent.includes(by==='date'?'data':'A–Z') ? 'var(--pink)' : '';
-    b.style.color = b.textContent.includes(by==='date'?'data':'A–Z') ? '#fff' : '';
-  });
-  renderOrdersList();
+  renderOrdersCards();
 }
 window.sortOrders=sortOrders;
 
-function showOrderDetail(idx){
-  const o = _adminOrders[idx];
+function showOrderDetail(orderId){
+  const o = _adminOrders.find(function(x){return x.id===orderId;});
   if(!o) return;
+  const idx = _adminOrders.indexOf(o);
   const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
   const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
   const status = o.status || 'pendente';
@@ -1381,14 +1433,40 @@ function showOrderDetail(idx){
       <strong style="color:var(--pink);font-size:20px;font-family:var(--font-d)">${total}</strong>
     </div>
     ${phone ? '<div style="margin-top:16px"><a href="https://wa.me/55'+phone.replace(/\D/g,'')+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25d366;color:#fff;border-radius:99px;padding:12px 20px;font-weight:900;text-decoration:none;font-size:14px">💬 Chamar no WhatsApp</a></div>' : ''}
-    ${(status!=='cancelado'&&status!=='estornado') ? '<div style="margin-top:12px"><button onclick="cancelAdminOrder('+idx+')" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#6b72801a\'" onmouseout="this.style.background=\'#fff\'">Cancelar pedido</button></div>' : ''}
+    ${(status!=='cancelado'&&status!=='estornado'&&status!=='entregue') ? `<div style="margin-top:14px">
+      <div style="font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Mudar status</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        ${status!=='pronto'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'pronto\')" style="flex:1;border:none;background:#f9731622;color:#f97316;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">📦 Pronto</button>':''}
+        ${status!=='em_entrega'?'<button onclick="changeOrderStatus(\''+o.id+'\',\'em_entrega\')" style="flex:1;border:none;background:#3b82f622;color:#3b82f6;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🚚 Em entrega</button>':''}
+        <button onclick="changeOrderStatus(\''+o.id+'\',\'entregue\')" style="flex:1;border:none;background:#05966922;color:#059669;border-radius:99px;padding:8px 12px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer">🎉 Entregue</button>
+      </div>
+      <button onclick="cancelAdminOrder('${o.id}')" style="width:100%;border:2px solid #6b7280;background:#fff;color:#6b7280;border-radius:99px;padding:10px 20px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#6b72801a'" onmouseout="this.style.background='#fff'">Cancelar pedido</button>
+    </div>` : ''}
   </div>`;
   modal.style.display='flex';
 }
 window.showOrderDetail=showOrderDetail;
 
-async function cancelAdminOrder(idx){
-  const o = _adminOrders[idx];
+async function changeOrderStatus(orderId, newStatus){
+  const o = _adminOrders.find(function(x){return x.id===orderId;});
+  if(!o) return;
+  const label = ORDER_STATUS_LABELS[newStatus]||newStatus;
+  if(!confirm('Mudar status do pedido de '+(o.payer?.nome||'—')+' para "'+label+'"?')) return;
+  try{
+    if(window.vixiUpdateOrderStatus) await window.vixiUpdateOrderStatus(o.id, newStatus);
+    o.status = newStatus;
+    document.getElementById('orderDetailModal').style.display='none';
+    renderOrdersCards();
+    if(typeof showToast==='function') showToast('Status atualizado: '+label);
+  }catch(e){
+    if(typeof showToast==='function') showToast('Erro ao atualizar status.');
+    console.error('changeOrderStatus error', e);
+  }
+}
+window.changeOrderStatus=changeOrderStatus;
+
+async function cancelAdminOrder(orderId){
+  const o = _adminOrders.find(function(x){return x.id===orderId;});
   if(!o) return;
   const nome = o.payer?.nome || o.payer?.email || 'este pedido';
   const isPago = o.status === 'pago' || o.status === 'approved';
@@ -1417,15 +1495,15 @@ async function cancelAdminOrder(idx){
   try{
     if(doRefund && window.vixiRefundOrder){
       await window.vixiRefundOrder(o.id);
-      _adminOrders[idx].status = 'estornado';
+      o.status = 'estornado';
       if(typeof showToast==='function') showToast('Pedido cancelado e reembolso enviado ao cliente.');
     } else {
       if(window.vixiUpdateOrderStatus) await window.vixiUpdateOrderStatus(o.id, 'cancelado');
-      _adminOrders[idx].status = 'cancelado';
+      o.status = 'cancelado';
       if(typeof showToast==='function') showToast('Pedido cancelado.');
     }
     document.getElementById('orderDetailModal').style.display='none';
-    renderOrdersList();
+    renderOrdersCards();
   }catch(e){
     if(btn){ btn.textContent='Cancelar pedido'; btn.disabled=false; }
     const errMsg = e?.message || '';
@@ -1434,6 +1512,31 @@ async function cancelAdminOrder(idx){
   }
 }
 window.cancelAdminOrder=cancelAdminOrder;
+
+async function deleteAdminOrder(orderId){
+  const o = _adminOrders.find(function(x){return x.id===orderId;});
+  if(!o) return;
+  const nome = o.payer?.nome||o.payer?.email||'—';
+  const total = typeof money==='function' ? money(o.total||0) : 'R$'+(o.total||0);
+  // Primeira confirmação
+  if(!confirm('Apagar o pedido de '+nome+' ('+total+')?\n\nEsta ação remove o pedido do sistema permanentemente e NÃO realiza reembolso.\nTem certeza?')) return;
+  // Segunda confirmação
+  if(!confirm('CONFIRMAÇÃO FINAL\n\nO pedido de '+nome+' será apagado e não poderá ser recuperado.\n\nDeseja continuar?')) return;
+  try{
+    if(window.vixiDeleteOrder) await window.vixiDeleteOrder(orderId, o.userId||null);
+    _adminOrders = _adminOrders.filter(function(x){return x.id!==orderId;});
+    document.getElementById('orderDetailModal')?.remove();
+    renderOrdersCards();
+    // Update count badge
+    var hdr = document.querySelector('#admSecOrders .adm-sec-hdr .orders-count-badge');
+    if(hdr) hdr.textContent=_adminOrders.length+' pedido'+(_adminOrders.length!==1?'s':'');
+    if(typeof showToast==='function') showToast('Pedido apagado.');
+  }catch(e){
+    if(typeof showToast==='function') showToast('Erro ao apagar pedido.');
+    console.error('deleteAdminOrder error', e);
+  }
+}
+window.deleteAdminOrder=deleteAdminOrder;
 
 // ── Badge style picker ──
 function setBadgeStyle(style){

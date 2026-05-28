@@ -251,6 +251,14 @@ window.vixiUpdateOrderStatus = async function(orderId, status) {
   await updateDoc(doc(db, 'orders', orderId), { status, updatedAt: serverTimestamp() });
 };
 
+// ── Delete order from Firestore ───────────────
+window.vixiDeleteOrder = async function(orderId, userId) {
+  await deleteDoc(doc(db, 'orders', orderId));
+  if(userId){
+    try{ await deleteDoc(doc(db, 'customers', userId, 'orders', orderId)); }catch(e){}
+  }
+};
+
 // ── Automatic MP refund via Cloud Function ─────
 const REFUND_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/refundMpPayment';
 window.vixiRefundOrder = async function(orderId) {
