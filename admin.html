@@ -357,6 +357,9 @@ function switchAdmSection(sec) {
   // Show search only on products view
   var srch = document.getElementById('admSearchInput');
   if (srch) srch.style.display = sec === 'products' ? '' : 'none';
+  // Hide category stats bar in Pedidos and Backups tabs
+  var stats = document.getElementById('admStats');
+  if (stats) stats.style.display = (sec === 'orders' || sec === 'backup') ? 'none' : '';
   // Section init
   if (sec === 'orders') loadAdminOrders();
   if (sec === 'visual') buildContentEditorFields();
