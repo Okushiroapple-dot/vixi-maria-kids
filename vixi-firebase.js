@@ -251,6 +251,19 @@ window.vixiUpdateOrderStatus = async function(orderId, status) {
   await updateDoc(doc(db, 'orders', orderId), { status, updatedAt: serverTimestamp() });
 };
 
+// ── Automatic MP refund via Cloud Function ─────
+const REFUND_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/refundMpPayment';
+window.vixiRefundOrder = async function(orderId) {
+  const res  = await fetch(REFUND_FUNCTION_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ orderId }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro no reembolso');
+  return data;
+};
+
 // ── Newsletter subscribe ───────────────────────
 window.vixiSubscribeNewsletter = async function(email) {
   if (!email || !email.includes('@')) throw new Error('E-mail inválido');

@@ -1391,21 +1391,45 @@ async function cancelAdminOrder(idx){
   const o = _adminOrders[idx];
   if(!o) return;
   const nome = o.payer?.nome || o.payer?.email || 'este pedido';
-  if(!confirm(`Cancelar o pedido de ${nome}?\n\nO status será marcado como "cancelado" no sistema. O reembolso deve ser feito manualmente pelo painel do Mercado Pago (mercadopago.com.br > Atividades > buscar o pedido).`)) return;
+  const isPago = o.status === 'pago' || o.status === 'approved';
+  const hasPaymentId = !!o.mpPaymentId;
+
+  // Ask about refund if order was paid
+  var doRefund = false;
+  if(isPago && hasPaymentId){
+    const choice = confirm(
+      `Cancelar o pedido de ${nome}?\n\n` +
+      `✅ Este pedido foi PAGO. Clique OK para cancelar E reembolsar automaticamente via Mercado Pago.\n\n` +
+      `Clique Cancelar para apenas cancelar sem reembolso.`
+    );
+    if(choice === null) return; // user dismissed
+    doRefund = choice;
+  } else {
+    if(!confirm(`Cancelar o pedido de ${nome}?\n\n` +
+      (hasPaymentId ? 'O pagamento foi identificado mas o status não é "pago". Nenhum reembolso será feito.' :
+       'Pedido sem pagamento registrado no MP. Nenhum reembolso automático.'))) return;
+  }
+
   const modal = document.getElementById('orderDetailModal');
   const btn = modal?.querySelector('button[onclick^="cancelAdminOrder"]');
-  if(btn){ btn.textContent='Cancelando...'; btn.disabled=true; }
+  if(btn){ btn.textContent = doRefund ? 'Reembolsando...' : 'Cancelando...'; btn.disabled=true; }
+
   try{
-    if(window.vixiUpdateOrderStatus){
-      await window.vixiUpdateOrderStatus(o.id, 'cancelado');
+    if(doRefund && window.vixiRefundOrder){
+      await window.vixiRefundOrder(o.id);
+      _adminOrders[idx].status = 'estornado';
+      if(typeof showToast==='function') showToast('Pedido cancelado e reembolso enviado ao cliente.');
+    } else {
+      if(window.vixiUpdateOrderStatus) await window.vixiUpdateOrderStatus(o.id, 'cancelado');
+      _adminOrders[idx].status = 'cancelado';
+      if(typeof showToast==='function') showToast('Pedido cancelado.');
     }
-    _adminOrders[idx].status = 'cancelado';
     document.getElementById('orderDetailModal').style.display='none';
     renderOrdersList();
-    if(typeof showToast==='function') showToast('Pedido cancelado.');
   }catch(e){
     if(btn){ btn.textContent='Cancelar pedido'; btn.disabled=false; }
-    if(typeof showToast==='function') showToast('Erro ao cancelar pedido.');
+    const errMsg = e?.message || '';
+    if(typeof showToast==='function') showToast(errMsg || 'Erro ao cancelar pedido.');
     console.error('cancelAdminOrder error', e);
   }
 }

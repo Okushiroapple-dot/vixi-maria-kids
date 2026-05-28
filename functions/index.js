@@ -178,6 +178,84 @@ const MP_STATUS_MAP = {
   charged_back: "estornado",
 };
 
+exports.refundMpPayment = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+    try {
+      const { orderId } = req.body;
+      if (!orderId) {
+        res.status(400).json({ error: "orderId obrigatório" });
+        return;
+      }
+
+      const orderRef  = db.collection("orders").doc(orderId);
+      const orderSnap = await orderRef.get();
+
+      if (!orderSnap.exists) {
+        res.status(404).json({ error: "Pedido não encontrado" });
+        return;
+      }
+
+      const order     = orderSnap.data();
+      const paymentId = order.mpPaymentId;
+
+      if (!paymentId) {
+        res.status(400).json({ error: "Pedido sem ID de pagamento — reembolso manual necessário" });
+        return;
+      }
+      if (order.status === "estornado") {
+        res.status(400).json({ error: "Pedido já estornado" });
+        return;
+      }
+
+      // Call MP Refunds REST API (full refund)
+      const mpRes = await fetch(
+        `https://api.mercadopago.com/v1/payments/${paymentId}/refunds`,
+        {
+          method:  "POST",
+          headers: {
+            Authorization:  `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      const mpData = await mpRes.json();
+
+      if (!mpRes.ok) {
+        console.error("MP Refund error:", mpData);
+        res.status(mpRes.status).json({ error: mpData.message || "Erro no reembolso" });
+        return;
+      }
+
+      const updateData = {
+        status:    "estornado",
+        refundId:  String(mpData.id),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      await orderRef.update(updateData);
+
+      if (order.userId) {
+        const custRef  = db.collection("customers").doc(order.userId).collection("orders").doc(orderId);
+        const custSnap = await custRef.get();
+        if (custSnap.exists) await custRef.update(updateData);
+      }
+
+      notifyDeboraPedido({ ...order, ...updateData }, "estornado").catch(() => {});
+
+      res.json({ ok: true, refundId: mpData.id });
+    } catch (err) {
+      console.error("Refund error:", err?.message || err);
+      res.status(500).json({ error: "Erro ao realizar reembolso" });
+    }
+  });
+});
+
 exports.createMpPreference = onRequest(async (req, res) => {
   cors(req, res, async () => {
     if (req.method !== "POST") {
