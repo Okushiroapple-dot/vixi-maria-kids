@@ -104,13 +104,16 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Loja</div>
           <button class="adm-menu-item" data-sec="categories" onclick="switchAdmSection('categories')"><span class="mi">🗂️</span> Categorias</button>
-          <button class="adm-menu-item" data-sec="visual" onclick="location.href='index.html?admin=visual'"><span class="mi">🎨</span> Remodelar Página</button>
+          <button class="adm-menu-item" data-sec="visual" onclick="switchAdmSection('visual')"><span class="mi">🎨</span> Editar Conteúdo</button>
           <button class="adm-menu-item" data-sec="photos" onclick="switchAdmSection('photos')"><span class="mi">🖼️</span> Galeria de Fotos</button>
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Configurações</div>
           <button class="adm-menu-item" data-sec="orders" onclick="switchAdmSection('orders')"><span class="mi">📊</span> Pedidos</button>
           <button class="adm-menu-item" data-sec="badges" onclick="switchAdmSection('badges')"><span class="mi">🏷️</span> Estilo das Tags</button>
           <button class="adm-menu-item" data-sec="backup" onclick="switchAdmSection('backup')"><span class="mi">💾</span> Backups</button>
+          <div class="adm-menu-sep"></div>
+          <div class="adm-menu-label">Páginas</div>
+          <button class="adm-menu-item" data-sec="pagebuilder" onclick="switchAdmSection('pagebuilder')"><span class="mi">📄</span> Criar Página Web</button>
         </div>
       </div>
       <a href="index.html" class="adm-tb-btn hide-mob">🏠 Loja</a>
@@ -159,6 +162,7 @@ body{background:#f5eff3;min-height:100vh}
           <select class="adm-input" id="admBadgeNew">
             <option value="">Nenhum</option>
             <option value="NOVO">✨ NOVO</option>
+            <option value="NOVO_HIDDEN">🔕 Novo! (invisível)</option>
             <option value="FAV">💖 FAVORITO</option>
             <option value="-10%">🔥 -10%</option>
             <option value="-20%">🔥 -20%</option>
@@ -217,11 +221,19 @@ body{background:#f5eff3;min-height:100vh}
       <div class="adm-sec-hdr">
         <div class="adm-sec-title">🖼️ Galeria de Fotos</div>
       </div>
-      <div class="adm-card" style="max-width:560px">
-        <p style="font-size:14px;color:var(--gray);font-weight:600;margin-bottom:16px">Migre as fotos para o Firebase Storage e deixe o site muito mais rápido.</p>
-        <a href="migrar-imagens.html" class="btn-main" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:14px;padding:12px 22px">🚀 Abrir migração de imagens</a>
-        <div style="background:#FFF3B0;border-radius:14px;padding:14px 16px;font-size:13px;font-weight:600;color:#7a5200;margin-top:16px;border:1.5px solid #FFE082">
-          💡 Depois de migrar, as imagens são carregadas direto do Firebase — mais rápido e mais leve para os clientes.
+      <div class="adm-card" style="max-width:600px">
+        <p style="font-size:14px;color:var(--gray);font-weight:600;margin-bottom:16px">Envie fotos para o Firebase Storage. As imagens ficam disponíveis para reutilização nos produtos.</p>
+        <input type="file" id="galleryUploadInput" accept="image/*" multiple style="display:none" onchange="handleGalleryUpload(event)">
+        <button class="btn-main" onclick="document.getElementById('galleryUploadInput').click()" style="font-size:14px;padding:12px 22px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px">📱 Importar Fotos do Dispositivo</button>
+        <div style="background:var(--pink-pale);border-radius:14px;padding:14px 16px;font-size:13px;font-weight:600;color:var(--ink-mid);margin-top:16px;border:1.5px solid var(--line)">
+          💡 As imagens enviadas aparecem na seção abaixo e podem ser reutilizadas ao adicionar produtos.
+        </div>
+        <div id="galleryUploadProgress" style="display:none;margin-top:12px;font-size:13px;color:var(--gray);font-weight:600"></div>
+      </div>
+      <div class="adm-card" style="max-width:700px;margin-top:16px">
+        <div style="font-size:14px;font-weight:900;color:var(--ink);margin-bottom:16px">📂 Fotos Importadas</div>
+        <div id="galleryImportedList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px">
+          <p style="color:var(--gray);font-size:13px;grid-column:1/-1">Nenhuma foto importada ainda. Use o botão acima para enviar.</p>
         </div>
       </div>
     </div>
@@ -271,8 +283,76 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
 
+    <!-- ── PÁGINA WEB (PAGE BUILDER) ── -->
+    <div class="adm-section" id="admSecPagebuilder">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">📄 Criar Página Web</div>
+        <button class="btn-main" onclick="openNewPageModal()" style="padding:10px 22px;font-size:14px">➕ Nova Página</button>
+      </div>
+      <div id="pbPagesList" style="display:grid;gap:12px;max-width:700px">
+        <p style="color:var(--gray);font-size:13px">Carregando páginas...</p>
+      </div>
+    </div>
+
+    <!-- ── PAGE EDITOR PANEL ── -->
+    <div class="adm-section" id="admSecPageeditor">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title" id="pbEditorTitle">✏️ Editar Página</div>
+        <div style="display:flex;gap:8px">
+          <button class="mini-btn soft" onclick="switchAdmSection('pagebuilder')">← Voltar</button>
+          <button class="mini-btn primary" onclick="saveCurrentPage()">💾 Salvar</button>
+        </div>
+      </div>
+      <div class="adm-card" style="max-width:680px">
+        <div class="adm-row">
+          <div class="adm-field"><span class="adm-label">📝 Título</span><input class="adm-input" type="text" id="pbTitle" placeholder="Ex: Coleção Verão"></div>
+          <div class="adm-field"><span class="adm-label">🔗 Slug (URL)</span><input class="adm-input" type="text" id="pbSlug" placeholder="Ex: verao"></div>
+        </div>
+        <div class="adm-row">
+          <div class="adm-field"><span class="adm-label">📌 Status</span>
+            <select class="adm-input" id="pbStatus">
+              <option value="draft">Rascunho</option>
+              <option value="published">Publicado</option>
+            </select>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1.5px solid var(--line);margin:20px 0">
+        <div style="font-size:14px;font-weight:900;color:var(--ink);margin-bottom:16px">Seções da Página</div>
+        <div id="pbSections" style="display:grid;gap:12px;margin-bottom:20px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="mini-btn" onclick="addPageSection('hero')">+ Hero Banner</button>
+          <button class="mini-btn" onclick="addPageSection('text')">+ Bloco de Texto</button>
+          <button class="mini-btn" onclick="addPageSection('products')">+ Grade de Produtos</button>
+        </div>
+      </div>
+      <div class="adm-card" style="max-width:680px;margin-top:16px">
+        <div style="font-size:14px;font-weight:900;color:var(--ink);margin-bottom:12px">SEO</div>
+        <div class="adm-field"><span class="adm-label">Título SEO</span><input class="adm-input" type="text" id="pbSeoTitle" placeholder="Título para buscadores"></div>
+        <div class="adm-field"><span class="adm-label">Descrição SEO</span><textarea class="adm-input" id="pbSeoDesc" rows="2" placeholder="Descrição para buscadores" style="resize:vertical;min-height:60px"></textarea></div>
+        <div style="margin-top:12px">
+          <a id="pbPreviewLink" href="#" target="_blank" class="mini-btn soft" style="text-decoration:none">👁 Preview da página →</a>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /adm-content -->
 </div><!-- /adminDash -->
+
+<!-- ── NEW PAGE MODAL ── -->
+<div id="pbNewPageModal" style="display:none;position:fixed;inset:0;background:rgba(30,0,26,.55);z-index:800;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)">
+  <div style="background:#fff;border-radius:24px;max-width:420px;width:100%;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <strong style="font-size:18px;font-family:var(--font-d)">➕ Nova Página</strong>
+      <button onclick="document.getElementById('pbNewPageModal').style.display='none'" style="border:none;background:var(--pink-pale);color:var(--pink);border-radius:99px;padding:6px 14px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div class="adm-field"><span class="adm-label">📝 Título</span><input class="adm-input" type="text" id="pbNewTitle" placeholder="Ex: Coleção Verão"></div>
+    <div class="adm-field"><span class="adm-label">🔗 Slug (URL: /pages/slug)</span><input class="adm-input" type="text" id="pbNewSlug" placeholder="Ex: verao"></div>
+    <div class="adm-modal-btns" style="margin-top:16px">
+      <button class="adm-cancel-btn" onclick="document.getElementById('pbNewPageModal').style.display='none'">Cancelar</button>
+      <button class="adm-save-btn" onclick="createNewPage()">Criar página</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── EDIT PRODUCT MODAL ── -->
 <div id="admModal">
@@ -305,6 +385,7 @@ body{background:#f5eff3;min-height:100vh}
       <select class="adm-input" id="admBadge">
         <option value="">Nenhum</option>
         <option value="NOVO">✨ NOVO</option>
+        <option value="NOVO_HIDDEN">🔕 Novo! (invisível)</option>
         <option value="FAV">💖 FAVORITO</option>
         <option value="-10%">🔥 -10%</option>
         <option value="-20%">🔥 -20%</option>
@@ -367,6 +448,8 @@ function switchAdmSection(sec) {
   if (sec === 'categories') renderCatEditor();
   if (sec === 'add') initAddNew();
   if (sec === 'badges') refreshBadgeBtns();
+  if (sec === 'photos') { setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]'); renderGalleryList(); }, 100); }
+  if (sec === 'pagebuilder') loadPagesList();
 }
 
 function refreshBadgeBtns() {
@@ -524,6 +607,247 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   // Otherwise wait for onAuthStateChange — it will open or redirect
 });
+
+// ── Gallery upload handler ──
+var _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]');
+
+function renderGalleryList() {
+  var box = document.getElementById('galleryImportedList');
+  if (!box) return;
+  if (!_galleryUploads.length) {
+    box.innerHTML = '<p style="color:var(--gray);font-size:13px;grid-column:1/-1">Nenhuma foto importada ainda. Use o botão acima para enviar.</p>';
+    return;
+  }
+  box.innerHTML = _galleryUploads.slice().reverse().map(function(u) {
+    return `<div style="border-radius:14px;overflow:hidden;border:1.5px solid var(--line);position:relative;aspect-ratio:1;background:var(--pink-pale)">
+      <img src="${u.url}" alt="${u.name}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.date}</div>
+    </div>`;
+  }).join('');
+}
+
+async function handleGalleryUpload(e) {
+  var files = Array.from(e.target.files||[]);
+  if (!files.length) return;
+  var prog = document.getElementById('galleryUploadProgress');
+  if (prog) { prog.style.display=''; prog.textContent='Enviando '+files.length+' foto(s)...'; }
+  var uploaded = 0;
+  for (var f of files) {
+    try {
+      if (!window.vixiUploadImage) { showToast('Firebase não conectado ainda. Aguarde e tente novamente.'); break; }
+      var url = await window.vixiUploadImage(f, 'gallery');
+      var entry = { url: url, name: f.name, date: new Date().toLocaleString('pt-BR'), uploadedBy: 'admin' };
+      _galleryUploads.push(entry);
+      uploaded++;
+      if (prog) prog.textContent = 'Enviando... '+uploaded+'/'+files.length;
+    } catch(err) {
+      console.error('Gallery upload error', err);
+      showToast('Erro ao enviar ' + f.name);
+    }
+  }
+  localStorage.setItem('vixiGalleryUploads', JSON.stringify(_galleryUploads));
+  if (prog) { prog.textContent = uploaded + ' foto(s) enviada(s)! ✅'; setTimeout(function(){ prog.style.display='none'; }, 3000); }
+  if (uploaded) showToast(uploaded + ' foto(s) enviada(s) ✅');
+  renderGalleryList();
+  e.target.value = '';
+}
+
+// ── Page Builder ──────────────────────────────
+var _pbCurrentPage = null;
+var _pbSections = [];
+
+async function loadPagesList() {
+  var box = document.getElementById('pbPagesList');
+  if (!box) return;
+  box.innerHTML = '<p style="color:var(--gray);font-size:13px">Carregando...</p>';
+  if (!window.vixiListPages) {
+    box.innerHTML = '<p style="color:var(--gray);font-size:13px">Firebase não conectado. Recarregue a página.</p>';
+    return;
+  }
+  try {
+    var pages = await window.vixiListPages();
+    if (!pages.length) {
+      box.innerHTML = '<p style="color:var(--gray);font-size:13px">Nenhuma página criada ainda. Clique em "Nova Página" para começar.</p>';
+      return;
+    }
+    box.innerHTML = pages.map(function(p) {
+      var status = p.status === 'published' ? '<span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:900">Publicado</span>' : '<span style="background:#f3f4f6;color:#6b7280;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:900">Rascunho</span>';
+      return `<div style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <strong style="font-size:14px;color:var(--ink)">${p.title||'Sem título'}</strong>
+          <div style="font-size:12px;color:var(--gray);margin-top:4px">/pages/${p.slug||p.id} ${status}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <a href="page-builder.html?slug=${p.slug||p.id}" target="_blank" class="mini-btn soft" style="text-decoration:none;font-size:12px">👁 Ver</a>
+          <button class="mini-btn" onclick="editPage('${p.slug||p.id}')" style="font-size:12px">✏️ Editar</button>
+          <button class="mini-btn danger" onclick="deletePage('${p.slug||p.id}')" style="font-size:12px">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    box.innerHTML = '<p style="color:var(--gray);font-size:13px">Erro ao carregar páginas.</p>';
+    console.error(e);
+  }
+}
+
+function openNewPageModal() {
+  document.getElementById('pbNewTitle').value = '';
+  document.getElementById('pbNewSlug').value = '';
+  document.getElementById('pbNewPageModal').style.display = 'flex';
+}
+
+async function createNewPage() {
+  var title = document.getElementById('pbNewTitle').value.trim();
+  var slug = document.getElementById('pbNewSlug').value.trim().replace(/[^a-z0-9-]/g, '-').toLowerCase();
+  if (!title || !slug) { showToast('Preencha título e slug'); return; }
+  _pbCurrentPage = { title, slug, status: 'draft', sections: [], seoTitle: '', seoDescription: '' };
+  _pbSections = [];
+  document.getElementById('pbNewPageModal').style.display = 'none';
+  openPageEditor();
+}
+
+async function editPage(slug) {
+  if (!window.vixiLoadPage) { showToast('Firebase não conectado'); return; }
+  showToast('Carregando página...');
+  try {
+    var data = await window.vixiLoadPage(slug);
+    if (!data) { showToast('Página não encontrada'); return; }
+    _pbCurrentPage = data;
+    _pbSections = data.sections ? JSON.parse(JSON.stringify(data.sections)) : [];
+    openPageEditor();
+  } catch(e) {
+    showToast('Erro ao carregar página');
+    console.error(e);
+  }
+}
+
+function openPageEditor() {
+  var p = _pbCurrentPage;
+  document.getElementById('pbTitle').value = p.title || '';
+  document.getElementById('pbSlug').value = p.slug || '';
+  document.getElementById('pbStatus').value = p.status || 'draft';
+  document.getElementById('pbSeoTitle').value = p.seoTitle || '';
+  document.getElementById('pbSeoDesc').value = p.seoDescription || '';
+  var previewLink = document.getElementById('pbPreviewLink');
+  if (previewLink) previewLink.href = 'page-builder.html?slug=' + (p.slug || '');
+  document.getElementById('pbEditorTitle').textContent = '✏️ ' + (p.title || 'Editar Página');
+  renderSectionsList();
+  switchAdmSection('pageeditor');
+}
+
+function renderSectionsList() {
+  var box = document.getElementById('pbSections');
+  if (!box) return;
+  if (!_pbSections.length) {
+    box.innerHTML = '<p style="color:var(--gray);font-size:13px">Nenhuma seção ainda. Use os botões abaixo para adicionar.</p>';
+    return;
+  }
+  box.innerHTML = _pbSections.map(function(s, i) {
+    var typeLabel = {hero:'🖼️ Hero Banner', text:'📝 Bloco de Texto', products:'📦 Grade de Produtos'}[s.type] || s.type;
+    var fields = renderSectionFields(s, i);
+    return `<div style="background:var(--pink-pale);border-radius:16px;border:1.5px solid var(--line);padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="font-size:13px;color:var(--ink)">${typeLabel}</strong>
+        <div style="display:flex;gap:6px">
+          ${i > 0 ? `<button class="mini-btn soft" onclick="moveSec(${i},-1)" style="font-size:11px;padding:5px 10px">↑</button>` : ''}
+          ${i < _pbSections.length-1 ? `<button class="mini-btn soft" onclick="moveSec(${i},1)" style="font-size:11px;padding:5px 10px">↓</button>` : ''}
+          <button class="mini-btn danger" onclick="removeSec(${i})" style="font-size:11px;padding:5px 10px">✕</button>
+        </div>
+      </div>
+      ${fields}
+    </div>`;
+  }).join('');
+}
+
+function renderSectionFields(s, i) {
+  if (s.type === 'hero') {
+    return `<div style="display:grid;gap:8px">
+      <div class="adm-field"><span class="adm-label">Título</span><input class="adm-input" value="${(s.settings&&s.settings.title)||''}" oninput="_pbSections[${i}].settings.title=this.value"></div>
+      <div class="adm-field"><span class="adm-label">Subtítulo</span><input class="adm-input" value="${(s.settings&&s.settings.subtitle)||''}" oninput="_pbSections[${i}].settings.subtitle=this.value"></div>
+      <div class="adm-field"><span class="adm-label">Texto do Botão</span><input class="adm-input" value="${(s.settings&&s.settings.btnText)||''}" oninput="_pbSections[${i}].settings.btnText=this.value"></div>
+      <div class="adm-field"><span class="adm-label">Link do Botão</span><input class="adm-input" value="${(s.settings&&s.settings.btnLink)||''}" oninput="_pbSections[${i}].settings.btnLink=this.value" placeholder="Ex: clothes.html"></div>
+    </div>`;
+  }
+  if (s.type === 'text') {
+    return `<div style="display:grid;gap:8px">
+      <div class="adm-field"><span class="adm-label">Título</span><input class="adm-input" value="${(s.settings&&s.settings.title)||''}" oninput="_pbSections[${i}].settings.title=this.value"></div>
+      <div class="adm-field"><span class="adm-label">Texto</span><textarea class="adm-input" rows="3" oninput="_pbSections[${i}].settings.body=this.value" style="resize:vertical;min-height:72px">${(s.settings&&s.settings.body)||''}</textarea></div>
+    </div>`;
+  }
+  if (s.type === 'products') {
+    var cats = typeof getCats === 'function' ? getCats() : [];
+    var catOpts = cats.map(function(c){ return `<option value="${c.id}" ${(s.settings&&s.settings.category)===c.id?'selected':''}>${c.icon} ${c.label}</option>`; }).join('');
+    return `<div style="display:grid;gap:8px">
+      <div class="adm-field"><span class="adm-label">Categoria</span><select class="adm-input" onchange="_pbSections[${i}].settings.category=this.value"><option value="">Todas</option>${catOpts}</select></div>
+      <div class="adm-field"><span class="adm-label">Máximo de produtos</span><input class="adm-input" type="number" min="1" max="24" value="${(s.settings&&s.settings.limit)||8}" oninput="_pbSections[${i}].settings.limit=parseInt(this.value)||8"></div>
+    </div>`;
+  }
+  return '';
+}
+
+function addPageSection(type) {
+  var id = 's' + Date.now();
+  var defaults = { hero:{title:'',subtitle:'',bgImage:'',btnText:'Ver produtos',btnLink:'clothes.html'}, text:{title:'',body:''}, products:{category:'',limit:8} };
+  _pbSections.push({ id, type, settings: defaults[type]||{} });
+  renderSectionsList();
+}
+window.addPageSection = addPageSection;
+
+function moveSec(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= _pbSections.length) return;
+  var tmp = _pbSections[idx];
+  _pbSections[idx] = _pbSections[newIdx];
+  _pbSections[newIdx] = tmp;
+  renderSectionsList();
+}
+window.moveSec = moveSec;
+
+function removeSec(idx) {
+  _pbSections.splice(idx, 1);
+  renderSectionsList();
+}
+window.removeSec = removeSec;
+
+async function saveCurrentPage() {
+  if (!window.vixiSavePage) { showToast('Firebase não conectado'); return; }
+  var title = document.getElementById('pbTitle').value.trim();
+  var slug = document.getElementById('pbSlug').value.trim();
+  var status = document.getElementById('pbStatus').value;
+  var seoTitle = document.getElementById('pbSeoTitle').value.trim();
+  var seoDescription = document.getElementById('pbSeoDesc').value.trim();
+  if (!title || !slug) { showToast('Preencha título e slug'); return; }
+  showToast('Salvando...');
+  try {
+    await window.vixiSavePage({ title, slug, status, seoTitle, seoDescription, sections: _pbSections, createdAt: (_pbCurrentPage&&_pbCurrentPage.createdAt)||null });
+    showToast('✅ Página salva!');
+    var previewLink = document.getElementById('pbPreviewLink');
+    if (previewLink) previewLink.href = 'page-builder.html?slug=' + slug;
+  } catch(e) {
+    showToast('Erro ao salvar: ' + e.message);
+    console.error(e);
+  }
+}
+window.saveCurrentPage = saveCurrentPage;
+
+async function deletePage(slug) {
+  if (!confirm('Apagar esta página?')) return;
+  if (!window.vixiDeletePage) { showToast('Firebase não conectado'); return; }
+  try {
+    await window.vixiDeletePage(slug);
+    showToast('Página removida.');
+    loadPagesList();
+  } catch(e) {
+    showToast('Erro ao remover.');
+    console.error(e);
+  }
+}
+window.deletePage = deletePage;
+window.editPage = editPage;
+window.openNewPageModal = openNewPageModal;
+window.createNewPage = createNewPage;
+window.loadPagesList = loadPagesList;
+
 </script>
 <script type="module" src="vixi-firebase.js"></script>
 <script src="ga.js"></script>

@@ -336,6 +336,14 @@ function saveToStorage(){
     });
     writeJson(PRODUCT_IMAGE_KEY, productImgs);
     writeJson('vixiAdmin_v2', toSave);
+    // Always persist product order so it survives page reloads
+    try{
+      var order = (window.liveProducts||PRODS).map(function(p){return p.id;});
+      writeJson('vixiProdOrder', order);
+      localStorage.setItem('vixiProdOrder_ts', String(Date.now()+2000));
+      if(window.vixiSaveCloud) window.vixiSaveCloud('vixiProdOrder', order);
+      if(window.vixiSaveCloud) window.vixiSaveCloud('vixiAdmin_v2', toSave);
+    }catch(e2){}
   }catch(e){showToast('Armazenamento cheio. Baixe o site para salvar permanentemente.');}
 }
 
@@ -570,7 +578,11 @@ window.sortBy=sortBy;
 function renderProds(filter='all'){
   currentFilter=filter;
   const grid=document.getElementById('prodGrid'); if(!grid) return;
-  let list=PRODS.filter(p=>filter==='all'||p.cat===filter);
+  // 'novidades' filter = products with NOVO or NOVO_HIDDEN badge
+  let list=PRODS.filter(p=>{
+    if(filter==='novidades') return p.badge==='NOVO'||p.badge==='NOVO_HIDDEN';
+    return filter==='all'||p.cat===filter;
+  });
   if(activeSizeFilter) list=list.filter(p=>(p.sizes||[]).includes(activeSizeFilter));
   if(currentSort==='price-asc') list=[...list].sort((a,b)=>a.price-b.price);
   else if(currentSort==='price-desc') list=[...list].sort((a,b)=>b.price-a.price);
@@ -580,9 +592,17 @@ function renderProds(filter='all'){
   const show=list.slice(0,visibleCount);
   grid.innerHTML=show.map(p=>{
     const liked=favorites.includes(p.id);
+    // Calculate displayed old price for % badges
+    var dispOld=p.old||null;
+    var badgeStr=String(p.badge||'');
+    var pctMatch=badgeStr.match(/^-?(\d+)%$/);
+    if(pctMatch&&!dispOld&&p.price){
+      var pct=parseInt(pctMatch[1],10);
+      if(pct>0&&pct<100) dispOld=Math.ceil(p.price/(1-pct/100));
+    }
     return `<article class="prod-card" data-cat="${p.cat}" data-id="${p.id}" onclick="if(document.body.classList.contains('vixi-editing'))return;window.location.href='product.html?id=${p.id}'" style="cursor:pointer">
       <div class="prod-img-wrap">
-        ${(p.badge&&p.badge!=='FAV')?`<span class="pbadge ${String(p.badge).includes('%')?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':String(p.badge).includes('%')?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)}</span>`:''}
+        ${(p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN')?`<span class="pbadge ${pctMatch?'off':'novo'}">${p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+escapeHtml(p.badge):escapeHtml(p.badge)}</span>`:''}
         <button class="fav-btn ${liked?'liked':''}" onclick="toggleFav('${p.id}',this,event)" aria-label="Favoritar">${liked?'❤️':'🤍'}</button>
         <img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async" data-edit-product="${p.id}" data-edit-field="img"/>
         <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="if(document.body.classList.contains('vixi-editing')){event.preventDefault();return;}event.stopPropagation()">Ver produto →</a>
@@ -592,7 +612,7 @@ function renderProds(filter='all'){
         <h4 class="prod-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</h4>
         <p class="prod-desc" data-edit-product="${p.id}" data-edit-field="desc">${escapeHtml(p.desc||'')}</p>
         <div class="prod-sizes">${(p.sizes||[]).map(s=>`<span class="psz" onclick="selectSize(this)">${escapeHtml(s)}</span>`).join('')}</div>
-        <div class="prod-foot"><div class="prod-price">${p.old?`<span class="pold">${money(p.old)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
+        <div class="prod-foot"><div class="prod-price">${dispOld?`<span class="pold">${money(dispOld)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
       </div>
     </article>`;
   }).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';

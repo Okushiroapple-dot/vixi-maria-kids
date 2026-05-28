@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Página — Vixi Maria Kids</title>
+<meta name="description" id="pageDesc" content="Vixi Maria Kids">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vixi-shared.css">
+<style>
+.pb-hero{background:linear-gradient(135deg,var(--pink-pale),var(--purple-soft));padding:80px 28px;text-align:center;border-radius:0}
+.pb-hero h1{font-family:var(--font-d);font-size:clamp(28px,5vw,52px);font-weight:700;color:var(--ink);margin-bottom:16px}
+.pb-hero p{font-size:clamp(15px,2vw,18px);color:var(--gray);font-weight:600;max-width:560px;margin:0 auto 28px}
+.pb-hero .pb-hero-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:var(--pink);color:#fff;border-radius:99px;font-family:var(--font-b);font-weight:900;font-size:15px;text-decoration:none;transition:all .2s}
+.pb-hero .pb-hero-btn:hover{background:var(--pink-mid);transform:translateY(-2px)}
+.pb-text-block{padding:60px 28px;max-width:860px;margin:0 auto}
+.pb-text-block h2{font-family:var(--font-d);font-size:clamp(22px,3vw,34px);font-weight:700;color:var(--ink);margin-bottom:16px}
+.pb-text-block p{font-size:15px;color:var(--ink-mid);font-weight:600;line-height:1.7}
+.pb-products-section{padding:60px 28px}
+.pb-products-section h2{font-family:var(--font-d);font-size:clamp(22px,3vw,32px);font-weight:700;color:var(--ink);margin-bottom:28px;text-align:center}
+.pb-loading{text-align:center;padding:60px 20px;font-size:18px;color:var(--gray);font-weight:700}
+.pb-error{text-align:center;padding:60px 20px;font-size:16px;color:#e53935;font-weight:700;background:#fff0f0;border-radius:16px;margin:40px 28px}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"><span id="toastMsg">Pronto!</span></div>
+
+<!-- Header (simplified) -->
+<header>
+  <div class="hdr">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-text">
+        <span class="logo-name">vixi maria</span>
+        <span class="logo-sub">kids</span>
+      </div>
+    </a>
+    <nav>
+      <a href="index.html">🏠 Início</a>
+      <a href="clothes.html">🛍️ Roupas</a>
+    </nav>
+    <div class="hdr-icons">
+      <a href="cart.html" class="ibt">🛍️</a>
+      <a href="conta.html" class="ibt">👤</a>
+    </div>
+  </div>
+</header>
+
+<!-- Page content rendered here -->
+<div id="pageContent">
+  <div class="pb-loading">🌸 Carregando página...</div>
+</div>
+
+<!-- Footer -->
+<footer id="contato">
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="index.html" class="logo" style="margin-bottom:18px;display:inline-flex">
+        <div class="logo-icon">🌸</div>
+        <div class="logo-text">
+          <span class="logo-name">vixi maria</span>
+          <span class="logo-sub">kids</span>
+        </div>
+      </a>
+      <p>Moda infantil e juvenil em Ribeirão Preto.</p>
+      <div class="foot-socials">
+        <a href="https://instagram.com/kidsviximaria" class="fsoc" target="_blank" rel="noopener" title="Instagram">📷</a>
+        <a href="https://wa.me/5516991781559" class="fsoc" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div>
+      <h5>Loja</h5>
+      <ul>
+        <li><a href="clothes.html">🛍️ Todas as roupas</a></li>
+        <li><a href="clothes.html?cat=bebes">🍼 Bebês</a></li>
+        <li><a href="clothes.html?cat=meninas">👗 Meninas</a></li>
+        <li><a href="clothes.html?cat=meninos">⚽ Meninos</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2025 Vixi Maria Kids</span>
+    <span>Feito com 💖 em Ribeirão Preto</span>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="vixi-products.js"></script>
+<script src="vixi-core.js"></script>
+<script>
+var PRODS_CACHE = typeof PRODS !== 'undefined' ? PRODS : [];
+
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderSection(s) {
+  if (!s || !s.type) return '';
+  var st = s.settings || {};
+  if (s.type === 'hero') {
+    var bg = st.bgImage ? 'style="background-image:url('+escHtml(st.bgImage)+');background-size:cover;background-position:center"' : '';
+    return `<section class="pb-hero" ${bg}>
+      ${st.title ? `<h1>${escHtml(st.title)}</h1>` : ''}
+      ${st.subtitle ? `<p>${escHtml(st.subtitle)}</p>` : ''}
+      ${st.btnText ? `<a href="${escHtml(st.btnLink||'clothes.html')}" class="pb-hero-btn">${escHtml(st.btnText)}</a>` : ''}
+    </section>`;
+  }
+  if (s.type === 'text') {
+    return `<section class="pb-text-block">
+      ${st.title ? `<h2>${escHtml(st.title)}</h2>` : ''}
+      ${st.body ? `<p>${escHtml(st.body)}</p>` : ''}
+    </section>`;
+  }
+  if (s.type === 'products') {
+    var limit = parseInt(st.limit) || 8;
+    var cat = st.category || '';
+    var prods = PRODS_CACHE.filter(function(p){ return !cat || p.cat === cat; }).slice(0, limit);
+    if (!prods.length) return '<section class="pb-products-section"><p style="text-align:center;color:var(--gray)">Nenhum produto encontrado.</p></section>';
+    var title = cat ? ((getCatLabel && getCatLabel(cat)) || cat) : 'Produtos';
+    var cards = prods.map(function(p){
+      return `<article class="prod-card" data-id="${escHtml(p.id)}" onclick="window.location.href='product.html?id=${escHtml(p.id)}'" style="cursor:pointer">
+        <div class="prod-img-wrap">
+          ${(p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN')?'<span class="pbadge '+(String(p.badge).includes('%')?'off':'novo')+'">'+(p.badge==='NOVO'?'✨ Novo!':escHtml(p.badge))+'</span>':''}
+          <img src="${escHtml(p.img)}" alt="${escHtml(p.name)}" loading="lazy">
+        </div>
+        <div class="prod-info">
+          <div class="prod-cat">${getCatLabel ? getCatLabel(p.cat) : p.cat}</div>
+          <h4 class="prod-name">${escHtml(p.name)}</h4>
+          <div class="prod-foot"><div class="prod-price">${p.old?'<span class="pold">R$ '+Number(p.old).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</span>':''}<span class="pnew">${money?money(p.price):'R$ '+p.price}</span></div></div>
+        </div>
+      </article>`;
+    }).join('');
+    return `<section class="pb-products-section"><div class="wrap"><h2>${escHtml(title)}</h2><div class="prod-grid">${cards}</div><div style="text-align:center;margin-top:28px"><a href="clothes.html${cat?'?cat='+cat:''}" class="btn-main">Ver todos →</a></div></div></section>`;
+  }
+  return '';
+}
+
+async function loadAndRender() {
+  var slug = new URLSearchParams(location.search).get('slug');
+  if (!slug) {
+    document.getElementById('pageContent').innerHTML = '<div class="pb-error">❌ Slug não especificado. Use ?slug=nome-da-pagina</div>';
+    return;
+  }
+  if (!window.vixiLoadPage) {
+    // Firebase not loaded yet — wait a bit
+    await new Promise(function(r){ setTimeout(r, 2000); });
+  }
+  if (!window.vixiLoadPage) {
+    document.getElementById('pageContent').innerHTML = '<div class="pb-error">Firebase não conectado. Recarregue a página.</div>';
+    return;
+  }
+  try {
+    var data = await window.vixiLoadPage(slug);
+    if (!data) {
+      document.getElementById('pageContent').innerHTML = '<div class="pb-error">❌ Página "' + slug + '" não encontrada.</div>';
+      return;
+    }
+    // Update meta
+    document.title = (data.seoTitle || data.title || 'Página') + ' — Vixi Maria Kids';
+    var descEl = document.getElementById('pageDesc');
+    if (descEl && data.seoDescription) descEl.content = data.seoDescription;
+    // Render sections
+    var sections = Array.isArray(data.sections) ? data.sections : [];
+    if (!sections.length) {
+      document.getElementById('pageContent').innerHTML = '<div class="pb-loading">Esta página ainda não tem seções.</div>';
+      return;
+    }
+    document.getElementById('pageContent').innerHTML = sections.map(renderSection).join('');
+  } catch(e) {
+    document.getElementById('pageContent').innerHTML = '<div class="pb-error">Erro ao carregar página: ' + escHtml(e.message) + '</div>';
+    console.error(e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  // Wait for PRODS to potentially be populated
+  PRODS_CACHE = typeof PRODS !== 'undefined' ? PRODS : [];
+  loadAndRender();
+});
+</script>
+<script type="module" src="vixi-firebase.js"></script>
+</body>
+</html>

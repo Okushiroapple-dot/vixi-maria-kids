@@ -167,36 +167,28 @@
 </section>
 
 <!-- Instagram -->
-<section class="ig-bar">
+<section class="ig-bar" id="instagram">
   <h3>Siga a gente no Instagram! 📸</h3>
   <p>Novidades diárias, looks charmosos e muito amor — <strong>@kidsviximaria</strong></p>
-  <div class="ig-grid">
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
+  <div class="ig-grid" id="igGrid">
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig1" title="Ver no Instagram">
       <div class="ig-placeholder"><span class="ig-icon">🌸</span></div>
       <div class="ig-overlay"><span>Ver no IG →</span></div>
     </a>
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig2" title="Ver no Instagram">
       <div class="ig-placeholder"><span class="ig-icon">👗</span></div>
       <div class="ig-overlay"><span>Ver no IG →</span></div>
     </a>
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig3" title="Ver no Instagram">
       <div class="ig-placeholder"><span class="ig-icon">🎀</span></div>
       <div class="ig-overlay"><span>Ver no IG →</span></div>
     </a>
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig4" title="Ver no Instagram">
       <div class="ig-placeholder"><span class="ig-icon">👶</span></div>
       <div class="ig-overlay"><span>Ver no IG →</span></div>
     </a>
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
-      <div class="ig-placeholder"><span class="ig-icon">✨</span></div>
-      <div class="ig-overlay"><span>Ver no IG →</span></div>
-    </a>
-    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" title="Ver no Instagram">
-      <div class="ig-placeholder"><span class="ig-icon">⭐</span></div>
-      <div class="ig-overlay"><span>Ver no IG →</span></div>
-    </a>
   </div>
-  <p style="color:#fff;font-size:14px;font-weight:600;max-width:480px;margin:0 auto 28px">
+  <p class="ig-desc-bubble">
     📸 Veja os últimos looks e novidades diretamente no nosso perfil!
   </p>
   <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-btn">
@@ -299,6 +291,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var params = new URLSearchParams(location.search);
   var cat = params.get('cat');
   var sz  = params.get('size');
+  var novelty = params.get('novidades') === '1' || cat === 'novidades';
 
   // Show loading state if no products yet
   if(!PRODS.length){
@@ -308,9 +301,34 @@ document.addEventListener('DOMContentLoaded', function(){
 
   syncCategoriesUI();
 
+  // Add "Novidades" tab to prod-tabs
+  var tabs = document.getElementById('prodTabs');
+  if(tabs && !tabs.querySelector('[data-f="novidades"]')){
+    var novBtn = document.createElement('button');
+    novBtn.className = 'tab' + (novelty ? ' on' : '');
+    novBtn.dataset.f = 'novidades';
+    novBtn.textContent = '🔥 Novidades';
+    novBtn.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+      novBtn.classList.add('on');
+      filterCategory('novidades');
+    });
+    tabs.insertBefore(novBtn, tabs.firstChild.nextSibling || null);
+  }
+
   if(sz){ window.activeSizeFilter = sz; }
 
-  if(cat){
+  if(novelty){
+    window.currentFilter = 'novidades';
+    document.querySelectorAll('.tab').forEach(function(t){
+      t.classList.toggle('on', t.dataset.f === 'novidades');
+    });
+    renderProds('novidades');
+    var el = document.getElementById('clothesTitle');
+    if(el) el.textContent = '🔥 Novidades';
+    var bc = document.getElementById('clothesBreadcrumb');
+    if(bc) bc.textContent = 'Novidades';
+  } else if(cat && cat !== 'novidades'){
     window.currentFilter = cat;
     document.querySelectorAll('.tab').forEach(function(t){
       t.classList.toggle('on', t.dataset.f === cat);

@@ -1217,6 +1217,9 @@ const ORDER_STATUS_COLORS = {
   processando:'#6366f1', cancelado:'#6b7280', estornado:'#8b5cf6'
 };
 
+let _adminOrders = [];
+let _orderSort = 'date';
+
 async function loadAdminOrders(){
   const box = document.getElementById('adminOrdersList');
   if(!box) return;
@@ -1226,37 +1229,115 @@ async function loadAdminOrders(){
     if(!ok){ box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado. Recarregue a página.</p>'; return; }
   }
   try{
-    const orders = await window.vixiGetAdminOrders(80);
-    if(!orders.length){
-      box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum pedido encontrado ainda.</p>';
-      return;
-    }
-    box.innerHTML = orders.map(o=>{
-      const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
-      const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
-      const status = o.status || 'pendente';
-      const color = ORDER_STATUS_COLORS[status] || '#6b7280';
-      const label = ORDER_STATUS_LABELS[status] || status;
-      const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
-      const itens = (o.items||[]).map(i=>`${i.name} (${i.qty}x)`).join(', ');
-      const nome = o.payer?.nome || o.payer?.email || '—';
-      return `<div style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-          <strong style="font-size:14px;color:var(--ink)">${nome}</strong>
-          <span style="background:${color}22;color:${color};font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">${label}</span>
-        </div>
-        <div style="color:var(--gray);margin-bottom:6px">${itens||'—'}</div>
-        <div style="display:flex;justify-content:space-between;color:var(--gray)">
-          <span>${date}</span>
-          <strong style="color:var(--pink);font-size:15px">${total}</strong>
-        </div>
-      </div>`;
-    }).join('');
+    _adminOrders = await window.vixiGetAdminOrders(80);
+    renderOrdersList();
   }catch(e){
     box.innerHTML='<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos 😢</p>';
     console.error('loadAdminOrders error',e);
   }
 }
+
+function renderOrdersList(){
+  const box = document.getElementById('adminOrdersList');
+  if(!box) return;
+  const orders = [..._adminOrders];
+  // Update count badge in header
+  var hdr = document.querySelector('#admSecOrders .adm-sec-hdr');
+  if(hdr){
+    var badge = hdr.querySelector('.orders-count-badge');
+    if(!badge){ badge=document.createElement('span'); badge.className='orders-count-badge'; badge.style.cssText='background:var(--pink);color:#fff;border-radius:99px;padding:3px 12px;font-size:12px;font-weight:900;margin-left:8px'; hdr.querySelector('.adm-sec-title').appendChild(badge); }
+    badge.textContent=orders.length+' pedido'+(orders.length!==1?'s':'');
+  }
+  // Render sort buttons if not present
+  if(!document.getElementById('orderSortBtns')){
+    var sortRow = document.createElement('div');
+    sortRow.id='orderSortBtns';
+    sortRow.style.cssText='display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap';
+    sortRow.innerHTML='<button class="mini-btn soft" onclick="sortOrders(\'date\')">📅 Por data</button><button class="mini-btn soft" onclick="sortOrders(\'name\')">🔤 A–Z nome</button>';
+    box.parentNode.insertBefore(sortRow, box);
+  }
+  if(_orderSort==='name') orders.sort((a,b)=>{const na=a.payer?.nome||a.payer?.email||''; const nb=b.payer?.nome||b.payer?.email||''; return na.localeCompare(nb,'pt-BR');});
+  else orders.sort((a,b)=>{const ta=a.createdAt?.seconds?a.createdAt.seconds*1000:(a.createdAt||0); const tb=b.createdAt?.seconds?b.createdAt.seconds*1000:(b.createdAt||0); return tb-ta;});
+  if(!orders.length){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum pedido encontrado ainda.</p>';
+    return;
+  }
+  box.innerHTML = orders.map((o,i)=>{
+    const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
+    const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
+    const status = o.status || 'pendente';
+    const color = ORDER_STATUS_COLORS[status] || '#6b7280';
+    const label = ORDER_STATUS_LABELS[status] || status;
+    const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
+    const itens = (o.items||[]).map(i=>`${i.name||i.id} (${i.qty}x)`).join(', ');
+    const nome = o.payer?.nome || o.payer?.email || '—';
+    return `<div class="order-card" onclick="showOrderDetail(${i})" style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 20px rgba(242,39,110,.15)'" onmouseout="this.style.boxShadow=''">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <strong style="font-size:14px;color:var(--ink)">${nome}</strong>
+        <span style="background:${color}22;color:${color};font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">${label}</span>
+      </div>
+      <div style="color:var(--gray);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${itens||'—'}</div>
+      <div style="display:flex;justify-content:space-between;color:var(--gray)">
+        <span>${date}</span>
+        <strong style="color:var(--pink);font-size:15px">${total}</strong>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sortOrders(by){
+  _orderSort=by;
+  document.querySelectorAll('#orderSortBtns .mini-btn').forEach(function(b){
+    b.style.background = b.textContent.includes(by==='date'?'data':'A–Z') ? 'var(--pink)' : '';
+    b.style.color = b.textContent.includes(by==='date'?'data':'A–Z') ? '#fff' : '';
+  });
+  renderOrdersList();
+}
+window.sortOrders=sortOrders;
+
+function showOrderDetail(idx){
+  const o = _adminOrders[idx];
+  if(!o) return;
+  const ts = o.createdAt?.seconds ? o.createdAt.seconds*1000 : (o.createdAt||0);
+  const date = ts ? new Date(ts).toLocaleString('pt-BR') : '—';
+  const status = o.status || 'pendente';
+  const color = ORDER_STATUS_COLORS[status] || '#6b7280';
+  const label = ORDER_STATUS_LABELS[status] || status;
+  const total = typeof money==='function' ? money(o.total||0) : 'R$ '+(o.total||0).toFixed(2);
+  const payer = o.payer||{};
+  const addr = o.address||o.endereco||payer.address||{};
+  const addrStr = [addr.rua||addr.street||'',addr.numero||addr.number||'',addr.bairro||addr.neighborhood||'',addr.cidade||addr.city||addr.municipio||'',addr.estado||addr.state||addr.uf||'',addr.cep||''].filter(Boolean).join(', ') || '—';
+  const itens = (o.items||[]).map(i=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><strong>${i.name||i.id}</strong> × ${i.qty} — ${typeof money==='function'?money((i.price||0)*i.qty):'—'}</div>`).join('');
+  var modal = document.getElementById('orderDetailModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id='orderDetailModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(30,0,26,.55);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    modal.onclick=function(e){if(e.target===modal)modal.style.display='none';};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML=`<div style="background:#fff;border-radius:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.25)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <strong style="font-size:18px;font-family:var(--font-d)">📋 Detalhes do Pedido</strong>
+      <button onclick="document.getElementById('orderDetailModal').style.display='none'" style="border:none;background:var(--pink-pale);color:var(--pink);border-radius:99px;padding:6px 14px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div style="display:grid;gap:12px;font-size:14px">
+      <div><strong>Cliente:</strong> ${payer.nome||'—'}</div>
+      <div><strong>E-mail:</strong> ${payer.email||'—'}</div>
+      <div><strong>Telefone:</strong> ${payer.telefone||payer.phone||'—'}</div>
+      <div><strong>Endereço:</strong> ${addrStr}</div>
+      <div><strong>Data:</strong> ${date}</div>
+      <div><strong>Status:</strong> <span style="background:${color}22;color:${color};padding:3px 10px;border-radius:99px;font-weight:800">${label}</span></div>
+      <hr style="border:none;border-top:1.5px solid var(--line)">
+      <strong>Itens:</strong>
+      ${itens||'<div style="color:var(--gray)">—</div>'}
+      <hr style="border:none;border-top:1.5px solid var(--line)">
+      <div style="display:flex;justify-content:space-between"><strong>Total:</strong><strong style="color:var(--pink);font-size:17px">${total}</strong></div>
+    </div>
+  </div>`;
+  modal.style.display='flex';
+}
+window.showOrderDetail=showOrderDetail;
 
 // ── Badge style picker ──
 function setBadgeStyle(style){
@@ -1301,3 +1382,6 @@ window.ensureAdminShell=typeof ensureAdminShell!=='undefined'?ensureAdminShell:w
 window.setBadgeStyle=typeof setBadgeStyle!=='undefined'?setBadgeStyle:window.setBadgeStyle;
 window.initProductDragDrop=typeof initProductDragDrop!=='undefined'?initProductDragDrop:window.initProductDragDrop;
 window.destroyProductDragDrop=typeof destroyProductDragDrop!=='undefined'?destroyProductDragDrop:window.destroyProductDragDrop;
+window.loadAdminOrders=typeof loadAdminOrders!=='undefined'?loadAdminOrders:window.loadAdminOrders;
+window.renderOrdersList=typeof renderOrdersList!=='undefined'?renderOrdersList:window.renderOrdersList;
+window.showOrderDetail=typeof showOrderDetail!=='undefined'?showOrderDetail:window.showOrderDetail;

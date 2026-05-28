@@ -262,6 +262,35 @@ window.vixiSubscribeNewsletter = async function(email) {
   return 'ok';
 };
 
+// ── Page Builder ──────────────────────────────
+window.vixiSavePage = async function(pageData) {
+  const slug = (pageData.slug || '').replace(/[^a-z0-9-]/g, '-').toLowerCase();
+  if (!slug) throw new Error('Slug inválido');
+  const docRef = doc(db, 'pages', slug);
+  await setDoc(docRef, { ...pageData, slug, updatedAt: serverTimestamp() }, { merge: true });
+  return slug;
+};
+
+window.vixiLoadPage = async function(slug) {
+  const snap = await getDoc(doc(db, 'pages', slug));
+  return snap.exists() ? snap.data() : null;
+};
+
+window.vixiListPages = async function() {
+  try {
+    const q = query(collection(db, 'pages'), orderBy('updatedAt', 'desc'), limit(50));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('vixiListPages error', e);
+    return [];
+  }
+};
+
+window.vixiDeletePage = async function(slug) {
+  await deleteDoc(doc(db, 'pages', slug));
+};
+
 // ── Auth state observer ────────────────────────
 onAuthStateChanged(auth, function(user) {
   window.currentUser = user || null;
