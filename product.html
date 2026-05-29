@@ -301,7 +301,7 @@ function initStickyBuy(p){
   var sbOld=document.getElementById('sbOld');
   if(p.old&&sbOld){sbOld.textContent=money(p.old);sbOld.style.display='';}
   var sbPix=document.getElementById('sbPix');
-  if(sbPix)sbPix.textContent='PIX '+money(Math.round(p.price*.9*100)/100);
+  if(sbPix)sbPix.textContent='PIX '+money(Math.round(p.price*getPixMult()*100)/100);
   document.getElementById('sbBtn').onclick=function(){addProductToCart(p.id);};
   var trigger=document.querySelector('.product-detail-actions');
   if(!trigger)return;
@@ -358,7 +358,7 @@ function renderProduct(){
       '<button class="btn-ghost" onclick="shareProductWhatsApp(\'' + p.id + '\')" style="width:100%;justify-content:center;margin-top:10px;font-size:14px;padding:12px">📲 Compartilhar no WhatsApp</button>' +
       '<div style="display:flex;align-items:center;gap:10px;background:#e8fff3;border:1.5px solid #b2f5d4;border-radius:12px;padding:11px 14px;margin-bottom:10px">' +
         '<span style="font-size:22px">💚</span>' +
-        '<div><div style="font-size:14px;font-weight:700;color:#128c4a">No PIX: <strong style="font-size:17px">' + money(Math.round(p.price*.9*100)/100) + '</strong></div>' +
+        '<div><div style="font-size:14px;font-weight:700;color:#128c4a">No PIX: <strong style="font-size:17px">' + money(Math.round(p.price*getPixMult()*100)/100) + '</strong></div>' +
         '<div style="font-size:11px;color:#2d8a52;font-weight:600">10% de desconto à vista</div></div>' +
       '</div>' +
       '<p style="font-size:13px;color:var(--gray);font-weight:600">💳 3× sem juros no cartão · 🚚 Frete grátis acima R$250 em RP</p>' +
@@ -420,7 +420,7 @@ function renderRecentlyViewed(currentId){
         +'<div class="prod-foot"><div class="prod-price">'
           +(p.old?'<span class="pold">'+money(p.old)+'</span>':'')
           +'<span class="pnew">'+money(p.price)+'</span>'
-          +'<span class="pix-price">PIX '+money(Math.round(p.price*.9*100)/100)+'</span>'
+          +'<span class="pix-price">PIX '+money(Math.round(p.price*getPixMult()*100)/100)+'</span>'
         +'</div><button class="padd" onclick="addCart(\''+p.id+'\',event)">+</button></div>'
       +'</div>'
     +'</article>';
