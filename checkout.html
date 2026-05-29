@@ -219,7 +219,7 @@
             <div class="field">
               <label>CEP *</label>
               <div class="cep-row">
-                <input type="text" id="coCep" placeholder="00000-000" maxlength="9" oninput="maskCep(this)">
+                <input type="text" id="coCep" placeholder="00000-000" maxlength="9" oninput="onCoCepInput(this)">
                 <button class="cep-btn" onclick="coFetchCep()">Buscar</button>
               </div>
             </div>
@@ -368,6 +368,16 @@ function maskCep(el){
   var v=el.value.replace(/\D/g,'').slice(0,8);
   if(v.length>5)v=v.replace(/^(\d{5})(\d{0,3})/,'$1-$2');
   el.value=v;
+}
+function onCoCepInput(el){
+  maskCep(el);
+  if(el.value.replace(/\D/g,'').length===8){
+    var f=calcFreight(coSubtotal);
+    var totalEl=document.getElementById('coTotal');
+    var pixEl=document.getElementById('coPix');
+    if(totalEl) totalEl.textContent=money(coSubtotal+f);
+    if(pixEl)   pixEl.textContent=money((coSubtotal+f)*getPixMult());
+  }
 }
 
 async function coFetchCep(){
