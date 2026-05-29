@@ -1526,8 +1526,8 @@ async function cancelAdminOrder(btn){
   }
 
   const modal = document.getElementById('orderDetailModal');
-  const btn = modal?.querySelector('button[onclick^="cancelAdminOrder"]');
-  if(btn){ btn.textContent = doRefund ? 'Reembolsando...' : 'Cancelando...'; btn.disabled=true; }
+  const cancelBtn = modal?.querySelector('button[data-oid]');
+  if(cancelBtn){ cancelBtn.textContent = doRefund ? 'Reembolsando...' : 'Cancelando...'; cancelBtn.disabled=true; }
 
   try{
     if(doRefund && window.vixiRefundOrder){
@@ -1542,7 +1542,7 @@ async function cancelAdminOrder(btn){
     document.getElementById('orderDetailModal').style.display='none';
     renderOrdersCards();
   }catch(e){
-    if(btn){ btn.textContent='Cancelar pedido'; btn.disabled=false; }
+    if(cancelBtn){ cancelBtn.textContent='Cancelar pedido'; cancelBtn.disabled=false; }
     const errMsg = e?.message || '';
     if(typeof showToast==='function') showToast(errMsg || 'Erro ao cancelar pedido.');
     console.error('cancelAdminOrder error', e);
