@@ -790,15 +790,19 @@ body.vixi-editing .vixi-add-section-row{display:block}
 /* ── Section templates modal ── */
 #vixiSectionModal{display:none;position:fixed;inset:0;z-index:10100;background:rgba(30,0,26,.72);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
 #vixiSectionModal.open{display:flex}
-.vsm-box{background:#fff;border-radius:20px;padding:28px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(30,0,26,.3)}
-.vsm-title{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}
-.vsm-sub{font-size:13px;color:var(--gray);font-weight:600;margin-bottom:20px}
-.vsm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.vsm-card{border:2px solid var(--line);border-radius:12px;padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
-.vsm-card:hover{border-color:var(--pink);background:var(--pink-pale);transform:translateY(-2px)}
-.vsm-icon{font-size:26px;display:block;margin-bottom:6px}
-.vsm-label{font-size:12px;font-weight:800;color:var(--ink)}
+.vsm-box{background:#fff;border-radius:20px;padding:28px;max-width:660px;width:100%;box-shadow:0 24px 80px rgba(30,0,26,.3);max-height:88vh;overflow-y:auto}
+.vsm-title{font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--ink)}
+.vsm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.vsm-tab{border:none;background:var(--line);color:var(--gray);border-radius:99px;padding:6px 14px;font-family:var(--font-b);font-weight:800;font-size:12px;cursor:pointer;transition:all .2s}
+.vsm-tab.on{background:var(--pink);color:#fff}
+.vsm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.vsm-card{border:2px solid var(--line);border-radius:14px;padding:16px 10px 12px;text-align:center;cursor:pointer;transition:all .2s;background:#fff}
+.vsm-card:hover{border-color:var(--pink);background:var(--pink-pale);transform:translateY(-2px);box-shadow:0 4px 16px rgba(242,39,110,.15)}
+.vsm-icon{font-size:28px;display:block;margin-bottom:6px}
+.vsm-label{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:3px}
+.vsm-desc{font-size:10px;color:var(--gray);font-weight:600;line-height:1.3}
 .vsm-cancel{width:100%;border:none;background:var(--pink-pale);color:var(--ink-mid);border-radius:10px;padding:12px;font-weight:800;cursor:pointer;font-size:14px}
+.vixi-cs-spacer{height:60px;background:transparent;border:2px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:12px;font-weight:700}
 /* ── Custom sections ── */
 .vixi-cs{padding:48px 28px;position:relative}
 .vixi-cs-inner{max-width:900px;margin:0 auto}
