@@ -26,6 +26,8 @@
 .field label{font-weight:800;font-size:12px;color:var(--gray);letter-spacing:.5px;text-transform:uppercase}
 .field input{padding:13px 16px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:15px;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s}
 .field input:focus{border-color:var(--pink)}
+.field select{padding:13px 16px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:15px;outline:none;width:100%;box-sizing:border-box;transition:border-color .2s;background:#fff;cursor:pointer}
+.field select:focus{border-color:var(--pink)}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .form-grid .full{grid-column:1/-1}
 .cep-row{display:flex;gap:8px}
@@ -262,6 +264,19 @@
           <div class="field">
             <label>Telefone / WhatsApp</label>
             <input type="tel" id="pTelefone" placeholder="(16) 99999-9999" maxlength="15" oninput="maskPhone(this)">
+          </div>
+          <div class="field">
+            <label>Data de nascimento</label>
+            <input type="date" id="pNascimento">
+          </div>
+          <div class="field">
+            <label>Gênero</label>
+            <select id="pGenero">
+              <option value="">Prefiro não informar</option>
+              <option value="feminino">Feminino</option>
+              <option value="masculino">Masculino</option>
+              <option value="outro">Outro</option>
+            </select>
           </div>
         </div>
       </div>
@@ -523,10 +538,12 @@ async function saveProfile(){
   var rawCpf=document.getElementById('pCpf').value.replace(/\D/g,'');
   var encCpf=rawCpf ? await encryptField(rawCpf, user.uid) : '';
   var data={
-    nome:     document.getElementById('pNome').value.trim(),
-    cpfEnc:   encCpf,
-    telefone: document.getElementById('pTelefone').value.trim(),
-    email:    user.email,
+    nome:      document.getElementById('pNome').value.trim(),
+    cpfEnc:    encCpf,
+    telefone:  document.getElementById('pTelefone').value.trim(),
+    nascimento:document.getElementById('pNascimento').value,
+    genero:    document.getElementById('pGenero').value,
+    email:     user.email,
     endereco:{
       cep:    document.getElementById('pCep').value.trim(),
       rua:    document.getElementById('pRua').value.trim(),
@@ -571,6 +588,8 @@ async function fillProfile(profile, uid){
     if(e.cidade) document.getElementById('pCidade').value =e.cidade;
     if(e.estado) document.getElementById('pEstado').value =e.estado;
   }
+  if(profile.nascimento) document.getElementById('pNascimento').value=profile.nascimento;
+  if(profile.genero)     document.getElementById('pGenero').value=profile.genero;
 }
 
 // ── Orders ──

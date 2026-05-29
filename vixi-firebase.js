@@ -246,6 +246,20 @@ window.vixiGetAdminOrders = async function(limitCount = 80) {
   }
 };
 
+// ── List all customers ────────────────────────
+window.vixiGetAllCustomers = async function(limitCount) {
+  try {
+    const q = limitCount
+      ? query(collection(db, 'customers'), orderBy('createdAt', 'desc'), limit(limitCount))
+      : query(collection(db, 'customers'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('vixiGetAllCustomers error', e);
+    return [];
+  }
+};
+
 // ── Update order status ───────────────────────
 window.vixiUpdateOrderStatus = async function(orderId, status) {
   await updateDoc(doc(db, 'orders', orderId), { status, updatedAt: serverTimestamp() });

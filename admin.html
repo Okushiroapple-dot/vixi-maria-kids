@@ -294,19 +294,32 @@ body{background:#f5eff3;min-height:100vh}
     <div class="adm-section" id="admSecClientes">
       <div class="adm-sec-hdr">
         <div class="adm-sec-title">👥 Clientes</div>
+        <button class="mini-btn primary" onclick="loadClientesList()">🔄 Atualizar</button>
       </div>
-      <div class="adm-card" style="max-width:480px">
-        <div style="margin-bottom:20px">
-          <label style="display:block;font-weight:800;font-size:13px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🗑️ Apagar conta de cliente</label>
-          <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 12px">Digite o email do cliente e clique em Apagar. Esta ação remove a conta e os dados do Firestore permanentemente.</p>
-          <div style="display:flex;gap:8px">
-            <input type="email" id="deleteClientEmail" placeholder="email@cliente.com"
-              style="flex:1;padding:11px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;outline:none;transition:border-color .2s"
-              onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='var(--line)'">
-            <button onclick="adminDeleteClient()" style="border:none;background:#fff0f3;color:#ef4444;border-radius:14px;padding:11px 16px;font-weight:900;cursor:pointer;font-size:13px;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='#fff0f3';this.style.color='#ef4444'">🗑️ Apagar</button>
-          </div>
-          <div id="deleteClientResult" style="margin-top:10px;font-size:13px;font-weight:700;display:none"></div>
+
+      <!-- Busca -->
+      <div style="margin-bottom:14px">
+        <input id="clientSearch" type="text" placeholder="🔍 Buscar por nome ou email..."
+          oninput="filterClientes()"
+          style="width:100%;box-sizing:border-box;padding:10px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;outline:none;transition:border-color .2s"
+          onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'">
+      </div>
+
+      <!-- Lista -->
+      <div id="clientesList" style="display:grid;gap:10px;margin-bottom:20px">
+        <p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Clique em "Atualizar" para carregar os clientes.</p>
+      </div>
+
+      <!-- Apagar por email -->
+      <div class="adm-card" style="border-color:#fecaca">
+        <div style="font-weight:800;font-size:13px;color:#ef4444;margin-bottom:8px">🗑️ Apagar conta por email</div>
+        <div style="display:flex;gap:8px">
+          <input type="email" id="deleteClientEmail" placeholder="email@cliente.com"
+            style="flex:1;padding:11px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;outline:none"
+            onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='var(--line)'">
+          <button onclick="adminDeleteClient()" style="border:none;background:#fff0f3;color:#ef4444;border-radius:14px;padding:11px 16px;font-weight:900;cursor:pointer;font-size:13px;white-space:nowrap" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='#fff0f3';this.style.color='#ef4444'">🗑️ Apagar</button>
         </div>
+        <div id="deleteClientResult" style="margin-top:8px;font-size:13px;font-weight:700;display:none"></div>
       </div>
     </div>
 
@@ -600,6 +613,279 @@ async function loadDashboard() {
     ordersEl.innerHTML = '<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos.</p>';
   }
 }
+
+// ── Clientes ──────────────────────────────────
+var _allClientes = [];
+
+async function loadClientesList(){
+  var box = document.getElementById('clientesList');
+  if(!box) return;
+  box.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Carregando...</p>';
+  if(!window.vixiGetAllCustomers){
+    const ok = await waitFirebase('vixiGetAllCustomers');
+    if(!ok){ box.innerHTML='<p style="color:var(--gray);font-size:13px">Firebase não conectado.</p>'; return; }
+  }
+  try{
+    _allClientes = await window.vixiGetAllCustomers(200);
+    renderClientesList(_allClientes);
+  }catch(e){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px">Erro ao carregar clientes.</p>';
+    console.error('loadClientesList error',e);
+  }
+}
+
+function filterClientes(){
+  var q = (document.getElementById('clientSearch')?.value||'').toLowerCase().trim();
+  if(!q){ renderClientesList(_allClientes); return; }
+  renderClientesList(_allClientes.filter(function(c){
+    return (c.nome||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q);
+  }));
+}
+
+function renderClientesList(list){
+  var box=document.getElementById('clientesList');
+  if(!box)return;
+  if(!list.length){box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Nenhum cliente encontrado.</p>';return;}
+  var today=new Date();today.setHours(0,0,0,0);
+  box.innerHTML=list.map(function(c){
+    var nome=c.nome||'—';
+    var email=c.email||'—';
+    var tel=c.telefone||'';
+    var data=c.createdAt?new Date(c.createdAt).toLocaleDateString('pt-BR'):'—';
+    var bdChip='';
+    if(c.nascimento){
+      var bd=new Date(c.nascimento+'T00:00:00');
+      var nextBd=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
+      if(nextBd<today)nextBd.setFullYear(today.getFullYear()+1);
+      var days=Math.round((nextBd-today)/86400000);
+      if(days===0) bdChip='<span style="background:#fef3c7;color:#b45309;border-radius:99px;padding:2px 6px;font-size:10px;font-weight:900;margin-left:6px">🎂 hoje!</span>';
+      else if(days<=7) bdChip='<span style="background:#f0fdf4;color:#16a34a;border-radius:99px;padding:2px 6px;font-size:10px;font-weight:900;margin-left:6px">🎉 aniversário em '+days+'d</span>';
+    }
+    var saldoChip='';
+    var saldo=parseFloat(c.saldo)||0;
+    if(saldo>0) saldoChip='<span style="background:#fee2e2;color:#ef4444;border-radius:99px;padding:2px 6px;font-size:10px;font-weight:900;margin-left:6px">Deve R$ '+saldo.toFixed(2).replace('.',',')+'</span>';
+    return '<div onclick="openClienteModal(\''+escapeHtml(c.uid)+'\')" style="background:#fff;border-radius:14px;border:1.5px solid var(--line);padding:14px 16px;cursor:pointer;transition:box-shadow .2s;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(242,39,110,.12)\'" onmouseout="this.style.boxShadow=\'\'">'
+      +'<div>'
+        +'<div style="font-weight:800;font-size:15px;color:var(--ink);margin-bottom:3px">'+escapeHtml(nome)+bdChip+saldoChip+'</div>'
+        +'<div style="font-size:12px;color:var(--gray);font-weight:600">'+escapeHtml(email)+(tel?' · '+escapeHtml(tel):'')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:11px;color:var(--gray);font-weight:600">'+data+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function formatSaldo(saldo){
+  var v=parseFloat(saldo)||0;
+  if(v===0) return '<span style="color:#00a650;font-weight:800">Em dia ✅</span>';
+  if(v>0) return '<span style="color:#ef4444;font-weight:900">Deve R$ '+v.toFixed(2).replace('.',',')+'</span>';
+  return '<span style="color:#00a650;font-weight:900">Crédito R$ '+Math.abs(v).toFixed(2).replace('.',',')+'</span>';
+}
+
+function renderContaHist(hist){
+  if(!hist||!hist.length) return '<p style="font-size:12px;color:var(--gray);margin:0">Nenhum movimento registrado.</p>';
+  return hist.slice(0,5).map(function(h){
+    var d=new Date(h.ts).toLocaleDateString('pt-BR');
+    var icon=h.tipo==='pagamento'?'💚':(h.tipo==='ajuste'?'⚙️':'🔴');
+    var label=h.tipo==='pagamento'?'Pagamento':(h.tipo==='ajuste'?'Ajuste':'Cobrança');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px">'
+      +'<div>'+icon+' <strong>'+label+'</strong>'+(h.obs?' <span style="color:var(--gray)">— '+escapeHtml(h.obs)+'</span>':'')+' <span style="font-size:10px;color:var(--gray)">'+d+'</span></div>'
+      +'<span style="font-weight:800;flex-shrink:0;margin-left:8px">R$ '+parseFloat(h.valor||0).toFixed(2).replace('.',',')+'</span>'
+      +'</div>';
+  }).join('');
+}
+
+function openClienteModal(uid){
+  var c=_allClientes.find(function(x){return x.uid===uid;});
+  if(!c)return;
+  var modal=document.getElementById('clienteDetailModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='clienteDetailModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(30,0,26,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    modal.onclick=function(e){if(e.target===modal)modal.style.display='none';};
+    document.body.appendChild(modal);
+  }
+  var en=c.endereco||{};
+  var data=c.createdAt?new Date(c.createdAt).toLocaleString('pt-BR'):'—';
+  var saldo=parseFloat(c.saldo)||0;
+  var hist=c.historicoPagamentos||[];
+
+  var bdChip='';
+  if(c.nascimento){
+    var bd=new Date(c.nascimento+'T00:00:00');
+    var today=new Date();today.setHours(0,0,0,0);
+    var nextBd=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
+    if(nextBd<today)nextBd.setFullYear(today.getFullYear()+1);
+    var daysUntil=Math.round((nextBd-today)/86400000);
+    if(daysUntil===0) bdChip=' <span style="background:#fef3c7;color:#b45309;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:900">🎂 Aniversário hoje!</span>';
+    else if(daysUntil<=30) bdChip=' <span style="background:#f0fdf4;color:#16a34a;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:900">🎉 Aniversário em '+daysUntil+' dias</span>';
+  }
+
+  var generoOpts=['','feminino','masculino','outro'].map(function(v){
+    var lbl={'':'Não informado',feminino:'Feminino',masculino:'Masculino',outro:'Outro'}[v];
+    return '<option value="'+v+'"'+((c.genero===v||(!c.genero&&v===''))?'selected':'')+'>'+lbl+'</option>';
+  }).join('');
+
+  modal.innerHTML='<div style="background:#fff;border-radius:24px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.25)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<strong style="font-size:18px;font-family:var(--font-d)">👤 '+escapeHtml(c.nome||'Cliente')+'</strong>'
+      +'<button onclick="document.getElementById(\'clienteDetailModal\').style.display=\'none\'" style="border:none;background:var(--pink-pale);color:var(--pink);border-radius:99px;padding:6px 14px;font-weight:900;cursor:pointer">✕</button>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--gray);margin-bottom:20px">Cadastro: '+data+'</div>'
+
+    +'<div style="font-size:10px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">👤 Dados Pessoais</div>'
+    +'<div style="display:grid;gap:10px;margin-bottom:20px">'
+      +'<div class="field"><label>Nome completo</label><input id="ceNome" value="'+escapeHtml(c.nome||'')+'" style="padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Email <span style="font-size:10px;color:var(--gray)">(não editável)</span></label><input value="'+escapeHtml(c.email||'')+'" readonly style="padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box;background:#f9f9f9;color:var(--gray)"></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        +'<div class="field"><label>Telefone / WhatsApp</label><input id="ceTelefone" value="'+escapeHtml(c.telefone||'')+'" style="padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+        +'<div class="field"><label>Data de nascimento'+bdChip+'</label><input type="date" id="ceNascimento" value="'+escapeHtml(c.nascimento||'')+'" style="padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'</div>'
+      +'<div class="field"><label>Gênero</label><select id="ceGenero" style="padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box;background:#fff">'+generoOpts+'</select></div>'
+    +'</div>'
+
+    +'<div style="font-size:10px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">📍 Endereço de Entrega</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">'
+      +'<div class="field"><label>CEP</label><input id="ceCep" value="'+escapeHtml(en.cep||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Estado</label><input id="ceEstado" value="'+escapeHtml(en.estado||'')+'" maxlength="2" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field" style="grid-column:1/-1"><label>Rua / Logradouro</label><input id="ceRua" value="'+escapeHtml(en.rua||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Número</label><input id="ceNumero" value="'+escapeHtml(en.numero||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Complemento</label><input id="ceCompl" value="'+escapeHtml(en.compl||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Bairro</label><input id="ceBairro" value="'+escapeHtml(en.bairro||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+      +'<div class="field"><label>Cidade</label><input id="ceCidade" value="'+escapeHtml(en.cidade||'')+'" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+    +'</div>'
+
+    +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:20px;font-size:13px;font-weight:700;color:var(--gray)">'
+      +'<input type="checkbox" id="ceReceberEmails"'+(c.receberEmails===false?'':' checked')+' style="width:16px;height:16px;accent-color:var(--pink)">'
+      +'Recebe emails promocionais'
+    +'</label>'
+
+    +'<div style="background:#f9f4ff;border-radius:16px;padding:16px;margin-bottom:20px;border:1.5px solid var(--line)">'
+      +'<div style="font-size:10px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">💰 Conta do Cliente</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+        +'<span style="font-size:13px;font-weight:700;color:var(--gray)">Saldo atual:</span>'
+        +'<span id="ceSaldoDisplay" style="font-size:15px">'+formatSaldo(saldo)+'</span>'
+      +'</div>'
+      +'<div style="margin-bottom:14px">'
+        +'<div style="font-size:11px;font-weight:900;color:var(--gray);margin-bottom:6px">Últimos movimentos</div>'
+        +'<div id="ceContaHist">'+renderContaHist(hist)+'</div>'
+      +'</div>'
+      +'<div style="border-top:1.5px solid var(--line);padding-top:14px">'
+        +'<div style="font-size:11px;font-weight:900;color:var(--ink);margin-bottom:10px">Registrar movimento</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+          +'<div class="field"><label>Valor (R$)</label><input type="number" id="ceContaValor" min="0.01" step="0.01" placeholder="0,00" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+          +'<div class="field"><label>Tipo</label><select id="ceContaTipo" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box;background:#fff"><option value="pagamento">💚 Pagamento</option><option value="cobranca">🔴 Cobrança</option><option value="ajuste">⚙️ Ajuste</option></select></div>'
+        +'</div>'
+        +'<div class="field" style="margin-bottom:10px"><label>Observação (opcional)</label><input id="ceContaObs" placeholder="Ex: Pag. compra de 20/05" style="padding:9px 12px;border:2px solid var(--line);border-radius:12px;font:inherit;width:100%;box-sizing:border-box"></div>'
+        +'<button id="ceContaBtn" onclick="registrarMovimentoConta(\''+escapeHtml(c.uid)+'\')" class="btn-main" style="width:100%;justify-content:center;font-size:14px;padding:11px;border:none;cursor:pointer">💾 Registrar movimento</button>'
+      +'</div>'
+    +'</div>'
+
+    +'<div style="display:flex;gap:10px">'
+      +'<button onclick="saveClienteModal(\''+escapeHtml(c.uid)+'\')" class="btn-main" style="flex:1;justify-content:center;font-size:15px;padding:12px">💾 Salvar dados</button>'
+      +'<button onclick="adminDeleteClientByUid(\''+escapeHtml(c.uid)+'\',\''+escapeHtml(c.email||c.nome||'')+'\',\''+escapeHtml(c.email||'')+'\')" style="border:2px solid #ef4444;background:#fff;color:#ef4444;border-radius:99px;padding:12px 16px;font-weight:900;cursor:pointer;font-size:13px;transition:all .2s" onmouseover="this.style.background=\'#ef4444\';this.style.color=\'#fff\'" onmouseout="this.style.background=\'#fff\';this.style.color=\'#ef4444\'">🗑️ Excluir</button>'
+    +'</div>'
+  +'</div>';
+  modal.style.display='flex';
+}
+
+async function saveClienteModal(uid){
+  var c = _allClientes.find(function(x){return x.uid===uid;});
+  if(!c) return;
+  var btn = document.querySelector('#clienteDetailModal .btn-main');
+  if(btn){ btn.textContent='Salvando...'; btn.disabled=true; }
+  try{
+    var updated = {
+      nome:      document.getElementById('ceNome').value.trim(),
+      telefone:  document.getElementById('ceTelefone').value.trim(),
+      nascimento:document.getElementById('ceNascimento').value,
+      genero:    document.getElementById('ceGenero').value,
+      receberEmails: document.getElementById('ceReceberEmails').checked,
+      endereco: {
+        cep:    document.getElementById('ceCep').value.trim(),
+        rua:    document.getElementById('ceRua').value.trim(),
+        numero: document.getElementById('ceNumero').value.trim(),
+        compl:  document.getElementById('ceCompl').value.trim(),
+        bairro: document.getElementById('ceBairro').value.trim(),
+        cidade: document.getElementById('ceCidade').value.trim(),
+        estado: document.getElementById('ceEstado').value.trim(),
+      },
+      updatedAt: Date.now()
+    };
+    if(window.vixiSaveProfile) await window.vixiSaveProfile(uid, updated);
+    // Update local cache
+    Object.assign(c, updated);
+    renderClientesList(_allClientes.filter(function(x){ return true; }));
+    document.getElementById('clienteDetailModal').style.display='none';
+    showToast('Dados do cliente salvos ✅');
+  }catch(e){
+    if(btn){ btn.textContent='💾 Salvar alterações'; btn.disabled=false; }
+    showToast('Erro ao salvar: '+(e.message||'tente novamente.'));
+    console.error('saveClienteModal error',e);
+  }
+}
+
+async function adminDeleteClientByUid(uid, label, email){
+  if(!confirm('Apagar a conta de "'+label+'"?\n\nEsta ação é permanente e não pode ser desfeita.')) return;
+  if(!confirm('CONFIRMAÇÃO FINAL\n\nA conta de "'+label+'" será apagada para sempre. Continuar?')) return;
+  try{
+    if(!window.currentUser) throw new Error('Admin não autenticado.');
+    var token = await window.currentUser.getIdToken(true);
+    var r = await fetch('https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/deleteUserAccount',{
+      method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({uid:uid})
+    });
+    var rd = await r.json();
+    if(!r.ok) throw new Error(rd.error||'Erro');
+    _allClientes = _allClientes.filter(function(x){return x.uid!==uid;});
+    document.getElementById('clienteDetailModal').style.display='none';
+    renderClientesList(_allClientes);
+    showToast('Conta apagada.');
+  }catch(e){
+    showToast('Erro: '+(e.message||'tente novamente.'));
+    console.error('adminDeleteClientByUid error',e);
+  }
+}
+async function registrarMovimentoConta(uid){
+  var valor=parseFloat(document.getElementById('ceContaValor').value)||0;
+  if(valor<=0){showToast('Informe o valor');return;}
+  var tipo=document.getElementById('ceContaTipo').value;
+  var obs=document.getElementById('ceContaObs').value.trim();
+  var c=_allClientes.find(function(x){return x.uid===uid;});
+  if(!c)return;
+  var saldoAtual=parseFloat(c.saldo)||0;
+  var novoSaldo=tipo==='pagamento'?saldoAtual-valor:saldoAtual+valor;
+  var hist=(c.historicoPagamentos||[]).slice();
+  hist.unshift({ts:Date.now(),valor:valor,tipo:tipo,obs:obs});
+  if(hist.length>50)hist=hist.slice(0,50);
+  var btn=document.getElementById('ceContaBtn');
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+  try{
+    if(!window.vixiSaveProfile)throw new Error('Firebase não conectado');
+    await window.vixiSaveProfile(uid,{saldo:novoSaldo,historicoPagamentos:hist});
+    c.saldo=novoSaldo;
+    c.historicoPagamentos=hist;
+    var sd=document.getElementById('ceSaldoDisplay');
+    if(sd)sd.innerHTML=formatSaldo(novoSaldo);
+    var ch=document.getElementById('ceContaHist');
+    if(ch)ch.innerHTML=renderContaHist(hist);
+    document.getElementById('ceContaValor').value='';
+    document.getElementById('ceContaObs').value='';
+    if(btn){btn.textContent='💾 Registrar movimento';btn.disabled=false;}
+    showToast(tipo==='pagamento'?'Pagamento registrado ✅':'Movimento registrado ✅');
+  }catch(e){
+    if(btn){btn.textContent='💾 Registrar movimento';btn.disabled=false;}
+    showToast('Erro: '+(e.message||'tente novamente'));
+    console.error('registrarMovimentoConta error',e);
+  }
+}
+window.registrarMovimentoConta=registrarMovimentoConta;
+window.openClienteModal=openClienteModal;
+window.saveClienteModal=saveClienteModal;
+window.adminDeleteClientByUid=adminDeleteClientByUid;
+window.filterClientes=filterClientes;
 
 async function adminDeleteClient(){
   var email = document.getElementById('deleteClientEmail').value.trim();
