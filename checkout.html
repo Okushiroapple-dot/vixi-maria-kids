@@ -835,6 +835,12 @@ window.onAuthStateChange = async function(user){
       profile=await window.vixiLoadProfile(user.uid).catch(function(){return null;});
     }
     await fillCoForm(user,profile);
+    // Recalcula frete agora que o CEP foi preenchido pelo perfil
+    var updFreight=calcFreight(coSubtotal);
+    var totalEl=document.getElementById('coTotal');
+    var pixEl=document.getElementById('coPix');
+    if(totalEl) totalEl.textContent=money(coSubtotal+updFreight);
+    if(pixEl)   pixEl.textContent=money((coSubtotal+updFreight)*getPixMult());
   }
 };
 
