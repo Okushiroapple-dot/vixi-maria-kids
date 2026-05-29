@@ -176,8 +176,47 @@ exports.sendWelcomeEmail = onRequest(async (req, res) => {
       const smtpPass = process.env.SMTP_PASS;
       if (!smtpUser || !smtpPass) { res.json({ ok: true, skipped: true }); return; }
 
-      const primeiroNome = (nome || 'Cliente').split(' ')[0];
+      const isNewsletter = req.body.newsletter === true;
+      const primeiroNome = (nome || '').split(' ')[0] || (isNewsletter ? 'você' : 'Cliente');
       const storeUrl = 'https://vixi-maria-kids-8c494.web.app';
+
+      // Newsletter subscription confirmation (simpler email)
+      if (isNewsletter) {
+        const htmlNL = `
+<!DOCTYPE html><html lang="pt-BR">
+<body style="margin:0;padding:0;background:#fff0f5;font-family:'Nunito',Arial,sans-serif;">
+  <div style="max-width:520px;margin:30px auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(231,84,128,.15)">
+    <div style="background:linear-gradient(135deg,#e75480,#ff8fab);padding:32px 24px;text-align:center">
+      <div style="font-size:48px">💌</div>
+      <h1 style="color:#fff;margin:10px 0 4px;font-size:24px">Inscrição confirmada!</h1>
+      <p style="color:rgba(255,255,255,.9);margin:0;font-size:14px">Você está na lista VIP da Vixi Maria Kids ✨</p>
+    </div>
+    <div style="padding:28px 24px">
+      <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px">
+        Que ótima notícia! A partir de agora você vai receber em primeira mão:
+      </p>
+      <div style="background:#fce4ec;border-radius:14px;padding:20px;margin-bottom:24px">
+        <div style="margin-bottom:10px">🎉 <strong>Lançamentos exclusivos</strong> antes de todo mundo</div>
+        <div style="margin-bottom:10px">🔥 <strong>Promoções e cupons</strong> especiais para inscritos</div>
+        <div>✨ <strong>Novidades da semana</strong> direto no seu e-mail</div>
+      </div>
+      <div style="text-align:center;margin-bottom:24px">
+        <a href="${storeUrl}/clothes.html" style="display:inline-block;background:#e75480;color:#fff;padding:14px 32px;border-radius:20px;text-decoration:none;font-weight:700;font-size:15px">
+          🛍️ Ver novidades agora
+        </a>
+      </div>
+    </div>
+    <div style="background:#fce4ec;padding:14px 24px;text-align:center">
+      <p style="margin:0;color:#e75480;font-size:12px">🌸 Vixi Maria Kids — Ribeirão Preto/SP</p>
+    </div>
+  </div>
+</body></html>`;
+        const tr2 = require('nodemailer').createTransport({ service:'gmail', auth:{user:smtpUser,pass:smtpPass} });
+        await tr2.sendMail({ from:`"Vixi Maria Kids 🌸" <${smtpUser}>`, to:email, subject:'💌 Inscrição confirmada — Vixi Maria Kids!', html:htmlNL });
+        console.log(`Newsletter confirmation sent to ${email}`);
+        res.json({ ok: true });
+        return;
+      }
 
       const html = `
 <!DOCTYPE html><html lang="pt-BR">
