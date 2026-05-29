@@ -554,6 +554,7 @@ function switchAdmSection(sec) {
   if (stats) stats.style.display = (sec === 'orders' || sec === 'backup') ? 'none' : '';
   // Section init
   if (sec === 'orders') loadAdminOrders();
+  if (sec === 'clientes') loadClientesList();
   if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
   if (sec === 'categories') renderCatEditor();

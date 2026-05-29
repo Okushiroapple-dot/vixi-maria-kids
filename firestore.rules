@@ -26,9 +26,12 @@ service cloud.firestore {
         request.auth.token.email == "viximariakids@viximariakids.com";
     }
 
-    // Customer profiles — each customer can only read/write their own data
+    // Customer profiles — customer reads/writes own; admin reads/writes all
     match /customers/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.auth.token.email == "viximariakids@viximariakids.com"
+      );
 
       // Orders subcollection — customer reads own, admin reads/writes all
       match /orders/{orderId} {

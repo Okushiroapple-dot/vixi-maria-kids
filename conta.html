@@ -207,6 +207,10 @@
           <label>Confirmar senha</label>
           <input type="password" id="regPass2" placeholder="Repita a senha" autocomplete="new-password">
         </div>
+        <div class="field">
+          <label>Data de nascimento <span style="color:var(--gray);font-size:11px">(opcional)</span></label>
+          <input type="date" id="regNascimento">
+        </div>
         <div class="auth-error" id="regError"></div>
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--gray)">
           <input type="checkbox" id="regReceberEmails" checked style="width:16px;height:16px;accent-color:var(--pink);margin-top:1px;flex-shrink:0">
@@ -497,8 +501,9 @@ async function doRegister(){
   btn.textContent='Criando...'; btn.disabled=true;
   try{
     var receberEmails = document.getElementById('regReceberEmails')?.checked !== false;
+    var nascimento = document.getElementById('regNascimento')?.value || '';
     var user=await window.vixiRegister(email,pass,nome);
-    await window.vixiSaveProfile(user.uid,{nome:nome,email:email,receberEmails:receberEmails,createdAt:Date.now()});
+    await window.vixiSaveProfile(user.uid,{nome:nome,email:email,nascimento:nascimento,receberEmails:receberEmails,createdAt:Date.now()});
     if(window.vixiSendWelcomeEmail) window.vixiSendWelcomeEmail(email,nome,receberEmails).catch(function(){});
   }catch(e){
     errEl.textContent=translateError(e.code); errEl.style.display='block';
