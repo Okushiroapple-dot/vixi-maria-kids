@@ -509,6 +509,11 @@ exports.createMpPreference = onRequest(async (req, res) => {
         statement_descriptor: "Vixi Maria Kids",
         external_reference:   externalRef,
         notification_url:     "https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/mpWebhook",
+        payment_methods: {
+          excluded_payment_types: [],   // nenhum método excluído (PIX incluído)
+          installments:           3,    // máximo 3x sem juros
+          default_installments:   1,
+        },
       };
 
       // auto_return causes redirect issues in sandbox — only use in production
