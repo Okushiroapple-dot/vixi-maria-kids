@@ -550,7 +550,6 @@ exports.createMpPreference = onRequest(async (req, res) => {
           .set(orderData);
       }
 
-      const isSandbox = process.env.MP_SANDBOX === 'true';
       const checkoutUrl = isSandbox
         ? (result.sandbox_init_point || result.init_point)
         : result.init_point;
