@@ -220,7 +220,7 @@
               </div>
             </div>
             <div class="field">
-              <label>Estado</label>
+              <label>Estado *</label>
               <input type="text" id="coEstado" placeholder="SP" maxlength="2">
             </div>
             <div class="field full">
@@ -232,15 +232,19 @@
               <input type="text" id="coNumero" placeholder="123">
             </div>
             <div class="field">
-              <label>Complemento</label>
-              <input type="text" id="coCompl" placeholder="Apto 4B (opcional)">
+              <label>Complemento *</label>
+              <input type="text" id="coCompl" placeholder="Apto 4B, Casa 2...">
+              <label style="display:flex;align-items:center;gap:7px;margin-top:6px;cursor:pointer">
+                <input type="checkbox" id="coSemCompl" style="width:15px;height:15px;accent-color:var(--pink)" onchange="toggleSemCompl(this)">
+                <span style="font-size:12px;font-weight:700;color:var(--gray)">Sem complemento</span>
+              </label>
             </div>
             <div class="field">
-              <label>Bairro</label>
+              <label>Bairro *</label>
               <input type="text" id="coBairro" placeholder="Centro">
             </div>
             <div class="field">
-              <label>Cidade</label>
+              <label>Cidade *</label>
               <input type="text" id="coCidade" placeholder="Ribeirão Preto">
             </div>
           </div>
@@ -509,10 +513,16 @@ async function fillCoForm(user,profile){
       if(e.cep)    document.getElementById('coCep').value    = e.cep;
       if(e.rua)    document.getElementById('coRua').value    = e.rua;
       if(e.numero) document.getElementById('coNumero').value = e.numero;
-      if(e.compl)  document.getElementById('coCompl').value  = e.compl;
       if(e.bairro) document.getElementById('coBairro').value = e.bairro;
       if(e.cidade) document.getElementById('coCidade').value = e.cidade;
       if(e.estado) document.getElementById('coEstado').value = e.estado;
+      var semCb = document.getElementById('coSemCompl');
+      if(e.compl){
+        document.getElementById('coCompl').value = e.compl;
+        if(semCb) semCb.checked = false;
+      } else {
+        if(semCb){ semCb.checked = true; toggleSemCompl(semCb); }
+      }
     }
   } else if(user.displayName) {
     document.getElementById('coNome').value = user.displayName;
@@ -532,9 +542,26 @@ async function doCheckout(){
   var cep     =document.getElementById('coCep').value.trim();
   var rua     =document.getElementById('coRua').value.trim();
   var numero  =document.getElementById('coNumero').value.trim();
+  var compl   =document.getElementById('coCompl').value.trim();
+  var semCompl=document.getElementById('coSemCompl').checked;
+  var bairro  =document.getElementById('coBairro').value.trim();
+  var cidade  =document.getElementById('coCidade').value.trim();
+  var estado  =document.getElementById('coEstado').value.trim();
 
-  if(!nome||!cpf||!telefone||!cep||!rua||!numero){
-    errEl.textContent='Preencha todos os campos obrigatórios (*).';
+  var missing = [];
+  if(!nome)     missing.push('Nome completo');
+  if(!cpf)      missing.push('CPF');
+  if(!telefone) missing.push('Telefone');
+  if(!cep)      missing.push('CEP');
+  if(!rua)      missing.push('Rua');
+  if(!numero)   missing.push('Número');
+  if(!semCompl && !compl) missing.push('Complemento (ou marque "Sem complemento")');
+  if(!bairro)   missing.push('Bairro');
+  if(!cidade)   missing.push('Cidade');
+  if(!estado)   missing.push('Estado');
+
+  if(missing.length){
+    errEl.textContent='Preencha os campos obrigatórios: '+missing.join(', ')+'.';
     errEl.style.display='block';
     errEl.scrollIntoView({behavior:'smooth',block:'center'});
     return;
@@ -576,6 +603,22 @@ async function doCheckout(){
     errEl.textContent='Erro ao iniciar pagamento. Tente novamente.';
     errEl.style.display='block';
     btn.textContent='Ir para pagamento →'; btn.disabled=false;
+  }
+}
+
+// ── Sem complemento toggle ──
+function toggleSemCompl(cb){
+  var input = document.getElementById('coCompl');
+  if(cb.checked){
+    input.value = '';
+    input.disabled = true;
+    input.style.opacity = '0.4';
+    input.style.pointerEvents = 'none';
+  } else {
+    input.disabled = false;
+    input.style.opacity = '';
+    input.style.pointerEvents = '';
+    input.focus();
   }
 }
 
