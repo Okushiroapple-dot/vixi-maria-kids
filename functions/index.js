@@ -476,6 +476,7 @@ exports.createMpPreference = onRequest(async (req, res) => {
 
     try {
       const { items, payer, baseUrl } = req.body;
+      const isSandbox = process.env.MP_SANDBOX === 'true';
 
       if (!items || !items.length || !payer || !payer.email) {
         res.status(400).json({ error: "Dados incompletos" });
@@ -490,8 +491,6 @@ exports.createMpPreference = onRequest(async (req, res) => {
 
       const total = items.reduce((s, i) => s + Number(i.price) * (Number(i.qty) || 1), 0);
       const externalRef = `vixi_${Date.now()}`;
-
-      const isSandbox = process.env.MP_SANDBOX === 'true';
 
       const preferenceBody = {
         items: items.map((i) => ({
