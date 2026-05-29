@@ -164,6 +164,77 @@ async function notifyAdminByEmail(orderData, status) {
   }
 }
 
+// ── Email de rastreamento para o cliente ─────────
+async function sendTrackingEmail(orderData, trackingCode) {
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  if (!smtpUser || !smtpPass) return;
+
+  const customerEmail = orderData.payer?.email;
+  if (!customerEmail) return;
+
+  const nome        = orderData.payer?.nome || 'Cliente';
+  const trackingUrl = `https://rastreamento.correios.com.br/app/resultado.app?objetos=${trackingCode}`;
+
+  const html = `
+<!DOCTYPE html><html lang="pt-BR">
+<body style="margin:0;padding:0;background:#fff0f5;font-family:'Nunito',Arial,sans-serif;">
+  <div style="max-width:520px;margin:30px auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(231,84,128,.15)">
+    <div style="background:linear-gradient(135deg,#e75480,#ff8fab);padding:32px 24px;text-align:center">
+      <div style="font-size:48px">🚚</div>
+      <h1 style="color:#fff;margin:8px 0 4px;font-size:24px">Seu pedido está a caminho!</h1>
+      <p style="color:rgba(255,255,255,.9);margin:0;font-size:14px">Boa notícia, ${nome}! ✨</p>
+    </div>
+    <div style="padding:28px 24px">
+      <p style="color:#444;margin:0 0 20px;font-size:15px">Seu pedido foi despachado e já está nas mãos dos Correios. Você pode acompanhar em tempo real pelo código abaixo:</p>
+
+      <div style="background:#fce4ec;border-radius:14px;padding:20px;text-align:center;margin-bottom:24px">
+        <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#e75480;text-transform:uppercase;letter-spacing:1px">Código de rastreamento</p>
+        <p style="margin:0;font-size:26px;font-weight:900;color:#1e001a;letter-spacing:4px;font-family:monospace">${trackingCode}</p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:24px">
+        <a href="${trackingUrl}" target="_blank"
+           style="display:inline-block;background:#e75480;color:#fff;padding:14px 32px;border-radius:20px;text-decoration:none;font-weight:700;font-size:15px">
+          📍 Rastrear meu pedido
+        </a>
+      </div>
+
+      <p style="color:#888;font-size:13px;margin:0 0 8px">Você também pode rastrear diretamente no site dos Correios:</p>
+      <a href="https://www.correios.com.br/rastreamento/" style="color:#e75480;font-size:13px;word-break:break-all">www.correios.com.br/rastreamento</a>
+
+      <div style="background:#fce4ec;border-radius:12px;padding:16px;margin-top:24px;text-align:center">
+        <p style="margin:0;color:#e75480;font-size:14px">Dúvidas? Fale com a gente! 💬</p>
+        <a href="https://wa.me/5516991781559"
+           style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;padding:10px 24px;border-radius:20px;text-decoration:none;font-weight:700;font-size:14px">
+          💬 Falar no WhatsApp
+        </a>
+      </div>
+    </div>
+    <div style="background:#fce4ec;padding:16px 24px;text-align:center">
+      <p style="margin:0;color:#e75480;font-size:13px">🌸 Vixi Maria Kids — Ribeirão Preto/SP</p>
+    </div>
+  </div>
+</body></html>`;
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+
+  try {
+    await transporter.sendMail({
+      from:    `"Vixi Maria Kids 🌸" <${smtpUser}>`,
+      to:      customerEmail,
+      subject: `🚚 Seu pedido está a caminho! Rastreie aqui — Vixi Maria Kids`,
+      html,
+    });
+    console.log(`Tracking email sent to ${customerEmail}: ${trackingCode}`);
+  } catch(e) {
+    console.error('Tracking email error:', e?.message);
+  }
+}
+
 // ── Email de confirmação para o cliente ──────────
 async function sendConfirmationEmail(orderData) {
   const smtpUser = process.env.SMTP_USER;
@@ -346,6 +417,51 @@ exports.refundMpPayment = onRequest(async (req, res) => {
     } catch (err) {
       console.error("Refund error:", err?.message || err);
       res.status(500).json({ error: "Erro ao realizar reembolso" });
+    }
+  });
+});
+
+exports.sendTrackingNotification = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
+    try {
+      const { orderId, trackingCode } = req.body;
+      if (!orderId || !trackingCode) {
+        res.status(400).json({ error: "orderId e trackingCode obrigatórios" });
+        return;
+      }
+
+      const orderRef  = db.collection("orders").doc(orderId);
+      const orderSnap = await orderRef.get();
+      if (!orderSnap.exists) { res.status(404).json({ error: "Pedido não encontrado" }); return; }
+
+      const order = orderSnap.data();
+
+      // Save tracking code and update status
+      const updateData = {
+        status:       "em_entrega",
+        trackingCode: trackingCode.trim().toUpperCase(),
+        updatedAt:    admin.firestore.FieldValue.serverTimestamp(),
+      };
+      await orderRef.update(updateData);
+
+      // Mirror to customer subcollection
+      if (order.userId) {
+        const custRef  = db.collection("customers").doc(order.userId).collection("orders").doc(orderId);
+        const custSnap = await custRef.get();
+        if (custSnap.exists) await custRef.update(updateData);
+      }
+
+      // Send tracking email to customer
+      await sendTrackingEmail({ ...order, ...updateData }, updateData.trackingCode);
+
+      // Notify admin via WhatsApp
+      notifyDeboraPedido({ ...order, ...updateData }, "em_entrega").catch(() => {});
+
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("sendTrackingNotification error:", err?.message || err);
+      res.status(500).json({ error: "Erro ao enviar rastreamento" });
     }
   });
 });

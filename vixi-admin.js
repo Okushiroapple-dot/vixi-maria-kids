@@ -1455,6 +1455,36 @@ async function changeOrderStatus(btn){
   const o = _adminOrders.find(function(x){return x.id===orderId;});
   if(!o) return;
   const label = ORDER_STATUS_LABELS[newStatus]||newStatus;
+
+  // Em entrega: pedir código de rastreamento dos Correios
+  if(newStatus === 'em_entrega'){
+    var tracking = prompt(
+      'Digite o código de rastreamento dos Correios:\n(ex: AA123456789BR)\n\nO cliente receberá um email com o link de rastreamento.',
+      o.trackingCode || ''
+    );
+    if(tracking === null) return; // cancelou
+    tracking = tracking.trim().toUpperCase();
+    if(!tracking){ showToast('Código de rastreamento obrigatório.'); return; }
+    btn.textContent='Enviando...'; btn.disabled=true;
+    try{
+      if(window.vixiSendTracking){
+        await window.vixiSendTracking(o.id, tracking);
+      } else {
+        if(window.vixiUpdateOrderStatus) await window.vixiUpdateOrderStatus(o.id, 'em_entrega');
+      }
+      o.status = 'em_entrega';
+      o.trackingCode = tracking;
+      document.getElementById('orderDetailModal').style.display='none';
+      renderOrdersCards();
+      showToast('Status atualizado e email de rastreamento enviado!');
+    }catch(e){
+      btn.textContent='🚚 Em entrega'; btn.disabled=false;
+      showToast('Erro ao enviar rastreamento.');
+      console.error('changeOrderStatus em_entrega error', e);
+    }
+    return;
+  }
+
   if(!confirm('Mudar status do pedido de '+(o.payer?.nome||'—')+' para "'+label+'"?')) return;
   btn.textContent='Salvando...'; btn.disabled=true;
   try{

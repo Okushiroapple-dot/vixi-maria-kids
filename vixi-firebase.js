@@ -259,6 +259,19 @@ window.vixiDeleteOrder = async function(orderId, userId) {
   }
 };
 
+// ── Send tracking email via Cloud Function ────
+const TRACKING_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/sendTrackingNotification';
+window.vixiSendTracking = async function(orderId, trackingCode) {
+  const res  = await fetch(TRACKING_FUNCTION_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ orderId, trackingCode }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro ao enviar rastreamento');
+  return data;
+};
+
 // ── Automatic MP refund via Cloud Function ─────
 const REFUND_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/refundMpPayment';
 window.vixiRefundOrder = async function(orderId) {
