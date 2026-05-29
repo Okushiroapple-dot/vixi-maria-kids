@@ -491,27 +491,33 @@ exports.createMpPreference = onRequest(async (req, res) => {
       const total = items.reduce((s, i) => s + Number(i.price) * (Number(i.qty) || 1), 0);
       const externalRef = `vixi_${Date.now()}`;
 
-      const result = await preference.create({
-        body: {
-          items: items.map((i) => ({
-            id:          String(i.id),
-            title:       String(i.name).slice(0, 256),
-            quantity:    Number(i.qty) || 1,
-            unit_price:  Number(i.price),
-            currency_id: "BRL",
-          })),
-          payer: buildPayer(payer),
-          back_urls: {
-            success: `${baseUrl}/checkout-sucesso.html`,
-            failure: `${baseUrl}/checkout-falha.html`,
-            pending: `${baseUrl}/checkout-pendente.html`,
-          },
-          auto_return:          "approved",
-          statement_descriptor: "Vixi Maria Kids",
-          external_reference:   externalRef,
-          notification_url:     "https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/mpWebhook",
+      const isSandbox = process.env.MP_SANDBOX === 'true';
+
+      const preferenceBody = {
+        items: items.map((i) => ({
+          id:          String(i.id),
+          title:       String(i.name).slice(0, 256),
+          quantity:    Number(i.qty) || 1,
+          unit_price:  Number(i.price),
+          currency_id: "BRL",
+        })),
+        payer: buildPayer(payer),
+        back_urls: {
+          success: `${baseUrl}/checkout-sucesso.html`,
+          failure: `${baseUrl}/checkout-falha.html`,
+          pending: `${baseUrl}/checkout-pendente.html`,
         },
-      });
+        statement_descriptor: "Vixi Maria Kids",
+        external_reference:   externalRef,
+        notification_url:     "https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/mpWebhook",
+      };
+
+      // auto_return causes redirect issues in sandbox — only use in production
+      if (!isSandbox) {
+        preferenceBody.auto_return = "approved";
+      }
+
+      const result = await preference.create({ body: preferenceBody });
 
       const orderData = {
         items:          items.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price })),
