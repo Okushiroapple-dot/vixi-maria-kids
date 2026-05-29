@@ -422,6 +422,100 @@ exports.refundMpPayment = onRequest(async (req, res) => {
   });
 });
 
+exports.createPixPayment = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
+    try {
+      const { items, payer, baseUrl } = req.body;
+      if (!items?.length || !payer?.email) {
+        res.status(400).json({ error: "Dados incompletos" }); return;
+      }
+
+      const total = items.reduce((s, i) => s + Number(i.price) * (Number(i.qty) || 1), 0);
+      const externalRef = `vixi_pix_${Date.now()}`;
+
+      // Create PIX payment directly via MP Payments API
+      const mpRes = await fetch("https://api.mercadopago.com/v1/payments", {
+        method: "POST",
+        headers: {
+          Authorization:          `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+          "Content-Type":         "application/json",
+          "X-Idempotency-Key":    externalRef,
+        },
+        body: JSON.stringify({
+          transaction_amount:   Math.round(total * 100) / 100,
+          payment_method_id:    "pix",
+          external_reference:   externalRef,
+          notification_url:     "https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/mpWebhook",
+          description:          "Vixi Maria Kids — pedido online",
+          payer: {
+            email:     payer.email,
+            first_name: (payer.nome || "").split(" ")[0] || "Cliente",
+            last_name:  (payer.nome || "").split(" ").slice(1).join(" ") || "Cliente",
+            identification: payer.cpf
+              ? { type: "CPF", number: String(payer.cpf).replace(/\D/g, "") }
+              : undefined,
+          },
+        }),
+      });
+
+      const mpData = await mpRes.json();
+      if (!mpRes.ok) {
+        console.error("PIX payment error:", mpData);
+        res.status(mpRes.status).json({ error: mpData.message || "Erro ao criar PIX" }); return;
+      }
+
+      const qr       = mpData.point_of_interaction?.transaction_data?.qr_code;
+      const qrBase64 = mpData.point_of_interaction?.transaction_data?.qr_code_base64;
+      const paymentId = String(mpData.id);
+
+      // Save order to Firestore
+      const orderData = {
+        items:          items.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, size: i.size||null })),
+        total,
+        status:         "pendente",
+        mpPaymentId:    paymentId,
+        externalRef,
+        paymentMethod:  "pix",
+        payer:          { email: payer.email, nome: payer.nome||"", telefone: payer.telefone||"" },
+        endereco:       payer.endereco || {},
+        createdAt:      admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
+      };
+      if (payer.uid) orderData.userId = payer.uid;
+      await db.collection("orders").doc(externalRef).set(orderData);
+      if (payer.uid) {
+        await db.collection("customers").doc(payer.uid).collection("orders").doc(externalRef).set(orderData);
+      }
+
+      notifyAdminByEmail({ ...orderData, externalRef }, "pendente").catch(() => {});
+
+      res.json({ ok: true, paymentId, externalRef, qr, qrBase64 });
+    } catch (err) {
+      console.error("createPixPayment error:", err?.message || err);
+      res.status(500).json({ error: "Erro ao criar pagamento PIX" });
+    }
+  });
+});
+
+exports.checkPixStatus = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "GET") { res.status(405).json({ error: "Method not allowed" }); return; }
+    try {
+      const paymentId = req.query.id;
+      if (!paymentId) { res.status(400).json({ error: "id obrigatório" }); return; }
+      const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+      });
+      const mpData = await mpRes.json();
+      const status = MP_STATUS_MAP[mpData.status] || mpData.status;
+      res.json({ status, mpStatus: mpData.status });
+    } catch (err) {
+      res.status(500).json({ error: "Erro ao verificar status" });
+    }
+  });
+});
+
 exports.sendTrackingNotification = onRequest(async (req, res) => {
   cors(req, res, async () => {
     if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }
