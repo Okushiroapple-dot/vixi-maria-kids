@@ -265,6 +265,24 @@ window.vixiUpdateOrderStatus = async function(orderId, status) {
   await updateDoc(doc(db, 'orders', orderId), { status, updatedAt: serverTimestamp() });
 };
 
+// ── Save WhatsApp order as pending ───────────
+window.vixiSaveWhatsAppOrder = async function(orderData) {
+  const orderId = 'wa_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const data = {
+    ...orderData,
+    id: orderId,
+    status: 'pendente',
+    channel: 'whatsapp',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  };
+  await setDoc(doc(db, 'orders', orderId), data);
+  if (orderData.userId) {
+    try { await setDoc(doc(db, 'customers', orderData.userId, 'orders', orderId), data); } catch(e) {}
+  }
+  return orderId;
+};
+
 // ── Delete order from Firestore ───────────────
 window.vixiDeleteOrder = async function(orderId, userId) {
   await deleteDoc(doc(db, 'orders', orderId));

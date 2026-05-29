@@ -1334,9 +1334,10 @@ function renderOrdersCards(){
     var itens = (o.items||[]).map(function(i){return (i.name||i.id)+' ('+i.qty+'x)';}).join(', ');
     var nome = o.payer?.nome||o.payer?.email||'—';
     var oid = escapeHtml(o.id||'');
+    var waChip = o.channel==='whatsapp' ? '<span style="background:#dcfce7;color:#16a34a;font-weight:800;padding:3px 8px;border-radius:99px;font-size:11px;margin-left:6px">📲 WhatsApp</span>' : '';
     return '<div class="order-card" onclick="showOrderDetail(\''+oid+'\')" style="background:#fff;border-radius:16px;border:1.5px solid var(--line);padding:16px;font-size:13px;cursor:pointer;transition:box-shadow .2s" onmouseover="this.style.boxShadow=\'0 4px 20px rgba(242,39,110,.15)\'" onmouseout="this.style.boxShadow=\'\'">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">'
-      +'<strong style="font-size:14px;color:var(--ink)">'+escapeHtml(nome)+'</strong>'
+      +'<strong style="font-size:14px;color:var(--ink)">'+escapeHtml(nome)+waChip+'</strong>'
       +'<span style="background:'+color+'22;color:'+color+';font-weight:800;padding:4px 12px;border-radius:99px;font-size:12px">'+label+'</span>'
       +'</div>'
       +'<div style="color:var(--gray);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escapeHtml(itens||'—')+'</div>'

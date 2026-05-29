@@ -584,6 +584,16 @@ function checkoutWhatsApp(){
   const lines = cart.map(i=>{const p=getProduct(i.id);return p?`• ${p.name}${i.size?' (tam. '+i.size+')':''} — ${i.qty}x — ${money(p.price)}`:''}).filter(Boolean);
   const total = cart.reduce((s,i)=>{const p=getProduct(i.id);return s+(p?Number(p.price)*i.qty:0)},0);
   const pix = Math.round(total * getPixMult() * 100) / 100;
+  // Salva pedido pendente no Firebase (somente se logado)
+  if(window.currentUser && window.vixiSaveWhatsAppOrder){
+    var waItems=cart.map(function(i){var p=getProduct(i.id);if(!p)return null;return{id:i.id,name:p.name,qty:i.qty||1,price:Number(p.price||0),size:i.size||''};}).filter(Boolean);
+    window.vixiSaveWhatsAppOrder({
+      items:waItems,
+      total:total,
+      userId:window.currentUser.uid,
+      payer:{nome:window.currentUser.displayName||'',email:window.currentUser.email||''}
+    }).catch(function(){});
+  }
   const msg = encodeURIComponent(`Olá! Tenho interesse nestes produtos:\n\n${lines.join('\n')}\n\nTotal: ${money(total)} (ou ${money(pix)} no PIX 💚)`);
   window.open(`https://wa.me/${VIXI_WHATSAPP}?text=${msg}`,'_blank');
 }
