@@ -123,6 +123,12 @@ const PRODUCT_IMAGE_KEY = 'vixiProductImages';
 const VISUAL_IMAGE_KEY = 'vixiVisualImages';
 const TEXT_STORE_KEY = 'vixiContent';
 
+// ── PIX discount (configurable from admin) ──
+function getPixDiscount(){ return Math.max(0, Math.min(99, parseInt(localStorage.getItem('vixiPixDiscount')||'10',10)||10)); }
+function getPixMult(){ return (100-getPixDiscount())/100; }
+window.getPixDiscount = getPixDiscount;
+window.getPixMult = getPixMult;
+
 // ── State ──
 let favorites = JSON.parse(localStorage.getItem('vixiFavorites')||'[]');
 let cart = JSON.parse(localStorage.getItem('vixiCart')||'[]');
@@ -407,7 +413,7 @@ function renderCart(){
     return `<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}${sz?` <span style="font-size:11px;font-weight:800;color:var(--pink);background:var(--pink-pale);border-radius:4px;padding:1px 6px">${escapeHtml(sz)}</span>`:''}</h4><p>${money(p.price)} × ${i.qty}</p></div><div class="store-actions"><button class="store-mini light" onclick="changeQty('${i.id}',-1,'${escapeHtml(sz)}')">−</button><strong>${i.qty}</strong><button class="store-mini light" onclick="changeQty('${i.id}',1,'${escapeHtml(sz)}')">+</button><button class="store-mini" onclick="removeCart('${i.id}','${escapeHtml(sz)}')">Remover</button></div></div>`;
   }).join('')||'<div class="empty-state">Seu carrinho está vazio.</div>';
   const ct=document.getElementById('cartTotal');
-  if(ct) ct.innerHTML='<span>Total: <strong>'+money(total)+'</strong></span><span class="cart-pix-badge">PIX: '+money(Math.round(total*.9*100)/100)+'</span>';
+  if(ct) ct.innerHTML='<span>Total: <strong>'+money(total)+'</strong></span><span class="cart-pix-badge">PIX: '+money(Math.round(total*getPixMult()*100)/100)+'</span>';
 }
 
 // ── Favorites ──
@@ -425,7 +431,7 @@ function toggleFav(idOrBtn,btn,e){
 function renderFavs(){
   const box=document.getElementById('favResults'); if(!box)return;
   const list=favorites.map(getProduct).filter(Boolean);
-  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state"><div style="font-size:48px;margin-bottom:8px">🤍</div>Você ainda não favoritou nenhum produto.</div>';
+  box.innerHTML=list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*getPixMult()*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state"><div style="font-size:48px;margin-bottom:8px">🤍</div>Você ainda não favoritou nenhum produto.</div>';
 }
 
 // ── Search ──
@@ -438,7 +444,7 @@ function runSearch(){
   if(!box) return;
   if(!q){box.innerHTML='<div class="empty-state">Digite algo para buscar.</div>';return;}
   const list = PRODS.filter(p=>foldText([p.name,p.desc,p.badge,p.cl,getCatLabel(p.cat),p.cat,(p.sizes||[]).join(' ')].join(' ')).includes(q)).slice(0,20);
-  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado para "<em>'+escapeHtml(q)+'</em>".</div>';
+  box.innerHTML = list.map(p=>`<div class="store-row"><img src="${p.img}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async"><div><h4>${escapeHtml(p.name)}</h4><p>${getCatLabel(p.cat)} • ${money(p.price)} <span class="pix-price">PIX ${money(Math.round(p.price*getPixMult()*100)/100)}</span></p></div><div class="store-actions"><button class="store-mini" onclick="addCart('${p.id}')">🛒 Carrinho</button><button class="store-mini light" onclick="window.location.href='product.html?id=${p.id}'">Ver →</button></div></div>`).join('')||'<div class="empty-state">Nenhum produto encontrado para "<em>'+escapeHtml(q)+'</em>".</div>';
 }
 
 // ── CPF encryption (AES-GCM + PBKDF2) ──
@@ -548,7 +554,7 @@ function checkoutWhatsApp(){
   if(!cart.length){showToast('Seu carrinho está vazio 🛒');return;}
   const lines = cart.map(i=>{const p=getProduct(i.id);return p?`• ${p.name}${i.size?' (tam. '+i.size+')':''} — ${i.qty}x — ${money(p.price)}`:''}).filter(Boolean);
   const total = cart.reduce((s,i)=>{const p=getProduct(i.id);return s+(p?Number(p.price)*i.qty:0)},0);
-  const pix = Math.round(total * .9 * 100) / 100;
+  const pix = Math.round(total * getPixMult() * 100) / 100;
   const msg = encodeURIComponent(`Olá! Tenho interesse nestes produtos:\n\n${lines.join('\n')}\n\nTotal: ${money(total)} (ou ${money(pix)} no PIX 💚)`);
   window.open(`https://wa.me/${VIXI_WHATSAPP}?text=${msg}`,'_blank');
 }
@@ -665,7 +671,7 @@ function renderProds(filter='all'){
         <h4 class="prod-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</h4>
         <p class="prod-desc" data-edit-product="${p.id}" data-edit-field="desc">${escapeHtml(p.desc||'')}</p>
         <div class="prod-sizes">${(p.sizes||[]).map(s=>`<span class="psz" onclick="selectSize(this)">${escapeHtml(s)}</span>`).join('')}</div>
-        <div class="prod-foot"><div class="prod-price">${dispOld?`<span class="pold">${money(dispOld)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*.9*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
+        <div class="prod-foot"><div class="prod-price">${dispOld?`<span class="pold">${money(dispOld)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*getPixMult()*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
       </div>
     </article>`;
   }).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';

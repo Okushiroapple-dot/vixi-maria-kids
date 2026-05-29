@@ -274,7 +274,8 @@ function renderCartPage() {
       + '</div>';
   }).join('');
 
-  var pix = total * 0.9;
+  var pixDisc = (typeof getPixDiscount==='function') ? getPixDiscount() : 10;
+  var pix = total * (100-pixDisc)/100;
   var FREE_SHIP = 250;
   var remaining = Math.max(0, FREE_SHIP - total);
   var progress = Math.min(100, (total / FREE_SHIP) * 100);
@@ -285,7 +286,7 @@ function renderCartPage() {
     + '<div class="cart-page-summary">'
       + shipHtml
       + '<div class="cart-page-total">Total: <span>' + money(total) + '</span></div>'
-      + '<div style="background:#e8fff3;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px;font-weight:700;color:#128c4a">💚 No PIX: <strong style="font-size:16px">' + money(pix) + '</strong> <span style="font-size:12px;font-weight:600;color:#2d8a52">(10% off)</span></div>'
+      + '<div style="background:#e8fff3;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px;font-weight:700;color:#128c4a">💚 No PIX: <strong style="font-size:16px">' + money(pix) + '</strong> <span style="font-size:12px;font-weight:600;color:#2d8a52">('+pixDisc+'% off)</span></div>'
       + '<div style="display:flex;flex-direction:column;gap:12px">'
         + '<button class="btn-main" onclick="openMpCheckoutModal()" style="justify-content:center;font-size:17px;padding:16px 28px;background:var(--pink)">💳 Pagar Online (PIX / Cartão)</button>'
         + '<button class="btn-ghost" onclick="checkoutWhatsApp()" style="justify-content:center;font-size:15px;padding:14px 24px">📲 Finalizar pelo WhatsApp</button>'

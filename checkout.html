@@ -271,10 +271,10 @@
             <span id="coTotal">R$ 0,00</span>
           </div>
           <p style="color:var(--gray);font-size:13px;font-weight:700;margin:10px 0 20px">
-            PIX com 10% de desconto: <strong style="color:var(--pink)" id="coPix">R$ 0,00</strong>
+            PIX com <span id="coPixPct">10</span>% de desconto: <strong style="color:var(--pink)" id="coPix">R$ 0,00</strong>
           </p>
           <button class="btn-main" id="coPixBtn" onclick="doPixCheckout()" style="justify-content:center;width:100%;font-size:17px;padding:16px;margin-bottom:10px;background:#00a650">
-            💚 Pagar com PIX (10% off)
+            💚 Pagar com PIX (<span id="coPixPctLabel">10</span>% off)
           </button>
           <button class="btn-main" id="coPayBtn" onclick="doCheckout()" style="justify-content:center;width:100%;font-size:17px;padding:16px;margin-bottom:12px">
             💳 Pagar com Cartão
@@ -383,7 +383,7 @@ async function coFetchCep(){
     var totalEl = document.getElementById('coTotal');
     var pixEl   = document.getElementById('coPix');
     if(totalEl) totalEl.textContent = money(total);
-    if(pixEl)   pixEl.textContent   = money(total*0.9);
+    if(pixEl)   pixEl.textContent   = money(total*getPixMult());
     if(freight===0 && cep.startsWith('14')){
       showToast('Frete grátis para Ribeirão Preto! 🎉');
     } else {
@@ -494,6 +494,9 @@ function calcFreight(subtotal){
 
 // ── Render cart summary ──
 function renderCoCart(){
+  var pct=getPixDiscount();
+  var pctEl=document.getElementById('coPixPct'); if(pctEl) pctEl.textContent=pct;
+  var pctLbl=document.getElementById('coPixPctLabel'); if(pctLbl) pctLbl.textContent=pct;
   var items=document.getElementById('coCartItems');
   var totalEl=document.getElementById('coTotal');
   var pixEl=document.getElementById('coPix');
@@ -521,7 +524,7 @@ function renderCoCart(){
   var freight = calcFreight(subtotal);
   var total = subtotal + freight;
   if(totalEl) totalEl.textContent=money(total);
-  if(pixEl)   pixEl.textContent=money(total*0.9);
+  if(pixEl)   pixEl.textContent=money(total*getPixMult());
 }
 
 // ── Fill form from profile (decrypts CPF) ──
@@ -724,8 +727,7 @@ async function doPixCheckout(){
     return;
   }
 
-  // Apply PIX 10% discount
-  var pixTotal = Math.round(coSubtotal * 0.9 * 100) / 100;
+  var pixTotal = Math.round(coSubtotal * getPixMult() * 100) / 100;
   document.getElementById('pixValor').textContent = money(pixTotal);
   document.getElementById('pixLoading').style.display='';
   document.getElementById('pixContent').style.display='none';
@@ -735,7 +737,7 @@ async function doPixCheckout(){
   var cpfDigits = cpf.replace(/\D/g,'');
   var pixItems = cart.map(function(i){
     var p=getProduct(i.id); if(!p) return null;
-    return {id:i.id, name:p.name, qty:i.qty||1, price:Number(p.price||0)*0.9, size:i.size||null};
+    return {id:i.id, name:p.name, qty:i.qty||1, price:Math.round(Number(p.price||0)*getPixMult()*100)/100, size:i.size||null};
   }).filter(Boolean);
 
   try{

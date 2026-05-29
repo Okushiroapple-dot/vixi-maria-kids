@@ -89,7 +89,7 @@ window.vixiLoadCloud = async function(key) {
 };
 
 async function vixiApplyCloudData() {
-  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle', 'vixiProdOrder'];
+  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle', 'vixiProdOrder', 'vixiPixDiscount'];
   let changed = false;
   for (const key of keys) {
     const value = await window.vixiLoadCloud(key);

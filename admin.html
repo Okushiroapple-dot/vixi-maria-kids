@@ -124,6 +124,7 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-label">Configurações</div>
           <button class="adm-menu-item" data-sec="orders" onclick="switchAdmSection('orders')"><span class="mi">📊</span> Pedidos</button>
           <button class="adm-menu-item" data-sec="badges" onclick="switchAdmSection('badges')"><span class="mi">🏷️</span> Estilo das Tags</button>
+          <button class="adm-menu-item" data-sec="config" onclick="switchAdmSection('config')"><span class="mi">⚙️</span> Configurações</button>
           <button class="adm-menu-item" data-sec="backup" onclick="switchAdmSection('backup')"><span class="mi">💾</span> Backups</button>
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Páginas</div>
@@ -285,6 +286,26 @@ body{background:#f5eff3;min-height:100vh}
           </button>
         </div>
         <p style="font-size:12px;color:var(--gray);font-weight:600">FAV é uma tag interna — não aparece nos cards da loja.</p>
+      </div>
+    </div>
+
+    <!-- ── CONFIGURAÇÕES ── -->
+    <div class="adm-section" id="admSecConfig">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">⚙️ Configurações da Loja</div>
+      </div>
+      <div class="adm-card" style="max-width:420px">
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-weight:800;font-size:13px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">💚 Desconto PIX (%)</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="number" id="pixDiscountInput" min="0" max="50" step="1" value="10"
+              style="width:90px;padding:12px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:18px;font-weight:900;text-align:center;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'">
+            <span style="font-size:24px;font-weight:900;color:var(--gray)">%</span>
+            <button onclick="savePixDiscount()" class="btn-main" style="padding:12px 20px;font-size:14px">Salvar</button>
+          </div>
+          <p style="font-size:12px;color:var(--gray);font-weight:600;margin:8px 0 0">Aparece no carrinho, checkout e cards de produto. Recarregue a loja após salvar.</p>
+        </div>
       </div>
     </div>
 
@@ -487,6 +508,7 @@ function switchAdmSection(sec) {
   if (sec === 'categories') renderCatEditor();
   if (sec === 'add') initAddNew();
   if (sec === 'badges') refreshBadgeBtns();
+  if (sec === 'config') loadPixDiscountConfig();
   if (sec === 'photos') { setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]'); renderGalleryList(); }, 100); }
   if (sec === 'pagebuilder') loadPagesList();
   if (sec === 'dashboard') loadDashboard();
@@ -539,6 +561,19 @@ async function loadDashboard() {
   } catch(e) {
     ordersEl.innerHTML = '<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos.</p>';
   }
+}
+
+function savePixDiscount(){
+  var val = Math.max(0, Math.min(50, parseInt(document.getElementById('pixDiscountInput').value)||0));
+  localStorage.setItem('vixiPixDiscount', String(val));
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiPixDiscount', val);
+  document.getElementById('pixDiscountInput').value = val;
+  showToast('Desconto PIX salvo: '+val+'% ✅');
+}
+
+function loadPixDiscountConfig(){
+  var saved = localStorage.getItem('vixiPixDiscount');
+  if(saved !== null) document.getElementById('pixDiscountInput').value = saved;
 }
 
 function refreshBadgeBtns() {
