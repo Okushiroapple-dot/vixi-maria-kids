@@ -218,12 +218,14 @@ nav a.hot{color:var(--pink)}
 .prod-sizes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
 .psz{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--gray);transition:all .2s;cursor:pointer}
 .psz:hover{border-color:var(--pink);color:var(--pink)}
-.prod-foot{display:flex;align-items:center;justify-content:space-between}
-.prod-price{display:flex;flex-direction:column}
+.prod-price{display:flex;flex-direction:column;margin-bottom:10px}
 .pold{font-size:12px;color:var(--gray);text-decoration:line-through;line-height:1}
 .pnew{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--pink)}
-.padd{width:38px;height:38px;border-radius:50%;background:var(--pink);border:none;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:var(--sh1)}
-.padd:hover{background:var(--ink-mid);transform:scale(1.1);box-shadow:var(--sh2)}
+.prod-foot-btns{display:flex;align-items:center;gap:8px}
+.pbuy-btn{flex:1;background:var(--pink);color:#fff;border:none;border-radius:99px;padding:10px 14px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer;text-align:center;text-decoration:none;transition:all .2s;box-shadow:var(--sh1);white-space:nowrap}
+.pbuy-btn:hover{background:var(--ink-mid);box-shadow:var(--sh2);transform:translateY(-1px)}
+.padd{width:38px;height:38px;border-radius:50%;background:var(--pink-pale);border:2px solid var(--pink);cursor:pointer;color:var(--pink);font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.padd:hover{background:var(--pink);color:#fff;transform:scale(1.1);box-shadow:var(--sh1)}
 .view-more{display:flex;justify-content:center;margin-top:40px}
 
 /* bg combos */

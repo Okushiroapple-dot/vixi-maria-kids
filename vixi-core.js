@@ -700,7 +700,11 @@ function renderProds(filter='all'){
         <h4 class="prod-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</h4>
         <p class="prod-desc" data-edit-product="${p.id}" data-edit-field="desc">${escapeHtml(p.desc||'')}</p>
         <div class="prod-sizes">${(p.sizes||[]).map(s=>`<span class="psz" onclick="selectSize(this)">${escapeHtml(s)}</span>`).join('')}</div>
-        <div class="prod-foot"><div class="prod-price">${dispOld?`<span class="pold">${money(dispOld)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*getPixMult()*100)/100)}</span></div><button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button></div>
+        <div class="prod-price">${dispOld?`<span class="pold">${money(dispOld)}</span>`:''}<span class="pnew" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</span><span class="pix-price">PIX ${money(Math.round(p.price*getPixMult()*100)/100)}</span></div>
+        <div class="prod-foot-btns">
+          <a class="pbuy-btn" href="product.html?id=${p.id}" onclick="if(document.body.classList.contains('vixi-editing')){event.preventDefault();return;}event.stopPropagation()">Compre Agora!</a>
+          <button class="padd" onclick="addCart('${p.id}',event)" aria-label="Adicionar ao carrinho">+</button>
+        </div>
       </div>
     </article>`;
   }).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';
