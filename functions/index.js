@@ -560,6 +560,67 @@ exports.refundMpPayment = onRequest(async (req, res) => {
   });
 });
 
+exports.deleteUserAccount = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+
+    // Verify Firebase ID token
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.replace('Bearer ', '').trim();
+    if (!idToken) { res.status(401).json({ error: 'Token obrigatório' }); return; }
+
+    let decoded;
+    try { decoded = await admin.auth().verifyIdToken(idToken); }
+    catch(e) { res.status(401).json({ error: 'Token inválido' }); return; }
+
+    const callerUid   = decoded.uid;
+    const callerEmail = decoded.email || '';
+    const isAdmin     = callerEmail === 'viximariakids@viximariakids.com';
+
+    const { uid, email: targetEmail } = req.body;
+
+    // Only admin or the user themselves can delete
+    const isSelf = uid && callerUid === uid;
+    if (!isAdmin && !isSelf) {
+      res.status(403).json({ error: 'Sem permissão para apagar esta conta' }); return;
+    }
+
+    try {
+      let targetUid = uid;
+
+      // Find by email if uid not provided (admin only)
+      if (!targetUid && targetEmail && isAdmin) {
+        const rec = await admin.auth().getUserByEmail(targetEmail);
+        targetUid = rec.uid;
+      }
+
+      if (!targetUid) { res.status(400).json({ error: 'uid ou email obrigatório' }); return; }
+
+      // Delete from Firebase Auth
+      await admin.auth().deleteUser(targetUid);
+
+      // Delete Firestore customer profile
+      await db.collection('customers').doc(targetUid).delete();
+
+      // Delete orders subcollection (best effort)
+      db.collection('customers').doc(targetUid).collection('orders').get()
+        .then(function(snap) {
+          if (!snap.empty) {
+            const b = db.batch();
+            snap.docs.forEach(function(d) { b.delete(d.ref); });
+            return b.commit();
+          }
+        }).catch(function() {});
+
+      console.log('User account deleted:', targetUid, 'by', callerEmail);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('deleteUserAccount error:', err?.message || err);
+      res.status(500).json({ error: err?.message || 'Erro ao apagar conta' });
+    }
+  });
+});
+
 exports.createPixPayment = onRequest(async (req, res) => {
   cors(req, res, async () => {
     if (req.method !== "POST") { res.status(405).json({ error: "Method not allowed" }); return; }

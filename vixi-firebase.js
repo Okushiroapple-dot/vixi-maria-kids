@@ -259,6 +259,25 @@ window.vixiDeleteOrder = async function(orderId, userId) {
   }
 };
 
+// ── Delete user account via Cloud Function ────
+const DELETE_ACCOUNT_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/deleteUserAccount';
+window.vixiDeleteUserAccount = async function(targetUid, targetEmail) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error('Não autenticado');
+  const token = await currentUser.getIdToken(true);
+  const body = {};
+  if (targetUid)    body.uid   = targetUid;
+  if (targetEmail)  body.email = targetEmail;
+  const res  = await fetch(DELETE_ACCOUNT_URL, {
+    method:  'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro ao apagar conta');
+  return data;
+};
+
 // ── Send welcome email via Cloud Function ─────
 const WELCOME_EMAIL_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/sendWelcomeEmail';
 window.vixiSendWelcomeEmail = async function(email, nome, receberEmails) {

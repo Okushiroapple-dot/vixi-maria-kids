@@ -303,6 +303,13 @@
       </div>
       <div id="saveMsg" class="save-msg"></div>
       <button class="btn-main" onclick="saveProfile()" style="justify-content:center;width:100%;font-size:17px;padding:16px">Salvar dados</button>
+
+      <!-- Zona de perigo -->
+      <div class="profile-card" style="border-color:#fecaca;margin-top:20px">
+        <h3 style="color:#ef4444">⚠️ Zona de perigo</h3>
+        <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 14px">Apagar sua conta remove permanentemente seus dados, endereços salvos e histórico de pedidos. Esta ação não pode ser desfeita.</p>
+        <button onclick="deleteMyAccount()" style="border:2px solid #ef4444;background:#fff;color:#ef4444;border-radius:99px;padding:10px 20px;font-weight:900;font-size:14px;cursor:pointer;transition:all .2s;font-family:inherit" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#ef4444'">🗑️ Apagar minha conta</button>
+      </div>
     </div>
 
     <!-- ── TAB: Favoritos ── -->
@@ -424,6 +431,22 @@ function showAuthTab(tab){
   document.getElementById('tabEntrar').classList.toggle('on',   tab==='entrar');
   document.getElementById('tabCadastrar').classList.toggle('on',tab==='cadastrar');
 }
+async function deleteMyAccount(){
+  if(!window.currentUser){ showToast('Você precisa estar logado.'); return; }
+  var nome = window.currentUser.displayName || window.currentUser.email;
+  if(!confirm('Apagar sua conta?\n\nTodos os seus dados (perfil, endereços, favoritos) serão removidos permanentemente.\nSeus pedidos anteriores são mantidos para fins de controle da loja.\n\nTem certeza?')) return;
+  if(!confirm('CONFIRMAÇÃO FINAL\n\nAo confirmar, sua conta "'+nome+'" será apagada e você será desconectado.\n\nContinuar?')) return;
+  try{
+    showToast('Apagando sua conta...');
+    await window.vixiDeleteUserAccount(window.currentUser.uid, null);
+    showToast('Conta apagada. Até logo! 👋');
+    setTimeout(function(){ window.location.href='index.html'; }, 2000);
+  }catch(e){
+    showToast('Erro: '+(e.message||'tente novamente.'));
+    console.error('deleteMyAccount error', e);
+  }
+}
+
 async function doLogin(){
   var email=document.getElementById('loginEmail').value.trim();
   var pass =document.getElementById('loginPass').value;

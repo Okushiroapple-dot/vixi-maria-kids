@@ -124,6 +124,7 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-label">Configurações</div>
           <button class="adm-menu-item" data-sec="orders" onclick="switchAdmSection('orders')"><span class="mi">📊</span> Pedidos</button>
           <button class="adm-menu-item" data-sec="badges" onclick="switchAdmSection('badges')"><span class="mi">🏷️</span> Estilo das Tags</button>
+          <button class="adm-menu-item" data-sec="clientes" onclick="switchAdmSection('clientes')"><span class="mi">👥</span> Clientes</button>
           <button class="adm-menu-item" data-sec="config" onclick="switchAdmSection('config')"><span class="mi">⚙️</span> Configurações</button>
           <button class="adm-menu-item" data-sec="backup" onclick="switchAdmSection('backup')"><span class="mi">💾</span> Backups</button>
           <div class="adm-menu-sep"></div>
@@ -286,6 +287,26 @@ body{background:#f5eff3;min-height:100vh}
           </button>
         </div>
         <p style="font-size:12px;color:var(--gray);font-weight:600">FAV é uma tag interna — não aparece nos cards da loja.</p>
+      </div>
+    </div>
+
+    <!-- ── CLIENTES ── -->
+    <div class="adm-section" id="admSecClientes">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">👥 Clientes</div>
+      </div>
+      <div class="adm-card" style="max-width:480px">
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-weight:800;font-size:13px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🗑️ Apagar conta de cliente</label>
+          <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 12px">Digite o email do cliente e clique em Apagar. Esta ação remove a conta e os dados do Firestore permanentemente.</p>
+          <div style="display:flex;gap:8px">
+            <input type="email" id="deleteClientEmail" placeholder="email@cliente.com"
+              style="flex:1;padding:11px 14px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='var(--line)'">
+            <button onclick="adminDeleteClient()" style="border:none;background:#fff0f3;color:#ef4444;border-radius:14px;padding:11px 16px;font-weight:900;cursor:pointer;font-size:13px;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='#fff0f3';this.style.color='#ef4444'">🗑️ Apagar</button>
+          </div>
+          <div id="deleteClientResult" style="margin-top:10px;font-size:13px;font-weight:700;display:none"></div>
+        </div>
       </div>
     </div>
 
@@ -577,6 +598,30 @@ async function loadDashboard() {
     }).join('');
   } catch(e) {
     ordersEl.innerHTML = '<p style="color:var(--gray);font-size:13px">Erro ao carregar pedidos.</p>';
+  }
+}
+
+async function adminDeleteClient(){
+  var email = document.getElementById('deleteClientEmail').value.trim();
+  var res   = document.getElementById('deleteClientResult');
+  res.style.display='none';
+  if(!email){ showToast('Digite o email do cliente.'); return; }
+  if(!confirm('Apagar a conta de "'+email+'"?\n\nTodos os dados do cliente serão removidos permanentemente. Esta ação não pode ser desfeita.')) return;
+  if(!confirm('CONFIRMAÇÃO FINAL\n\nA conta de "'+email+'" será apagada para sempre. Continuar?')) return;
+  var btn = document.querySelector('#admSecClientes button[onclick="adminDeleteClient()"]');
+  if(btn){ btn.textContent='Apagando...'; btn.disabled=true; }
+  try{
+    if(!window.vixiDeleteUserAccount) throw new Error('Firebase não conectado.');
+    await window.vixiDeleteUserAccount(null, email);
+    res.style.display='block'; res.style.color='#00a650';
+    res.textContent='✅ Conta apagada com sucesso.';
+    document.getElementById('deleteClientEmail').value='';
+    showToast('Conta do cliente apagada.');
+  }catch(e){
+    res.style.display='block'; res.style.color='#ef4444';
+    res.textContent='Erro: '+(e.message||'tente novamente.');
+  }finally{
+    if(btn){ btn.textContent='🗑️ Apagar'; btn.disabled=false; }
   }
 }
 
