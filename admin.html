@@ -680,14 +680,17 @@ window.closeAdmin = function() {
   window.location.href = 'index.html';
 };
 
-// Firebase auth → open or redirect
+// Firebase auth → open admin or show login gate
 window.onAuthStateChange = function(user) {
+  document.getElementById('admLoadingScreen').style.display = 'none';
   if (user && user.email === ADMIN_EMAIL_PAGE) {
     sessionStorage.setItem('vixiAdminLogged', '1');
     openAdmin();
   } else {
+    // Not admin — log out silently and show password gate
     sessionStorage.removeItem('vixiAdminLogged');
-    window.location.href = 'index.html';
+    if (user && window.vixiLogout) window.vixiLogout().catch(function(){});
+    openAdminPw();
   }
 };
 
