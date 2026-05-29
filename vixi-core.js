@@ -126,8 +126,37 @@ const TEXT_STORE_KEY = 'vixiContent';
 // ── PIX discount (configurable from admin) ──
 function getPixDiscount(){ return Math.max(0, Math.min(99, parseInt(localStorage.getItem('vixiPixDiscount')||'10',10)||10)); }
 function getPixMult(){ return (100-getPixDiscount())/100; }
+function isPixEnabled(){ return localStorage.getItem('vixiPixEnabled') !== 'false'; }
 window.getPixDiscount = getPixDiscount;
 window.getPixMult = getPixMult;
+window.isPixEnabled = isPixEnabled;
+
+// Auto-update PIX % text and visibility on all pages
+document.addEventListener('DOMContentLoaded', function(){
+  var pct = getPixDiscount();
+  var enabled = isPixEnabled();
+  // Update percentage spans
+  document.querySelectorAll('.pix-pct-ann').forEach(function(el){ el.textContent = pct; });
+  // Update ann-copy spans that contain PIX discount text
+  document.querySelectorAll('.ann-copy').forEach(function(el){
+    if(el.textContent.includes('PIX com') && el.textContent.includes('desconto')){
+      if(!enabled){ el.closest('.ann-item') && (el.closest('.ann-item').style.display='none'); }
+      else el.textContent = 'PIX com '+pct+'% de desconto';
+    }
+  });
+  // Hide PIX ann-items when disabled
+  if(!enabled){
+    document.querySelectorAll('.pix-ann-item').forEach(function(el){ el.style.display='none'; });
+  }
+  // Hide PIX button and price in checkout
+  var pixBtn = document.getElementById('coPixBtn');
+  var pixRow = document.querySelector('.co-pix-row');
+  if(pixBtn) pixBtn.style.display = enabled ? '' : 'none';
+  if(pixRow) pixRow.style.display = enabled ? '' : 'none';
+  // Hide PIX price in product page
+  var sbPix = document.getElementById('sbPix');
+  if(sbPix && !enabled) sbPix.style.display = 'none';
+});
 
 // ── State ──
 let favorites = JSON.parse(localStorage.getItem('vixiFavorites')||'[]');
