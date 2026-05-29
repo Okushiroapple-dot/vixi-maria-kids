@@ -611,8 +611,15 @@ async function adminDeleteClient(){
   var btn = document.querySelector('#admSecClientes button[onclick="adminDeleteClient()"]');
   if(btn){ btn.textContent='Apagando...'; btn.disabled=true; }
   try{
-    if(!window.vixiDeleteUserAccount) throw new Error('Firebase não conectado.');
-    await window.vixiDeleteUserAccount(null, email);
+    if(!window.currentUser) throw new Error('Admin não autenticado.');
+    var token = await window.currentUser.getIdToken(true);
+    var r = await fetch('https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/deleteUserAccount',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email})
+    });
+    var rd = await r.json();
+    if(!r.ok) throw new Error(rd.error||'Erro ao apagar conta');
     res.style.display='block'; res.style.color='#00a650';
     res.textContent='✅ Conta apagada com sucesso.';
     document.getElementById('deleteClientEmail').value='';

@@ -438,12 +438,19 @@ async function deleteMyAccount(){
   if(!confirm('CONFIRMAÇÃO FINAL\n\nAo confirmar, sua conta "'+nome+'" será apagada e você será desconectado.\n\nContinuar?')) return;
   try{
     showToast('Apagando sua conta...');
-    await window.vixiDeleteUserAccount(window.currentUser.uid, null);
+    var token = await window.currentUser.getIdToken(true);
+    var res = await fetch('https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/deleteUserAccount',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({uid:window.currentUser.uid})
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Erro ao apagar conta');
     showToast('Conta apagada. Até logo! 👋');
-    setTimeout(function(){ window.location.href='index.html'; }, 2000);
+    setTimeout(function(){ window.location.href='index.html'; },2000);
   }catch(e){
     showToast('Erro: '+(e.message||'tente novamente.'));
-    console.error('deleteMyAccount error', e);
+    console.error('deleteMyAccount error',e);
   }
 }
 
