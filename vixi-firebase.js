@@ -259,6 +259,18 @@ window.vixiDeleteOrder = async function(orderId, userId) {
   }
 };
 
+// ── Send welcome email via Cloud Function ─────
+const WELCOME_EMAIL_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/sendWelcomeEmail';
+window.vixiSendWelcomeEmail = async function(email, nome, receberEmails) {
+  try {
+    await fetch(WELCOME_EMAIL_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, nome, receberEmails: !!receberEmails }),
+    });
+  } catch(e) { console.warn('Welcome email error:', e?.message); }
+};
+
 // ── Send tracking email via Cloud Function ────
 const TRACKING_FUNCTION_URL = 'https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/sendTrackingNotification';
 window.vixiSendTracking = async function(orderId, trackingCode) {

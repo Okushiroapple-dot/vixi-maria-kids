@@ -164,6 +164,105 @@ async function notifyAdminByEmail(orderData, status) {
   }
 }
 
+// ── Email de boas-vindas / confirmação de cadastro ─
+exports.sendWelcomeEmail = onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
+    try {
+      const { email, nome, receberEmails } = req.body;
+      if (!email) { res.status(400).json({ error: 'email obrigatório' }); return; }
+
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      if (!smtpUser || !smtpPass) { res.json({ ok: true, skipped: true }); return; }
+
+      const primeiroNome = (nome || 'Cliente').split(' ')[0];
+      const storeUrl = 'https://vixi-maria-kids-8c494.web.app';
+
+      const html = `
+<!DOCTYPE html><html lang="pt-BR">
+<body style="margin:0;padding:0;background:#fff0f5;font-family:'Nunito',Arial,sans-serif;">
+  <div style="max-width:520px;margin:30px auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(231,84,128,.15)">
+    <div style="background:linear-gradient(135deg,#e75480,#ff8fab);padding:36px 24px;text-align:center">
+      <div style="font-size:48px">🌸</div>
+      <h1 style="color:#fff;margin:10px 0 4px;font-size:26px;font-family:'Fredoka',Arial,sans-serif">Bem-vinda, ${primeiroNome}!</h1>
+      <p style="color:rgba(255,255,255,.9);margin:0;font-size:15px">Seu cadastro foi concluído com sucesso ✨</p>
+    </div>
+    <div style="padding:32px 24px">
+      <p style="color:#444;font-size:15px;line-height:1.7;margin:0 0 20px">
+        Olá, <strong>${nome || 'Cliente'}</strong>! 💖<br>
+        Seu cadastro na <strong>Vixi Maria Kids</strong> foi realizado com sucesso.
+        Agora você tem acesso à sua conta e pode aproveitar todos os benefícios:
+      </p>
+
+      <div style="background:#fce4ec;border-radius:14px;padding:20px;margin-bottom:24px">
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">📦</span>
+          <span style="font-size:14px;font-weight:700;color:#333">Acompanhe seus pedidos em tempo real</span>
+        </div>
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">❤️</span>
+          <span style="font-size:14px;font-weight:700;color:#333">Salve seus produtos favoritos</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⚡</span>
+          <span style="font-size:14px;font-weight:700;color:#333">Checkout mais rápido com dados salvos</span>
+        </div>
+      </div>
+
+      ${receberEmails ? `
+      <div style="background:#e8fff3;border-radius:12px;padding:14px 16px;margin-bottom:24px;border-left:4px solid #00a650">
+        <p style="margin:0;font-size:13px;font-weight:700;color:#065f46">
+          💚 Ótimo! Você vai receber novidades, lançamentos e promoções exclusivas por e-mail.
+          Pode cancelar a qualquer momento.
+        </p>
+      </div>` : ''}
+
+      <div style="text-align:center;margin-bottom:24px">
+        <a href="${storeUrl}/clothes.html"
+           style="display:inline-block;background:#e75480;color:#fff;padding:14px 32px;border-radius:20px;text-decoration:none;font-weight:700;font-size:15px">
+          🛍️ Explorar a loja
+        </a>
+      </div>
+
+      <div style="background:#fce4ec;border-radius:12px;padding:16px;text-align:center">
+        <p style="margin:0;color:#e75480;font-size:14px;font-weight:700">Dúvidas? Fale com a Débora! 💬</p>
+        <a href="https://wa.me/5516991781559"
+           style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;padding:10px 24px;border-radius:20px;text-decoration:none;font-weight:700;font-size:14px">
+          💬 WhatsApp
+        </a>
+      </div>
+    </div>
+    <div style="background:#fce4ec;padding:14px 24px;text-align:center">
+      <p style="margin:0;color:#e75480;font-size:12px">🌸 Vixi Maria Kids — Ribeirão Preto/SP</p>
+      <p style="margin:4px 0 0;color:#aaa;font-size:11px">
+        Cadastro realizado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+      </p>
+    </div>
+  </div>
+</body></html>`;
+
+      const transporter = require('nodemailer').createTransport({
+        service: 'gmail',
+        auth: { user: smtpUser, pass: smtpPass },
+      });
+
+      await transporter.sendMail({
+        from:    `"Vixi Maria Kids 🌸" <${smtpUser}>`,
+        to:      email,
+        subject: `🌸 Bem-vinda à Vixi Maria Kids, ${primeiroNome}!`,
+        html,
+      });
+
+      console.log(`Welcome email sent to ${email}`);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error('sendWelcomeEmail error:', err?.message || err);
+      res.status(500).json({ error: 'Erro ao enviar email de boas-vindas' });
+    }
+  });
+});
+
 // ── Email de rastreamento para o cliente ─────────
 async function sendTrackingEmail(orderData, trackingCode) {
   const smtpUser = process.env.SMTP_USER;

@@ -161,6 +161,10 @@
           <input type="password" id="coRegPass2" placeholder="Repita a senha" autocomplete="new-password">
         </div>
         <div class="auth-error" id="coRegError"></div>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--gray)">
+          <input type="checkbox" id="coRegReceberEmails" checked style="width:16px;height:16px;accent-color:var(--pink);margin-top:1px;flex-shrink:0">
+          <span>Quero receber novidades, lançamentos e promoções por e-mail</span>
+        </label>
         <button class="btn-main" id="coRegBtn" onclick="coDoRegister()" style="justify-content:center;width:100%;margin-bottom:14px">Criar conta e continuar →</button>
         <div class="co-or-div">ou</div>
         <button class="co-google-btn" onclick="coDoLoginGoogle()">
@@ -455,8 +459,10 @@ async function coDoRegister(){
   if(pass!==pass2){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
   btn.textContent='Criando...'; btn.disabled=true;
   try{
+    var receberEmails = document.getElementById('coRegReceberEmails')?.checked !== false;
     var user=await window.vixiRegister(email,pass,nome);
-    await window.vixiSaveProfile(user.uid,{nome:nome,email:email,createdAt:Date.now()});
+    await window.vixiSaveProfile(user.uid,{nome:nome,email:email,receberEmails:receberEmails,createdAt:Date.now()});
+    if(window.vixiSendWelcomeEmail) window.vixiSendWelcomeEmail(email,nome,receberEmails).catch(function(){});
     // onAuthStateChange will show form
   }catch(e){
     errEl.textContent=translateError(e.code);
