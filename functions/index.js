@@ -510,9 +510,12 @@ exports.createMpPreference = onRequest(async (req, res) => {
         external_reference:   externalRef,
         notification_url:     "https://us-central1-vixi-maria-kids-8c494.cloudfunctions.net/mpWebhook",
         payment_methods: {
-          excluded_payment_types: [],   // nenhum método excluído (PIX incluído)
-          installments:           3,    // máximo 3x sem juros
-          default_installments:   1,
+          excluded_payment_types: [
+            { id: "ticket" },   // remove boleto (só PIX + cartão)
+          ],
+          installments:              3,
+          default_installments:      1,
+          default_payment_method_id: "pix",
         },
       };
 
