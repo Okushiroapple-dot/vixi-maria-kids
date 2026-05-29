@@ -269,6 +269,7 @@ async function sendConfirmationEmail(orderData) {
     ? `<p style="margin:4px 0;color:#666;">📍 ${[
         orderData.endereco?.rua,
         orderData.endereco?.numero,
+        orderData.endereco?.compl,
         orderData.endereco?.bairro,
         cidade,
         orderData.endereco?.estado,
