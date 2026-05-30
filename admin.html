@@ -118,6 +118,7 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Loja</div>
           <button class="adm-menu-item" data-sec="categories" onclick="switchAdmSection('categories')"><span class="mi">🗂️</span> Categorias</button>
+          <button class="adm-menu-item" data-sec="annbar" onclick="switchAdmSection('annbar')"><span class="mi">📢</span> Barra de Avisos</button>
           <a class="adm-menu-item" href="index.html?admin=visual"><span class="mi">🎨</span> Editar Página Inicial</a>
           <button class="adm-menu-item" data-sec="photos" onclick="switchAdmSection('photos')"><span class="mi">🖼️</span> Galeria de Fotos</button>
           <div class="adm-menu-sep"></div>
@@ -360,6 +361,28 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
 
+    <!-- ── BARRA DE AVISOS ── -->
+    <div class="adm-section" id="admSecAnnbar">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">📢 Barra de Avisos</div>
+        <button class="mini-btn primary" onclick="saveAnnBar()">💾 Salvar</button>
+      </div>
+      <div class="adm-card" style="max-width:620px">
+        <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 16px">Esses avisos aparecem na faixa rosa no topo de todas as páginas. Deixe vazio para ocultar a barra.</p>
+        <div id="annBarList" style="display:grid;gap:10px;margin-bottom:16px"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1.5px solid var(--line);padding-top:14px">
+          <input id="annNewIcon" type="text" placeholder="🚚" maxlength="4"
+            style="width:52px;padding:10px 10px;border:2px solid var(--line);border-radius:12px;font-size:20px;text-align:center;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'">
+          <input id="annNewText" type="text" placeholder="Digite o aviso aqui..."
+            style="flex:1;min-width:180px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;font-size:14px;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'"
+            onkeydown="if(event.key==='Enter')addAnnItem()">
+          <button class="mini-btn primary" onclick="addAnnItem()">➕ Adicionar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ── BACKUPS ── -->
     <div class="adm-section" id="admSecBackup">
       <div class="adm-sec-hdr">
@@ -555,6 +578,7 @@ function switchAdmSection(sec) {
   // Section init
   if (sec === 'orders') loadAdminOrders();
   if (sec === 'clientes') loadClientesList();
+  if (sec === 'annbar') loadAnnBarAdmin();
   if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
   if (sec === 'categories') renderCatEditor();
@@ -1154,6 +1178,80 @@ function pickGalleryImage(url) {
 }
 window.openGalleryPicker = openGalleryPicker;
 window.pickGalleryImage = pickGalleryImage;
+
+// ── Barra de Avisos ──────────────────────────
+var _annItems = [];
+
+function loadAnnBarAdmin(){
+  try{ _annItems = JSON.parse(localStorage.getItem('vixiAnnItems')||'[]'); }catch(e){ _annItems=[]; }
+  renderAnnBarAdmin();
+}
+
+function renderAnnBarAdmin(){
+  var box = document.getElementById('annBarList');
+  if(!box) return;
+  if(!_annItems.length){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:12px 0">Nenhum aviso cadastrado. A barra ficará oculta.</p>';
+    return;
+  }
+  box.innerHTML = _annItems.map(function(it,i){
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--pink-pale);border-radius:12px;padding:10px 12px;border:1.5px solid var(--line)">'
+      +'<input type="text" value="'+escapeHtml(it.icon||'')+'" maxlength="4" oninput="_annItems['+i+'].icon=this.value" '
+        +'style="width:48px;padding:6px 6px;border:2px solid var(--line);border-radius:10px;font-size:18px;text-align:center;background:#fff;outline:none;box-sizing:border-box" '
+        +'onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+      +'<input type="text" value="'+escapeHtml(it.text||'')+'" oninput="_annItems['+i+'].text=this.value" '
+        +'style="flex:1;padding:7px 12px;border:2px solid var(--line);border-radius:10px;font:inherit;font-size:13px;background:#fff;outline:none;box-sizing:border-box" '
+        +'onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+      +(i>0?'<button onclick="moveAnnItem('+i+',-1)" title="Subir" style="border:none;background:rgba(255,255,255,.7);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px">↑</button>':'')
+      +(i<_annItems.length-1?'<button onclick="moveAnnItem('+i+',1)" title="Descer" style="border:none;background:rgba(255,255,255,.7);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px">↓</button>':'')
+      +'<button onclick="removeAnnItem('+i+')" title="Remover" style="border:none;background:#fff0f3;color:#ef4444;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px;font-weight:900">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addAnnItem(){
+  var icon = (document.getElementById('annNewIcon').value||'').trim();
+  var text = (document.getElementById('annNewText').value||'').trim();
+  if(!text){ showToast('Digite o texto do aviso'); return; }
+  _annItems.push({icon:icon||'✦', text:text});
+  document.getElementById('annNewIcon').value='';
+  document.getElementById('annNewText').value='';
+  renderAnnBarAdmin();
+}
+
+function removeAnnItem(i){
+  _annItems.splice(i,1);
+  renderAnnBarAdmin();
+}
+
+function moveAnnItem(i, dir){
+  var j=i+dir;
+  if(j<0||j>=_annItems.length) return;
+  var tmp=_annItems[i]; _annItems[i]=_annItems[j]; _annItems[j]=tmp;
+  renderAnnBarAdmin();
+}
+
+async function saveAnnBar(){
+  var btn = document.querySelector('#admSecAnnbar .mini-btn.primary');
+  if(btn){ btn.textContent='Salvando...'; btn.disabled=true; }
+  // Read current values from inputs (in case user edited inline)
+  var boxes = document.querySelectorAll('#annBarList > div');
+  boxes.forEach(function(box,i){
+    var inputs = box.querySelectorAll('input');
+    if(inputs[0] && _annItems[i]) _annItems[i].icon  = inputs[0].value;
+    if(inputs[1] && _annItems[i]) _annItems[i].text  = inputs[1].value;
+  });
+  localStorage.setItem('vixiAnnItems', JSON.stringify(_annItems));
+  if(window.vixiSaveCloud) await window.vixiSaveCloud('vixiAnnItems', _annItems);
+  if(window.renderAnnBar) window.renderAnnBar();
+  if(btn){ btn.textContent='💾 Salvar'; btn.disabled=false; }
+  showToast('Barra de avisos salva ✅');
+}
+
+window.addAnnItem=addAnnItem;
+window.removeAnnItem=removeAnnItem;
+window.moveAnnItem=moveAnnItem;
+window.saveAnnBar=saveAnnBar;
 
 // ── Gallery upload handler ──
 var _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]');

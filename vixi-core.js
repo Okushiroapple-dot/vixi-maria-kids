@@ -907,6 +907,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // Init global enhancements
   initBackToTop();
   initLgpd();
+  renderAnnBar();
   // Track page view in recently viewed (product pages only)
   if(location.pathname.includes('product.html')){
     var pid=new URLSearchParams(location.search).get('id');
@@ -918,6 +919,33 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 });
+
+// ── Barra de avisos dinâmica ──
+function renderAnnBar(){
+  var track=document.getElementById('annTrack');
+  if(!track) return;
+  var items=[];
+  try{items=JSON.parse(localStorage.getItem('vixiAnnItems')||'[]');}catch(e){}
+  var annDiv=track.closest('.ann');
+  if(!items.length){
+    if(annDiv) annDiv.style.display='none';
+    track.innerHTML='';
+    return;
+  }
+  if(annDiv) annDiv.style.display='';
+  function mkItem(it,mirror,idx){
+    return '<div class="ann-item"'+(mirror?' data-ann-mirror="'+(idx+1)+'"':'')+'>'+
+      '<span class="ann-icon">'+escapeHtml(it.icon||'')+'</span> '+
+      '<span class="ann-copy">'+escapeHtml(it.text||'')+'</span> '+
+      '<span class="ann-sep">✦</span></div>';
+  }
+  track.innerHTML=items.map(function(it,i){return mkItem(it,false,i);}).join('')
+                 +items.map(function(it,i){return mkItem(it,true,i);}).join('');
+  // Velocidade proporcional ao total de texto
+  var chars=items.reduce(function(s,it){return s+(it.text||'').length;},0);
+  track.style.animationDuration=Math.max(12,Math.round(chars*0.35))+'s';
+}
+window.renderAnnBar=renderAnnBar;
 
 // ── Window exports ──
 window.money=money;window.escapeHtml=escapeHtml;window.getCatLabel=getCatLabel;window.getCatIcon=getCatIcon;

@@ -89,7 +89,7 @@ window.vixiLoadCloud = async function(key) {
 };
 
 async function vixiApplyCloudData() {
-  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle', 'vixiProdOrder', 'vixiPixDiscount', 'vixiPixEnabled'];
+  const keys = ['vixiProductImages', 'vixiVisualImages', 'vixiContent', 'vixiAdmin_v2', 'vixiCategories', 'vixiBadgeStyle', 'vixiProdOrder', 'vixiPixDiscount', 'vixiPixEnabled', 'vixiAnnItems'];
   let changed = false;
   for (const key of keys) {
     const value = await window.vixiLoadCloud(key);
@@ -128,6 +128,7 @@ async function vixiApplyCloudData() {
     try{if(window.applyProductImages)window.applyProductImages();}catch(e){}
     try{if(window.startWeeklyFavoritesCarousel)window.startWeeklyFavoritesCarousel();}catch(e){}
     try{if(window.applyBadgeStyle)window.applyBadgeStyle();}catch(e){}
+    try{if(window.renderAnnBar)window.renderAnnBar();}catch(e){}
   }
 }
 
