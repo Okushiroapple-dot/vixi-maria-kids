@@ -186,6 +186,17 @@ function getCats(){
 }
 function saveCats(cats){localStorage.setItem('vixiCategories', JSON.stringify(cats));}
 function getCatLabel(id){const c=getCats().find(x=>x.id===id); return c ? c.label : id;}
+
+// ── Coleções (subcategorias de Coleção) ──
+function getColecoes(){
+  try{return JSON.parse(localStorage.getItem('vixiColecoes')||'[]');}catch(e){return [];}
+}
+function saveColecoes(list){
+  localStorage.setItem('vixiColecoes',JSON.stringify(list));
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiColecoes',list);
+}
+window.getColecoes=getColecoes;
+window.saveColecoes=saveColecoes;
 function getCatIcon(id){const c=getCats().find(x=>x.id===id); return c ? c.icon : '🛍️';}
 function getProduct(id){return PRODS.find(p=>p.id===id);}
 function openStoreModal(id){document.getElementById(id)?.classList.add('open');}
@@ -649,11 +660,34 @@ async function submitMpCheckout(payerData){
 }
 
 // ── Product filtering / rendering ──
+var currentSubcat=null;
+
 function filterCategory(cat){
+  if(cat!=='colecao') currentSubcat=null;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f===cat));
   visibleCount=12; activeSizeFilter=null; renderProds(cat);
-  document.getElementById('colecao')?.scrollIntoView({behavior:'smooth',block:'start'});
+  _renderSubcatTabs();
 }
+
+function filterColecao(id){
+  currentSubcat=id;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f==='colecao'));
+  visibleCount=12; activeSizeFilter=null; renderProds('colecao');
+  _renderSubcatTabs();
+}
+window.filterColecao=filterColecao;
+
+function _renderSubcatTabs(){
+  var box=document.getElementById('subcatTabs');
+  if(!box) return;
+  if(currentFilter!=='colecao'){box.innerHTML='';box.style.display='none';return;}
+  var cols=getColecoes();
+  if(!cols.length){box.innerHTML='';box.style.display='none';return;}
+  box.style.display='flex';
+  box.innerHTML='<button class="tab'+(currentSubcat?'':' on')+'" onclick="filterColecao(null)">✨ Todas</button>'
+    +cols.map(function(c){return '<button class="tab'+(currentSubcat===c.id?' on':'')+'" onclick="filterColecao(\''+escapeHtml(c.id)+'\')">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</button>';}).join('');
+}
+window._renderSubcatTabs=_renderSubcatTabs;
 function filterSize(sz){
   activeSizeFilter=sz;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all'));
@@ -683,7 +717,9 @@ function renderProds(filter='all'){
   // 'novidades' filter = products with NOVO or NOVO_HIDDEN badge
   let list=PRODS.filter(p=>{
     if(filter==='novidades') return p.badge==='NOVO'||p.badge==='NOVO_HIDDEN';
-    return filter==='all'||p.cat===filter;
+    if(filter!=='all'&&p.cat!==filter) return false;
+    if(filter==='colecao'&&currentSubcat&&p.subcat!==currentSubcat) return false;
+    return true;
   });
   if(activeSizeFilter) list=list.filter(p=>(p.sizes||[]).includes(activeSizeFilter));
   if(currentSort==='price-asc') list=[...list].sort((a,b)=>a.price-b.price);
@@ -735,18 +771,28 @@ function renderProds(filter='all'){
 // ── syncCategoriesUI (new multi-page version) ──
 function syncCategoriesUI(){
   var cats=getCats();
+  var regularCats=cats.filter(function(c){return c.id!=='colecao';});
+  var colecoes=getColecoes();
+
   var nav=document.querySelector('header nav');
   if(nav){
     nav.className='vixi-main-nav';
-    var dd=cats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
+    var roupasDD=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
+    var colDD='<a href="clothes.html?cat=colecao">🌟 Ver todas as coleções</a>'
+      +(colecoes.length?'<div class="nav-dd-sep"></div>'+colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join(''):'');
     var menuHtml='<div class="nav-dd-label">Loja</div><a href="index.html">🏠 Início</a><a href="clothes.html" class="hot">🔥 Novidades</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Minha Conta</div><a href="conta.html">👤 Minha Conta</a><a href="cart.html">🛒 Carrinho</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Contato</div><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
-    nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div><div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+dd+'</div></div>';
+    nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div>'
+      +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+roupasDD+'</div></div>'
+      +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▾</button><div class="nav-dd-menu">'+colDD+'</div></div>';
   }
   var mob=document.getElementById('mobMenu');
   if(mob){
     var close='<button class="mob-close" id="mobClose">✕</button>';
-    var links=cats.map(function(c){return '<a href="clothes.html?cat='+c.id+'" onclick="closeMob()">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>'+links+'<a href="cart.html" onclick="closeMob()">🛒 Meu Carrinho</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
+    var links=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'" onclick="closeMob()">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
+    var colLinks=colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+c.id+'" onclick="closeMob()">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join('');
+    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🛍️ Roupas</a>'+links
+      +'<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>'+colLinks
+      +'<a href="cart.html" onclick="closeMob()">🛒 Meu Carrinho</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
     document.getElementById('mobClose')&&document.getElementById('mobClose').addEventListener('click',closeMob);
   }
   var tabs=document.querySelector('.prod-tabs');

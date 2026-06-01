@@ -243,6 +243,7 @@
       <button class="tab" data-f="juvenil">✨ Juvenil</button>
       <button class="tab" data-f="colecao">🌟 Coleção</button>
     </div>
+    <div id="subcatTabs" style="display:none;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
     <div class="prod-grid" id="prodGrid">
     <article class="prod-card" data-cat="meninos">
       <div class="prod-img-wrap">
@@ -2736,16 +2737,24 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     const nav = document.querySelector('header nav');
     if(nav){
       nav.className = 'vixi-main-nav';
+      const regularCats = cats.filter(c => c.id !== 'colecao');
+      const colecoes = typeof getColecoes === 'function' ? getColecoes() : [];
+      const colDD = '<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>'
+        + (colecoes.length ? colecoes.map(c => `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`).join('') : '');
       nav.innerHTML = `<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>
         <div class="nav-dd">
           <button class="nav-dd-btn" type="button">Roupas ▼</button>
-          <div class="nav-dd-menu">${cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`).join('')}</div>
+          <div class="nav-dd-menu">${regularCats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`).join('')}</div>
+        </div>
+        <div class="nav-dd">
+          <button class="nav-dd-btn" type="button">🌟 Coleção ▼</button>
+          <div class="nav-dd-menu">${colDD}</div>
         </div>`;
     }
     const mob = document.getElementById('mobMenu');
     if(mob){
       const close = '<button class="mob-close" id="mobClose">×</button>';
-      mob.innerHTML = close + `<a href="#colecao" onclick="filterCategory('all');closeMob()">Novidades</a>` + cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${escapeHtml(c.label)}</a>`).join('') + `<a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/${REAL_WA}" target="_blank">WhatsApp</a>`;
+      mob.innerHTML = close + `<a href="#colecao" onclick="filterCategory('all');closeMob()">Novidades</a>` + regularCats.map(c=>`<a hre
       document.getElementById('mobClose')?.addEventListener('click', closeMob);
     }
     const tabs = document.querySelector('.prod-tabs');

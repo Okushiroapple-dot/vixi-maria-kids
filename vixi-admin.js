@@ -295,6 +295,9 @@ function openEditModal(id){
   document.getElementById('admName').value = p.name;
   syncCategoriesUI();
   document.getElementById('admCat').value = p.cat || (typeof getCats==='function'?getCats()[0]?.id:'meninos') || 'meninos';
+  if(typeof toggleSubcatField==='function') toggleSubcatField('admSubcat', p.cat||'');
+  var subcatEl = document.getElementById('admSubcat');
+  if(subcatEl && p.subcat) subcatEl.value = p.subcat;
   document.getElementById('admPrice').value = p.price;
   document.getElementById('admOld').value = p.old||'';
   document.getElementById('admBadge').value = p.badge||'';
@@ -389,6 +392,7 @@ function saveProduct(){
   const sizes = getSelectedSizes();
   if(!sizes.length){ showToast('Selecione pelo menos um tamanho! 📏'); return; }
   const cat = document.getElementById('admCat').value;
+  const subcat = cat==='colecao' ? (document.getElementById('admSubcat')?.value||'') : '';
   const badge = document.getElementById('admBadge').value||null;
   const oldRaw = parseFloat(document.getElementById('admOld').value)||null;
   const pctMatch = badge ? String(badge).match(/^-?(\d+)%$/) : null;
@@ -401,11 +405,11 @@ function saveProduct(){
   if(editingProductId){
     const idx = liveProducts.findIndex(p=>p.id===editingProductId);
     if(idx>=0){
-      liveProducts[idx]={...liveProducts[idx],name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc};
+      liveProducts[idx]={...liveProducts[idx],name,cat,subcat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc};
     }
   } else {
     const newId = 'custom_'+Date.now();
-    liveProducts.push({id:newId,name,cat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc});
+    liveProducts.push({id:newId,name,cat,subcat,cl:(typeof getCatLabel==='function'?getCatLabel(cat):CAT_LABELS[cat]||cat),price,old,badge,sizes,img,desc});
   }
   if(typeof saveToStorage==='function') saveToStorage();
   renderAdminGrid();

@@ -119,6 +119,7 @@ body{background:#f5eff3;min-height:100vh}
           <div class="adm-menu-label">Loja</div>
           <button class="adm-menu-item" data-sec="categories" onclick="switchAdmSection('categories')"><span class="mi">🗂️</span> Categorias</button>
           <button class="adm-menu-item" data-sec="annbar" onclick="switchAdmSection('annbar')"><span class="mi">📢</span> Barra de Avisos</button>
+          <button class="adm-menu-item" data-sec="colecoes" onclick="switchAdmSection('colecoes')"><span class="mi">🌟</span> Coleções</button>
           <a class="adm-menu-item" href="index.html?admin=visual"><span class="mi">🎨</span> Editar Página Inicial</a>
           <button class="adm-menu-item" data-sec="photos" onclick="switchAdmSection('photos')"><span class="mi">🖼️</span> Galeria de Fotos</button>
           <div class="adm-menu-sep"></div>
@@ -193,7 +194,8 @@ body{background:#f5eff3;min-height:100vh}
           </div>
         </div>
         <div class="adm-field"><span class="adm-label">🏷️ Nome do Produto</span><input class="adm-input" type="text" id="admNameNew" placeholder="Ex: Vestido Floral Rosa"></div>
-        <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCatNew"></select></div>
+        <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCatNew" onchange="toggleSubcatField('admSubcatNew',this.value)"></select></div>
+        <div class="adm-field" id="admSubcatNewField" style="display:none"><span class="adm-label">🌟 Subcoleção</span><select class="adm-input" id="admSubcatNew"><option value="">Nenhuma (geral)</option></select></div>
         <div class="adm-row">
           <div class="adm-field"><span class="adm-label">💰 Preço (R$)</span><input class="adm-input" type="number" id="admPriceNew" placeholder="0" min="0" step="0.01"></div>
           <div class="adm-field"><span class="adm-label">🔖 Preço antigo (R$)</span><input class="adm-input" type="number" id="admOldNew" placeholder="Deixe vazio" min="0" step="0.01"></div>
@@ -361,6 +363,31 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
 
+    <!-- ── COLEÇÕES ── -->
+    <div class="adm-section" id="admSecColecoes">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">🌟 Coleções</div>
+        <button class="mini-btn primary" onclick="saveColecoesList()">💾 Salvar</button>
+      </div>
+      <div class="adm-card" style="max-width:560px">
+        <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 16px">Subcategorias da Coleção — aparecem no menu e como filtro. Produtos com categoria "Coleção" podem ser associados a uma subcoleção.</p>
+        <div id="colecoesList" style="display:grid;gap:10px;margin-bottom:16px"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1.5px solid var(--line);padding-top:14px">
+          <input id="colNewIcon" type="text" placeholder="☀️" maxlength="4"
+            style="width:52px;padding:10px;border:2px solid var(--line);border-radius:12px;font-size:20px;text-align:center;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'">
+          <input id="colNewName" type="text" placeholder="Ex: Verão 2026"
+            style="flex:1;min-width:160px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;font-size:14px;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'"
+            onkeydown="if(event.key==='Enter')addColecaoItem()">
+          <input id="colNewId" type="text" placeholder="verao-2026 (ID único)"
+            style="flex:1;min-width:120px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;font:inherit;font-size:14px;outline:none;box-sizing:border-box"
+            onfocus="this.style.borderColor='var(--pink)'" onblur="this.style.borderColor='var(--line)'">
+          <button class="mini-btn primary" onclick="addColecaoItem()">➕ Adicionar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ── BARRA DE AVISOS ── -->
     <div class="adm-section" id="admSecAnnbar">
       <div class="adm-sec-hdr">
@@ -490,13 +517,14 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
     <div class="adm-field"><span class="adm-label">🏷️ Nome</span><input class="adm-input" type="text" id="admName" placeholder="Ex: Vestido Floral Rosa"></div>
-    <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCat">
+    <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCat" onchange="toggleSubcatField('admSubcat',this.value)">
       <option value="meninas">👗 Meninas</option>
       <option value="meninos">⚽ Meninos</option>
       <option value="bebes">🍼 Bebês</option>
       <option value="juvenil">✨ Juvenil</option>
       <option value="acessorios">🎀 Acessórios</option>
     </select></div>
+    <div class="adm-field" id="admSubcatField" style="display:none"><span class="adm-label">🌟 Subcoleção</span><select class="adm-input" id="admSubcat"><option value="">Nenhuma (geral)</option></select></div>
     <div class="adm-row">
       <div class="adm-field"><span class="adm-label">💰 Preço (R$)</span><input class="adm-input" type="number" id="admPrice" placeholder="0" min="0" step="0.01"></div>
       <div class="adm-field"><span class="adm-label">🔖 Preço antigo</span><input class="adm-input" type="number" id="admOld" placeholder="Vazio = sem risco" min="0" step="0.01"></div>
@@ -579,6 +607,7 @@ function switchAdmSection(sec) {
   if (sec === 'orders') loadAdminOrders();
   if (sec === 'clientes') loadClientesList();
   if (sec === 'annbar') loadAnnBarAdmin();
+  if (sec === 'colecoes') loadColecoesAdmin();
   if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
   if (sec === 'categories') renderCatEditor();
@@ -1066,6 +1095,7 @@ function saveProductNew() {
   var name = document.getElementById('admNameNew').value.trim();
   var price = parseFloat(document.getElementById('admPriceNew').value);
   var cat = document.getElementById('admCatNew').value;
+  var subcat = cat==='colecao' ? (document.getElementById('admSubcatNew')?.value||'') : '';
   var badge = document.getElementById('admBadgeNew').value || null;
   var oldRaw = parseFloat(document.getElementById('admOldNew').value) || null;
   var pctMatchNew = badge ? String(badge).match(/^-?(\d+)%$/) : null;
@@ -1082,7 +1112,7 @@ function saveProductNew() {
   if (!liveProducts) liveProducts = JSON.parse(JSON.stringify(PRODS));
   var newId = 'custom_' + Date.now();
   liveProducts.push({
-    id: newId, name, cat,
+    id: newId, name, cat, subcat,
     cl: typeof getCatLabel === 'function' ? getCatLabel(cat) : cat,
     price, old, badge, sizes, desc, img: _newPhotoB64
   });
@@ -1178,6 +1208,90 @@ function pickGalleryImage(url) {
 }
 window.openGalleryPicker = openGalleryPicker;
 window.pickGalleryImage = pickGalleryImage;
+
+// ── Coleções ─────────────────────────────────
+var _colecoes = [];
+
+function loadColecoesAdmin(){
+  _colecoes = typeof getColecoes === 'function' ? getColecoes() : [];
+  renderColecoesAdmin();
+}
+
+function renderColecoesAdmin(){
+  var box = document.getElementById('colecoesList');
+  if(!box) return;
+  if(!_colecoes.length){
+    box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:12px 0">Nenhuma subcoleção cadastrada.</p>';
+    return;
+  }
+  box.innerHTML = _colecoes.map(function(c,i){
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--pink-pale);border-radius:12px;padding:10px 12px;border:1.5px solid var(--line)">'
+      +'<input type="text" value="'+escapeHtml(c.icon||'')+'" maxlength="4" oninput="_colecoes['+i+'].icon=this.value" style="width:48px;padding:6px;border:2px solid var(--line);border-radius:10px;font-size:18px;text-align:center;background:#fff;outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+      +'<input type="text" value="'+escapeHtml(c.name||'')+'" oninput="_colecoes['+i+'].name=this.value" placeholder="Nome" style="flex:1;padding:7px 12px;border:2px solid var(--line);border-radius:10px;font:inherit;font-size:13px;background:#fff;outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+      +'<input type="text" value="'+escapeHtml(c.id||'')+'" oninput="_colecoes['+i+'].id=this.value.replace(/[^a-z0-9-]/g,\'-\').toLowerCase()" placeholder="id-unico" style="width:130px;padding:7px 10px;border:2px solid var(--line);border-radius:10px;font:inherit;font-size:12px;background:#f9f9f9;outline:none;box-sizing:border-box;color:var(--gray)" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
+      +'<button onclick="removeColecaoItem('+i+')" style="border:none;background:#fff0f3;color:#ef4444;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px;font-weight:900">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addColecaoItem(){
+  var icon = (document.getElementById('colNewIcon').value||'').trim();
+  var name = (document.getElementById('colNewName').value||'').trim();
+  var id   = (document.getElementById('colNewId').value||'').trim().replace(/[^a-z0-9-]/g,'-').toLowerCase();
+  if(!name){ showToast('Digite o nome da coleção'); return; }
+  if(!id)  id = name.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-');
+  if(_colecoes.find(function(c){return c.id===id;})){ showToast('ID já existe. Use outro.'); return; }
+  _colecoes.push({id:id, name:name, icon:icon||'🌟'});
+  document.getElementById('colNewIcon').value='';
+  document.getElementById('colNewName').value='';
+  document.getElementById('colNewId').value='';
+  renderColecoesAdmin();
+}
+
+function removeColecaoItem(i){
+  _colecoes.splice(i,1);
+  renderColecoesAdmin();
+}
+
+async function saveColecoesList(){
+  var btn = document.querySelector('#admSecColecoes .mini-btn.primary');
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+  // Lê valores atuais dos inputs
+  var rows = document.querySelectorAll('#colecoesList > div');
+  rows.forEach(function(row,i){
+    var inputs = row.querySelectorAll('input');
+    if(inputs[0]&&_colecoes[i]) _colecoes[i].icon = inputs[0].value;
+    if(inputs[1]&&_colecoes[i]) _colecoes[i].name = inputs[1].value;
+    if(inputs[2]&&_colecoes[i]) _colecoes[i].id   = inputs[2].value.replace(/[^a-z0-9-]/g,'-').toLowerCase();
+  });
+  if(typeof saveColecoes==='function') saveColecoes(_colecoes);
+  if(typeof syncCategoriesUI==='function') syncCategoriesUI();
+  if(btn){btn.textContent='💾 Salvar';btn.disabled=false;}
+  showToast('Coleções salvas ✅');
+}
+
+window.addColecaoItem=addColecaoItem;
+window.removeColecaoItem=removeColecaoItem;
+window.saveColecoesList=saveColecoesList;
+
+// ── Subcat field toggle ───────────────────────
+function toggleSubcatField(selectId, catVal){
+  var fieldId = selectId + 'Field';
+  var field = document.getElementById(fieldId);
+  var sel   = document.getElementById(selectId);
+  if(!field||!sel) return;
+  if(catVal==='colecao'){
+    field.style.display='';
+    var cols = typeof getColecoes==='function' ? getColecoes() : [];
+    var cur  = sel.value;
+    sel.innerHTML = '<option value="">Nenhuma (geral)</option>'
+      + cols.map(function(c){ return '<option value="'+escapeHtml(c.id)+'"'+(cur===c.id?' selected':'')+'>'+escapeHtml((c.icon||'🌟')+' '+c.name)+'</option>'; }).join('');
+  }else{
+    field.style.display='none';
+    sel.value='';
+  }
+}
+window.toggleSubcatField=toggleSubcatField;
 
 // ── Barra de Avisos ──────────────────────────
 var _annItems = [];
