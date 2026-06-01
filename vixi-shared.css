@@ -910,6 +910,15 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 .mini-btn.danger{background:#fff0f0;color:#e53935;border:1.5px solid #ffcdd2}
 .mini-btn.danger:hover{background:#e53935;color:#fff;border-color:#e53935}
 
+/* ──── SELETOR DE CATEGORIA NOS PRODUTOS ──── */
+.prod-cat-selector{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.cat-dropdown-select{padding:10px 16px;border:2px solid var(--line);border-radius:14px;font:inherit;font-size:14px;font-weight:700;outline:none;color:var(--ink);background:#fff;cursor:pointer;transition:border-color .2s;min-width:180px}
+.cat-dropdown-select:focus{border-color:var(--pink)}
+.cat-mini-boxes{display:flex;gap:8px;flex-wrap:wrap}
+.cat-mini-box{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:2px solid var(--line);background:#fff;font-family:var(--font-b);font-size:13px;font-weight:800;cursor:pointer;transition:all .2s;color:var(--ink-mid)}
+.cat-mini-box:hover{border-color:var(--cat-color,var(--pink));color:var(--cat-color,var(--pink));background:color-mix(in srgb,var(--cat-color,var(--pink)) 8%,#fff)}
+.cat-mini-box.on{background:var(--cat-color,var(--pink));color:#fff;border-color:var(--cat-color,var(--pink))}
+
 /* ──── PRODUTO: animação de entrada suave ──── */
 @keyframes prodFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .prod-card{animation:prodFadeIn .3s ease both}

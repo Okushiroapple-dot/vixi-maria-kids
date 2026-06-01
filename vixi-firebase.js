@@ -129,6 +129,8 @@ async function vixiApplyCloudData() {
     try{if(window.startWeeklyFavoritesCarousel)window.startWeeklyFavoritesCarousel();}catch(e){}
     try{if(window.applyBadgeStyle)window.applyBadgeStyle();}catch(e){}
     try{if(window.renderAnnBar)window.renderAnnBar();}catch(e){}
+    try{if(window.renderColecoesSection)window.renderColecoesSection();}catch(e){}
+    try{if(window.renderProdCatSelector)window.renderProdCatSelector();}catch(e){}
   }
 }
 

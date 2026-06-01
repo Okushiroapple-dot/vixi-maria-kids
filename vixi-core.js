@@ -197,6 +197,49 @@ function saveColecoes(list){
 }
 window.getColecoes=getColecoes;
 window.saveColecoes=saveColecoes;
+
+// ── Renderiza seção visual de Coleções (subcoleções como tiles) ──
+function renderColecoesSection(){
+  var sec=document.getElementById('secColecoes');
+  var grid=document.getElementById('colecoesGrid');
+  if(!sec||!grid) return;
+  var cols=getColecoes();
+  if(!cols.length){sec.style.display='none';return;}
+  sec.style.display='';
+  grid.innerHTML=cols.map(function(c){
+    return '<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="cat-tile ct-colecao">'
+      +'<div class="bg-illust">'+(c.icon||'🌟')+'</div>'
+      +'<div class="cat-label">'
+        +'<span class="cat-name">'+escapeHtml(c.name)+'</span>'
+        +'<span class="cat-range">Coleção especial</span>'
+        +'<div class="cat-arrow">→</div>'
+      +'</div>'
+      +'</a>';
+  }).join('');
+}
+window.renderColecoesSection=renderColecoesSection;
+
+// ── Renderiza dropdown e mini-boxes de categoria na seção de produtos ──
+function renderProdCatSelector(){
+  var sel=document.getElementById('catDropdown');
+  var boxes=document.getElementById('catMiniBoxes');
+  var cats=getCats().filter(function(c){return c.id!=='colecao';});
+  if(sel){
+    var cur=sel.value||'all';
+    sel.innerHTML='<option value="all">Todos os produtos</option>'
+      +cats.map(function(c){return '<option value="'+c.id+'"'+(cur===c.id?' selected':'')+'>'+c.icon+' '+escapeHtml(c.label)+'</option>';}).join('');
+  }
+  if(boxes){
+    var active=currentFilter||'all';
+    boxes.innerHTML=cats.map(function(c){
+      return '<button type="button" class="cat-mini-box'+(active===c.id?' on':'')+'" onclick="filterCategory(\''+c.id+'\')" style="--cat-color:'+(_catColor(c.id))+'">'+c.icon+' '+escapeHtml(c.label)+'</button>';
+    }).join('');
+  }
+}
+function _catColor(id){
+  return {meninas:'#FF6FA0',meninos:'#2D9FE0',bebes:'#3DD6C3',juvenil:'#9B59B6',acessorios:'#f2276e',colecao:'#FF7E00'}[id]||'var(--pink)';
+}
+window.renderProdCatSelector=renderProdCatSelector;
 function getCatIcon(id){const c=getCats().find(x=>x.id===id); return c ? c.icon : '🛍️';}
 function getProduct(id){return PRODS.find(p=>p.id===id);}
 function openStoreModal(id){document.getElementById(id)?.classList.add('open');}
@@ -640,6 +683,12 @@ var currentSubcat=null;
 function filterCategory(cat){
   if(cat!=='colecao') currentSubcat=null;
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f===cat));
+  // Sync dropdown and mini-boxes
+  var dd=document.getElementById('catDropdown');
+  if(dd) dd.value=cat==='colecao'?'all':cat;
+  document.querySelectorAll('.cat-mini-box').forEach(function(b){
+    b.classList.toggle('on',b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+cat+"'"));
+  });
   visibleCount=12; activeSizeFilter=null; renderProds(cat);
   _renderSubcatTabs();
 }
@@ -772,7 +821,8 @@ function syncCategoriesUI(){
   var tabs=document.querySelector('.prod-tabs');
   if(tabs){
     var cur=(document.querySelector('.tab.on')||{dataset:{f:'all'}}).dataset.f;
-    tabs.innerHTML='<button class="tab" data-f="all">Todos</button>'+cats.map(function(c){return '<button class="tab" data-f="'+c.id+'">'+c.icon+' '+c.label+'</button>';}).join('');
+    var tabCats=cats.filter(function(c){return c.id!=='colecao';});
+    tabs.innerHTML='<button class="tab" data-f="all">Todos</button>'+tabCats.map(function(c){return '<button class="tab" data-f="'+c.id+'">'+c.icon+' '+c.label+'</button>';}).join('');
     tabs.querySelectorAll('.tab').forEach(function(t){
       if(t.dataset.f===cur)t.classList.add('on');
       t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});t.classList.add('on');filterCategory(t.dataset.f);});
@@ -782,6 +832,8 @@ function syncCategoriesUI(){
   var sel=document.getElementById('admCat');
   if(sel){sel.innerHTML=cats.map(function(c){return '<option value="'+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</option>';}).join('');}
   if(typeof syncAdminNav==='function') syncAdminNav();
+  if(typeof renderProdCatSelector==='function') renderProdCatSelector();
+  if(typeof renderColecoesSection==='function') renderColecoesSection();
 }
 
 // ── Toast ──
