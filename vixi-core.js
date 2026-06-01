@@ -739,7 +739,7 @@ function renderProds(filter='all'){
         </div>
       </div>
     </article>`;
-  }).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';
+  }).join('') || '<div style="grid-column:1/-1;text-align:center;padding:48px 24px"><div style="font-size:56px;margin-bottom:12px">🔍</div><p style="font-family:var(--font-d);font-size:20px;color:var(--ink);margin-bottom:8px">Nenhum produto encontrado</p><p style="color:var(--gray);font-size:14px;font-weight:600;margin-bottom:20px">Tente outro filtro ou veja todos os produtos</p><a href="clothes.html" class="btn-main" style="display:inline-flex">Ver todos os produtos →</a></div>';
   const more=document.getElementById('viewMoreBtn'); if(more) more.style.display=list.length>visibleCount?'flex':'none';
 }
 

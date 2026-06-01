@@ -111,9 +111,12 @@
     <!-- Size filter bubbles -->
     <div class="size-bubbles" style="margin-bottom:24px">
       <a class="sz-btn" onclick="filterSize('RN')">RN</a>
+      <a class="sz-btn" onclick="filterSize('1')">1</a>
       <div class="sz-divider"></div>
       <a class="sz-btn" onclick="filterSize('2')">2</a>
+      <a class="sz-btn" onclick="filterSize('3')">3</a>
       <a class="sz-btn" onclick="filterSize('4')">4</a>
+      <a class="sz-btn" onclick="filterSize('5')">5</a>
       <a class="sz-btn" onclick="filterSize('6')">6</a>
       <a class="sz-btn" onclick="filterSize('8')">8</a>
       <a class="sz-btn" onclick="filterSize('10')">10</a>
@@ -211,6 +214,7 @@
         <li><a href="clothes.html?cat=bebes">🍼 Bebês (RN–24m)</a></li>
         <li><a href="clothes.html?cat=juvenil">✨ Juvenil (10–20)</a></li>
         <li><a href="clothes.html">🌸 Novidades</a></li>
+        <li><a href="clothes.html?cat=colecao">🌟 Coleção</a></li>
       </ul>
     </div>
     <div>
@@ -386,6 +390,12 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   if(sz){ window.activeSizeFilter = sz; }
+
+  // Subcoleção (para links do nav Coleção)
+  var subcat = params.get('subcat');
+  if(cat === 'colecao' && subcat && typeof filterColecao === 'function'){
+    setTimeout(function(){ filterColecao(subcat); }, 100);
+  }
 
   if(novelty){
     window.currentFilter = 'novidades';

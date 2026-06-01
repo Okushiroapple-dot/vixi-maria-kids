@@ -910,6 +910,26 @@ img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;-o-user-dra
 .mini-btn.danger{background:#fff0f0;color:#e53935;border:1.5px solid #ffcdd2}
 .mini-btn.danger:hover{background:#e53935;color:#fff;border-color:#e53935}
 
+/* ──── PRODUTO: animação de entrada suave ──── */
+@keyframes prodFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.prod-card{animation:prodFadeIn .3s ease both}
+.prod-grid .prod-card:nth-child(1){animation-delay:.03s}
+.prod-grid .prod-card:nth-child(2){animation-delay:.06s}
+.prod-grid .prod-card:nth-child(3){animation-delay:.09s}
+.prod-grid .prod-card:nth-child(4){animation-delay:.12s}
+
+/* ──── SKELETON LOADING ──── */
+.prod-skeleton{border-radius:var(--r24);overflow:hidden;background:#fff;border:2px solid var(--line)}
+.prod-skeleton .sk-img{aspect-ratio:1;background:linear-gradient(90deg,#f0e8ef 25%,#e8dde6 50%,#f0e8ef 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite}
+.prod-skeleton .sk-line{height:12px;margin:14px 16px 6px;border-radius:6px;background:linear-gradient(90deg,#f0e8ef 25%,#e8dde6 50%,#f0e8ef 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite}
+.prod-skeleton .sk-line.short{width:60%;height:10px;margin-top:4px}
+.prod-skeleton .sk-btn{height:36px;margin:12px 16px 16px;border-radius:99px;background:linear-gradient(90deg,#f0e8ef 25%,#e8dde6 50%,#f0e8ef 75%);background-size:200% 100%;animation:skShimmer 1.4s infinite}
+@keyframes skShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ──── SUBCATEGORIAS TABS ──── */
+#subcatTabs{display:none;gap:8px;flex-wrap:wrap;margin-top:10px;padding:4px 0}
+#subcatTabs .tab{font-size:13px;padding:7px 16px}
+
 /* ──── EDIT MODE: ALLOW TEXT SELECTION IN EDITABLE NODES ──── */
 body.vixi-editing [contenteditable="true"]{
   -webkit-user-select:text!important;
