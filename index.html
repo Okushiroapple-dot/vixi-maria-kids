@@ -2269,9 +2269,11 @@ function syncCategoriesUI(){
   const nav=document.querySelector('header nav');
   if(nav){
     nav.className='vixi-main-nav';
-    const catLinks=cats.map(c=>'<a href="javascript:void(0)" onclick="filterCategory(\''+c.id+'\')">'+c.icon+' '+c.label.toLowerCase()+'</a>').join('');
-    const menuHtml='<div class="nav-dd-label">Categorias</div>'+catLinks+'<div class="nav-dd-sep"></div><div class="nav-dd-label">Conta</div><a href="conta.html">👤 Minha Conta</a><a href="cart.html">🛒 Carrinho</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Contato</div><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
-    nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div>';
+    const regularCatLinks=cats.filter(c=>c.id!=='colecao');
+    const colecoes2=typeof getColecoes==='function'?getColecoes():[];
+    const roupasDD2=regularCatLinks.map(c=>'<a href="javascript:void(0)" onclick="filterCategory(''+c.id+'')">'+c.icon+' '+escapeHtml(c.label)+'</a>').join('');
+    const colDD2='<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>'+(colecoes2.length?colecoes2.map(c=>'<a href="javascript:void(0)" onclick="filterColecao(''+c.id+'')">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>').join(''):'');
+    nav.innerHTML='<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>'+'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▼</button><div class="nav-dd-menu">'+roupasDD2+'</div></div>'+'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▼</button><div class="nav-dd-menu">'+colDD2+'</div></div>';
     const mdd=nav.querySelector('.nav-dd');
     if(mdd){mdd.addEventListener('mouseenter',()=>mdd.classList.add('open'));mdd.addEventListener('mouseleave',()=>mdd.classList.remove('open'));const mbtn=mdd.querySelector('.nav-dd-btn');if(mbtn)mbtn.addEventListener('click',()=>mdd.classList.toggle('open'));}
   }
