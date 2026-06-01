@@ -173,7 +173,17 @@ function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',c
 function escapeHtml(str){return String(str||'').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
 function saveFavorites(){localStorage.setItem('vixiFavorites', JSON.stringify(favorites));}
 function saveCart(){localStorage.setItem('vixiCart', JSON.stringify(cart)); updateCartBadge();}
-function getCats(){try{return JSON.parse(localStorage.getItem('vixiCategories')||'null')||DEFAULT_CATEGORIES;}catch(e){return DEFAULT_CATEGORIES;}}
+function getCats(){
+  try{
+    var saved=JSON.parse(localStorage.getItem('vixiCategories')||'null');
+    if(!saved) return DEFAULT_CATEGORIES;
+    // Garante que categorias novas do DEFAULT estejam sempre presentes
+    DEFAULT_CATEGORIES.forEach(function(d){
+      if(!saved.find(function(s){return s.id===d.id;})) saved.push(d);
+    });
+    return saved;
+  }catch(e){return DEFAULT_CATEGORIES;}
+}
 function saveCats(cats){localStorage.setItem('vixiCategories', JSON.stringify(cats));}
 function getCatLabel(id){const c=getCats().find(x=>x.id===id); return c ? c.label : id;}
 function getCatIcon(id){const c=getCats().find(x=>x.id===id); return c ? c.icon : '🛍️';}
