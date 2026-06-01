@@ -34,13 +34,24 @@
         <span class="logo-sub">kids</span>
       </div>
     </a>
-    <nav>
-      <a href="#meninas">👧 meninas</a>
-      <a href="#meninos">🧒 meninos</a>
-      <a href="#bebes">🍼 bebês</a>
-      <a href="#juvenil">✨ juvenil</a>
-      <a href="#favoritos">💖 favoritos</a>
-      <a href="#colecao" class="hot">🔥 novidades</a>
+    <nav class="vixi-main-nav" id="mainNav">
+      <a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>
+      <div class="nav-dd">
+        <button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button>
+        <div class="nav-dd-menu">
+          <a href="javascript:void(0)" onclick="filterCategory('meninas')">👗 Meninas</a>
+          <a href="javascript:void(0)" onclick="filterCategory('meninos')">⚽ Meninos</a>
+          <a href="javascript:void(0)" onclick="filterCategory('bebes')">🍼 Bebês</a>
+          <a href="javascript:void(0)" onclick="filterCategory('juvenil')">✨ Juvenil</a>
+          <a href="javascript:void(0)" onclick="filterCategory('acessorios')">🎀 Acessórios</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <button class="nav-dd-btn" type="button">🌟 Coleção ▾</button>
+        <div class="nav-dd-menu" id="colecaoNavMenu">
+          <a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>
+        </div>
+      </div>
     </nav>
     <div class="hdr-icons">
       <button class="ibt" title="Buscar" id="searchBtn">🔍</button>
@@ -2265,17 +2276,24 @@ function escapeHtml(str){return String(str||'').replace(/[&<>'"]/g, m=>({'&':'&a
 function openStoreModal(id){document.getElementById(id)?.classList.add('open');}
 function closeStoreModal(id){document.getElementById(id)?.classList.remove('open');}
 function syncCategoriesUI(){
-  const cats=getCats();
-  const nav=document.querySelector('header nav');
+  var cats=getCats();
+  var regularCats=cats.filter(function(c){return c.id!=='colecao';});
+  var colecoes=typeof getColecoes==='function'?getColecoes():[];
+  var nav=document.querySelector('header nav');
   if(nav){
     nav.className='vixi-main-nav';
-    const regularCatLinks=cats.filter(c=>c.id!=='colecao');
-    const colecoes2=typeof getColecoes==='function'?getColecoes():[];
-    const roupasDD2=regularCatLinks.map(c=>'<a href="javascript:void(0)" onclick="filterCategory(''+c.id+'')">'+c.icon+' '+escapeHtml(c.label)+'</a>').join('');
-    const colDD2='<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>'+(colecoes2.length?colecoes2.map(c=>'<a href="javascript:void(0)" onclick="filterColecao(''+c.id+'')">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>').join(''):'');
-    nav.innerHTML='<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>'+'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▼</button><div class="nav-dd-menu">'+roupasDD2+'</div></div>'+'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▼</button><div class="nav-dd-menu">'+colDD2+'</div></div>';
-    const mdd=nav.querySelector('.nav-dd');
-    if(mdd){mdd.addEventListener('mouseenter',()=>mdd.classList.add('open'));mdd.addEventListener('mouseleave',()=>mdd.classList.remove('open'));const mbtn=mdd.querySelector('.nav-dd-btn');if(mbtn)mbtn.addEventListener('click',()=>mdd.classList.toggle('open'));}
+    var roupasLinks=regularCats.map(function(c){
+      return '<a href="javascript:void(0)" onclick="filterCategory('' + c.id + '')">'+c.icon+' '+escapeHtml(c.label)+'</a>';
+    }).join('');
+    var colLinks='<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>';
+    if(colecoes.length){
+      colLinks+=colecoes.map(function(c){
+        return '<a href="javascript:void(0)" onclick="filterColecao('' + c.id + '')">'+( c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';
+      }).join('');
+    }
+    nav.innerHTML='<a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>'
+      +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu">'+roupasLinks+'</div></div>'
+      +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▾</button><div class="nav-dd-menu">'+colLinks+'</div></div>';
   }
   const mob=document.getElementById('mobMenu');
   if(mob){const close=mob.querySelector('.mob-close')?.outerHTML||'<button class="mob-close" id="mobClose">✕</button>'; mob.innerHTML = close + cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${c.label.toLowerCase()}</a>`).join('') + '<a href="#favoritos" onclick="closeMob()">🥰 favoritos</a><a href="#colecao" onclick="closeMob()">🔥 novidades</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/'+VIXI_WHATSAPP+'" target="_blank">💬 WhatsApp</a>'; document.getElementById('mobClose')?.addEventListener('click', closeMob);}
