@@ -192,6 +192,15 @@
           <div class="cat-arrow">→</div>
         </div>
       </a>
+      <a href="clothes.html?cat=colecao" class="cat-tile ct-colecao" id="colecao" data-visual-bg-key="cat_colecao">
+        <div class="bg-illust">🌟</div>
+        <div class="cat-photo-hint vixi-edit-hint">🖼️ Clique para adicionar foto</div>
+        <div class="cat-label">
+          <span class="cat-name">Coleção</span>
+          <span class="cat-range">Peças especiais</span>
+          <div class="cat-arrow">→</div>
+        </div>
+      </a>
     </div>
     <div style="text-align:center;margin-top:32px">
       <a href="clothes.html" class="btn-main">Ver todas as roupas →</a>
@@ -241,6 +250,7 @@
       <button class="tab" data-f="acessorios">🎀 Acessórios</button>
       <button class="tab" data-f="bebes">🍼 Bebês</button>
       <button class="tab" data-f="juvenil">✨ Juvenil</button>
+      <button class="tab" data-f="colecao">🌟 Coleção</button>
     </div>
     <div class="prod-grid" id="prodGrid">
     <article class="prod-card" data-cat="meninos">
@@ -2217,7 +2227,8 @@ const DEFAULT_CATEGORIES = [
   {id:'meninos', icon:'👦', label:'Meninos'},
   {id:'acessorios', icon:'🎀', label:'Acessórios'},
   {id:'bebes', icon:'🍼', label:'Bebês'},
-  {id:'juvenil', icon:'✨', label:'Juvenil'}
+  {id:'juvenil', icon:'✨', label:'Juvenil'},
+  {id:'colecao', icon:'🌟', label:'Coleção'}
 ];
 const CONTENT_FIELDS = [
   {key:'heroBadge', label:'Hero badge', selector:'.hero-badge', type:'text'},

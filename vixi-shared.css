@@ -151,7 +151,7 @@ nav a.hot{color:var(--pink)}
 .sec-head p{margin-top:12px;color:var(--gray);font-size:16px;font-weight:500}
 
 /* ──── CATEGORIES ──── */
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
 .cat-tile{text-decoration:none;border-radius:var(--r24);overflow:hidden;position:relative;aspect-ratio:3/4;display:flex;flex-direction:column;justify-content:flex-end;padding:24px;transition:transform .3s,box-shadow .3s;cursor:pointer}
 .cat-tile:hover{transform:translateY(-6px) scale(1.01);box-shadow:var(--sh3)}
 .cat-tile .bg-illust{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;opacity:.85;transition:transform .5s}
@@ -171,6 +171,7 @@ nav a.hot{color:var(--pink)}
 .ct-boy{background:linear-gradient(135deg,#5CC8FF,#2D9FE0)}
 .ct-baby{background:linear-gradient(135deg,#B8F5C8,#3DD6C3)}
 .ct-teen{background:linear-gradient(135deg,#D4A5FF,#9B59B6)}
+.ct-colecao{background:linear-gradient(135deg,#FFE580,#FF7E00)}
 
 /* ──── SIZE NAVIGATOR ──── */
 .sizes-section{background:linear-gradient(135deg,#fff0f8,#f3eeff);border-radius:var(--r32);margin:0 28px;padding:52px 44px;border:2px solid rgba(242,39,110,.1);box-shadow:0 8px 40px rgba(242,39,110,.07)}

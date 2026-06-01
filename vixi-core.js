@@ -12,7 +12,8 @@ const DEFAULT_CATEGORIES = [
   {id:'meninos', icon:'⚽', label:'Meninos'},
   {id:'acessorios', icon:'🎀', label:'Acessórios'},
   {id:'bebes', icon:'🍼', label:'Bebês'},
-  {id:'juvenil', icon:'✨', label:'Juvenil'}
+  {id:'juvenil', icon:'✨', label:'Juvenil'},
+  {id:'colecao', icon:'🌟', label:'Coleção'}
 ];
 const CONTENT_FIELDS = [
   {key:'heroBadge', label:'Hero badge', selector:'.hero-badge', type:'text'},
