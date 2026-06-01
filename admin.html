@@ -195,8 +195,8 @@ body{background:#f5eff3;min-height:100vh}
           </div>
         </div>
         <div class="adm-field"><span class="adm-label">🏷️ Nome do Produto</span><input class="adm-input" type="text" id="admNameNew" placeholder="Ex: Vestido Floral Rosa"></div>
-        <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCatNew" onchange="toggleSubcatField('admSubcatNew',this.value)"></select></div>
-        <div class="adm-field" id="admSubcatNewField" style="display:none"><span class="adm-label">🌟 Subcoleção</span><select class="adm-input" id="admSubcatNew"><option value="">Nenhuma (geral)</option></select></div>
+        <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCatNew"></select></div>
+        <div class="adm-field"><span class="adm-label">🌟 Coleção <span style="font-size:11px;color:var(--gray)">(opcional)</span></span><select class="adm-input" id="admColecaoNew"><option value="">Sem coleção</option></select></div>
         <div class="adm-row">
           <div class="adm-field"><span class="adm-label">💰 Preço (R$)</span><input class="adm-input" type="number" id="admPriceNew" placeholder="0" min="0" step="0.01"></div>
           <div class="adm-field"><span class="adm-label">🔖 Preço antigo (R$)</span><input class="adm-input" type="number" id="admOldNew" placeholder="Deixe vazio" min="0" step="0.01"></div>
@@ -518,14 +518,14 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
     <div class="adm-field"><span class="adm-label">🏷️ Nome</span><input class="adm-input" type="text" id="admName" placeholder="Ex: Vestido Floral Rosa"></div>
-    <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCat" onchange="toggleSubcatField('admSubcat',this.value)">
+    <div class="adm-field"><span class="adm-label">📂 Categoria</span><select class="adm-input" id="admCat">
       <option value="meninas">👗 Meninas</option>
       <option value="meninos">⚽ Meninos</option>
       <option value="bebes">🍼 Bebês</option>
       <option value="juvenil">✨ Juvenil</option>
       <option value="acessorios">🎀 Acessórios</option>
     </select></div>
-    <div class="adm-field" id="admSubcatField" style="display:none"><span class="adm-label">🌟 Subcoleção</span><select class="adm-input" id="admSubcat"><option value="">Nenhuma (geral)</option></select></div>
+    <div class="adm-field"><span class="adm-label">🌟 Coleção <span style="font-size:11px;color:var(--gray)">(opcional)</span></span><select class="adm-input" id="admColecao"><option value="">Sem coleção</option></select></div>
     <div class="adm-row">
       <div class="adm-field"><span class="adm-label">💰 Preço (R$)</span><input class="adm-input" type="number" id="admPrice" placeholder="0" min="0" step="0.01"></div>
       <div class="adm-field"><span class="adm-label">🔖 Preço antigo</span><input class="adm-input" type="number" id="admOld" placeholder="Vazio = sem risco" min="0" step="0.01"></div>
@@ -610,6 +610,7 @@ function switchAdmSection(sec) {
   if (sec === 'clientes') loadClientesList();
   if (sec === 'annbar') loadAnnBarAdmin();
   if (sec === 'colecoes') loadColecoesAdmin();
+  if (sec === 'add') setTimeout(function(){ if(typeof populateColecaoSelects==='function') populateColecaoSelects(''); }, 150);
   if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
   if (sec === 'categories') renderCatEditor();
@@ -1097,7 +1098,7 @@ function saveProductNew() {
   var name = document.getElementById('admNameNew').value.trim();
   var price = parseFloat(document.getElementById('admPriceNew').value);
   var cat = document.getElementById('admCatNew').value;
-  var subcat = cat==='colecao' ? (document.getElementById('admSubcatNew')?.value||'') : '';
+  var colecao = document.getElementById('admColecaoNew')?.value||'';
   var badge = document.getElementById('admBadgeNew').value || null;
   var oldRaw = parseFloat(document.getElementById('admOldNew').value) || null;
   var pctMatchNew = badge ? String(badge).match(/^-?(\d+)%$/) : null;
@@ -1114,7 +1115,7 @@ function saveProductNew() {
   if (!liveProducts) liveProducts = JSON.parse(JSON.stringify(PRODS));
   var newId = 'custom_' + Date.now();
   liveProducts.push({
-    id: newId, name, cat, subcat,
+    id: newId, name, cat, colecao,
     cl: typeof getCatLabel === 'function' ? getCatLabel(cat) : cat,
     price, old, badge, sizes, desc, img: _newPhotoB64
   });
@@ -1271,6 +1272,18 @@ async function saveColecoesList(){
   if(btn){btn.textContent='💾 Salvar';btn.disabled=false;}
   showToast('Coleções salvas ✅');
 }
+
+// Popula todos os selects de coleção nos formulários de produto
+function populateColecaoSelects(currentColecao){
+  var cols = typeof getColecoes==='function' ? getColecoes() : [];
+  var opts = '<option value="">Sem coleção</option>'
+    + cols.map(function(c){ return '<option value="'+escapeHtml(c.id)+'"'+(currentColecao===c.id?' selected':'')+'>'+escapeHtml((c.icon||'🌟')+' '+c.name)+'</option>'; }).join('');
+  ['admColecao','admColecaoNew'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ var cur=el.value; el.innerHTML=opts; if(cur) el.value=cur; }
+  });
+}
+window.populateColecaoSelects=populateColecaoSelects;
 
 window.addColecaoItem=addColecaoItem;
 window.removeColecaoItem=removeColecaoItem;

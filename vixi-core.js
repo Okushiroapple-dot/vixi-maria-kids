@@ -693,13 +693,24 @@ function filterCategory(cat){
   _renderSubcatTabs();
 }
 
+// currentSubcat agora armazena o ID da coleção filtrada
 function filterColecao(id){
   currentSubcat=id;
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f==='colecao'));
-  visibleCount=12; activeSizeFilter=null; renderProds('colecao');
+  // Deselect all regular tabs
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  visibleCount=12; activeSizeFilter=null;
+  renderProds('colecao');
   _renderSubcatTabs();
 }
 window.filterColecao=filterColecao;
+
+// Obtém nome da coleção pelo ID
+function getColecaoName(id){
+  if(!id) return '';
+  var c=getColecoes().find(function(x){return x.id===id;});
+  return c?(c.icon||'🌟')+' '+c.name:id;
+}
+window.getColecaoName=getColecaoName;
 
 function _renderSubcatTabs(){
   var box=document.getElementById('subcatTabs');
@@ -708,7 +719,7 @@ function _renderSubcatTabs(){
   var cols=getColecoes();
   if(!cols.length){box.innerHTML='';box.style.display='none';return;}
   box.style.display='flex';
-  box.innerHTML='<button class="tab'+(currentSubcat?'':' on')+'" onclick="filterColecao(null)">✨ Todas</button>'
+  box.innerHTML='<button class="tab'+(currentSubcat?'':' on')+'" onclick="filterColecao(null)">🌟 Todas</button>'
     +cols.map(function(c){return '<button class="tab'+(currentSubcat===c.id?' on':'')+'" onclick="filterColecao(\''+escapeHtml(c.id)+'\')">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</button>';}).join('');
 }
 window._renderSubcatTabs=_renderSubcatTabs;
@@ -741,8 +752,12 @@ function renderProds(filter='all'){
   // 'novidades' filter = products with NOVO or NOVO_HIDDEN badge
   let list=PRODS.filter(p=>{
     if(filter==='novidades') return p.badge==='NOVO'||p.badge==='NOVO_HIDDEN';
+    if(filter==='colecao'){
+      // Filtra por coleção: se currentSubcat definido, filtra pelo ID; senão mostra todos com coleção
+      if(currentSubcat) return p.colecao===currentSubcat;
+      return !!p.colecao;
+    }
     if(filter!=='all'&&p.cat!==filter) return false;
-    if(filter==='colecao'&&currentSubcat&&p.subcat!==currentSubcat) return false;
     return true;
   });
   if(activeSizeFilter) list=list.filter(p=>(p.sizes||[]).includes(activeSizeFilter));
@@ -777,7 +792,8 @@ function renderProds(filter='all'){
         <a class="prod-quick-link" href="product.html?id=${p.id}" onclick="if(document.body.classList.contains('vixi-editing')){event.preventDefault();return;}event.stopPropagation()">Ver produto →</a>
       </div>
       <div class="prod-info">
-        <div class="prod-cat">${getCatLabel(p.cat)}</div>
+        <div class="prod-cat">${getCatLabel(p.cat)}${p.colecao?`<span class="prod-colecao-tag" onclick="event.stopPropagation();filterColecao('${escapeHtml(p.colecao)}')">${getColecaoName(p.colecao)}</span>`:''}
+        </div>
         <h4 class="prod-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</h4>
         <p class="prod-desc" data-edit-product="${p.id}" data-edit-field="desc">${escapeHtml(p.desc||'')}</p>
         <div class="prod-sizes">${(p.sizes||[]).map(s=>`<span class="psz" onclick="selectSize(this)">${escapeHtml(s)}</span>`).join('')}</div>

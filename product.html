@@ -336,7 +336,9 @@ function renderProduct(){
     '<div class="product-detail-img"><img src="' + p.img + '" alt="' + escapeHtml(p.name) + '" decoding="async" data-edit-product="' + p.id + '" data-edit-field="img"></div>' +
     '<div class="product-detail-info">' +
       badgeHtml +
-      '<div class="product-detail-cat">' + getCatLabel(p.cat) + '</div>' +
+      '<div class="product-detail-cat">' + getCatLabel(p.cat) +
+        (p.colecao && typeof getColecaoName==='function' ? '<span class="prod-colecao-tag" style="margin-left:8px;cursor:pointer" onclick="window.location.href=\'clothes.html?cat=colecao&subcat='+escapeHtml(p.colecao)+'\'">' + getColecaoName(p.colecao) + '</span>' : '') +
+      '</div>' +
       '<h1 class="product-detail-name" data-edit-product="' + p.id + '" data-edit-field="name">' + escapeHtml(p.name) + '</h1>' +
       descHtml +
       '<div class="product-detail-price-row">' + oldHtml + '<span class="product-detail-price" data-edit-product="' + p.id + '" data-edit-field="price">' + money(p.price) + '</span></div>' +
