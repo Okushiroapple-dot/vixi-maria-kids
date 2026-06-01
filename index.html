@@ -2256,14 +2256,14 @@ function syncCategoriesUI(){
   const nav=document.querySelector('header nav');
   if(nav){
     nav.className='vixi-main-nav';
-    const catLinks=cats.map(c=>'<a href="#colecao" onclick="filterCategory(\''+c.id+'\')">'+c.icon+' '+c.label.toLowerCase()+'</a>').join('');
+    const catLinks=cats.map(c=>'<a href="javascript:void(0)" onclick="filterCategory(\''+c.id+'\')">'+c.icon+' '+c.label.toLowerCase()+'</a>').join('');
     const menuHtml='<div class="nav-dd-label">Categorias</div>'+catLinks+'<div class="nav-dd-sep"></div><div class="nav-dd-label">Conta</div><a href="conta.html">👤 Minha Conta</a><a href="cart.html">🛒 Carrinho</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Contato</div><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
     nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div>';
     const mdd=nav.querySelector('.nav-dd');
     if(mdd){mdd.addEventListener('mouseenter',()=>mdd.classList.add('open'));mdd.addEventListener('mouseleave',()=>mdd.classList.remove('open'));const mbtn=mdd.querySelector('.nav-dd-btn');if(mbtn)mbtn.addEventListener('click',()=>mdd.classList.toggle('open'));}
   }
   const mob=document.getElementById('mobMenu');
-  if(mob){const close=mob.querySelector('.mob-close')?.outerHTML||'<button class="mob-close" id="mobClose">✕</button>'; mob.innerHTML = close + cats.map(c=>`<a href="#colecao" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${c.label.toLowerCase()}</a>`).join('') + '<a href="#favoritos" onclick="closeMob()">🥰 favoritos</a><a href="#colecao" onclick="closeMob()">🔥 novidades</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/'+VIXI_WHATSAPP+'" target="_blank">💬 WhatsApp</a>'; document.getElementById('mobClose')?.addEventListener('click', closeMob);}
+  if(mob){const close=mob.querySelector('.mob-close')?.outerHTML||'<button class="mob-close" id="mobClose">✕</button>'; mob.innerHTML = close + cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${c.label.toLowerCase()}</a>`).join('') + '<a href="#favoritos" onclick="closeMob()">🥰 favoritos</a><a href="#colecao" onclick="closeMob()">🔥 novidades</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/'+VIXI_WHATSAPP+'" target="_blank">💬 WhatsApp</a>'; document.getElementById('mobClose')?.addEventListener('click', closeMob);}
   const tabs=document.querySelector('.prod-tabs');
   if(tabs){const current=document.querySelector('.tab.on')?.dataset.f||'all'; tabs.innerHTML='<button class="tab" data-f="all">Todos</button>'+cats.map(c=>`<button class="tab" data-f="${c.id}">${c.icon} ${c.label}</button>`).join(''); tabs.querySelectorAll('.tab').forEach(t=>{if(t.dataset.f===current)t.classList.add('on'); t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on'); activeSizeFilter=null; renderProds(t.dataset.f);});}); if(!tabs.querySelector('.tab.on')) tabs.querySelector('.tab')?.classList.add('on');}
   const sel=document.getElementById('admCat');
@@ -2296,7 +2296,7 @@ function renderProds(filter='all'){
   const more=document.getElementById('viewMoreBtn'); if(more) more.style.display=list.length>0?'flex':'none';
 }
 function filterCategory(cat){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f===cat)); visibleCount=4; activeSizeFilter=null; renderProds(cat);}
-function filterSize(sz){activeSizeFilter=sz; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all')); visibleCount=4; renderProds('all'); document.getElementById('colecao')?.scrollIntoView({behavior:'smooth'}); showToast(`Mostrando tamanho ${sz} 📏`);}
+function filterSize(sz){activeSizeFilter=sz; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all')); visibleCount=4; renderProds('all');  showToast(`Mostrando tamanho ${sz} 📏`);}
 function loadMore(){visibleCount+=8;renderProds(document.querySelector('.tab.on')?.dataset.f||'all');}
 function addCart(id,e){if(e)e.stopPropagation(); const p=getProduct(id); if(!p)return; const item=cart.find(x=>x.id===id); if(item)item.qty++; else cart.push({id,qty:1}); saveCart(); showToast(`${p.name} adicionado ao carrinho 🛍️`);}
 function updateCartBadge(){const total=cart.reduce((s,i)=>s+i.qty,0); const b=document.getElementById('cartBadge'); if(b)b.textContent=total;}
@@ -2730,13 +2730,13 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       nav.innerHTML = `<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>
         <div class="nav-dd">
           <button class="nav-dd-btn" type="button">Roupas ▼</button>
-          <div class="nav-dd-menu">${cats.map(c=>`<a href="#colecao" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`).join('')}</div>
+          <div class="nav-dd-menu">${cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`).join('')}</div>
         </div>`;
     }
     const mob = document.getElementById('mobMenu');
     if(mob){
       const close = '<button class="mob-close" id="mobClose">×</button>';
-      mob.innerHTML = close + `<a href="#colecao" onclick="filterCategory('all');closeMob()">Novidades</a>` + cats.map(c=>`<a href="#colecao" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${escapeHtml(c.label)}</a>`).join('') + `<a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/${REAL_WA}" target="_blank">WhatsApp</a>`;
+      mob.innerHTML = close + `<a href="#colecao" onclick="filterCategory('all');closeMob()">Novidades</a>` + cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${escapeHtml(c.label)}</a>`).join('') + `<a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/${REAL_WA}" target="_blank">WhatsApp</a>`;
       document.getElementById('mobClose')?.addEventListener('click', closeMob);
     }
     const tabs = document.querySelector('.prod-tabs');
@@ -2773,7 +2773,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
           <div class="hero-fav-name" data-edit-product="${p.id}" data-edit-field="name">${escapeHtml(p.name)}</div>
           <div class="hero-fav-price" data-edit-product="${p.id}" data-edit-field="price">${money(p.price)}</div>
           <div class="hero-fav-actions">
-            <a href="#colecao" onclick="filterCategory('${p.cat}')">Ver na colecao</a>
+            <a href="javascript:void(0)" onclick="filterCategory('${p.cat}')">Ver na colecao</a>
             <button type="button" onclick="addCart('${p.id}',event)">Adicionar</button>
           </div>
           <div class="hero-fav-dots">${list.map((_,i)=>`<span class="${i===weeklyFavoriteIndex?'on':''}"></span>`).join('')}</div>
