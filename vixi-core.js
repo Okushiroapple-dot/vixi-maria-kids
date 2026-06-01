@@ -221,144 +221,119 @@ function writeJson(key, value){
 }
 
 function vixiCropImageFile(file, opts={}){
-  return new Promise((resolve,reject)=>{
-    if(!file || !String(file.type||'').startsWith('image/')){resolve(null);return;}
-    const aspect = Number(opts.aspect || 1);
-    const outW   = Number(opts.width  || 1200);
-    const outH   = Math.round(outW / aspect);
+  return new Promise(function(resolve){
+    if(!file||!String(file.type||'').startsWith('image/')){resolve(null);return;}
+    var aspect   = Number(opts.aspect||1);
+    var outW     = Number(opts.width||1200);
+    var outH     = Math.round(outW/aspect);
+    var title    = opts.title||'Enquadrar imagem';
 
-    let modal = document.getElementById('vixiCropModal');
-    if(!modal){
-      modal = document.createElement('div');
-      modal.id = 'vixiCropModal';
-      modal.className = 'vixi-crop-modal';
-      modal.innerHTML = `<div class="vixi-crop-box" role="dialog" aria-modal="true">
-        <div class="vixi-crop-head">
-          <h3>Enquadrar imagem</h3>
-          <button class="vixi-crop-close" type="button">✕</button>
-        </div>
-        <div class="vixi-crop-frame" style="touch-action:none;cursor:grab"><img alt="" draggable="false" style="position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center"></div>
-        <div class="vixi-crop-controls">
-          <label>Zoom <input type="range" min="0.5" max="8" step="0.01" value="1" data-crop-zoom></label>
-        </div>
-        <p style="font-size:11px;color:var(--gray);font-weight:600;text-align:center;margin:-4px 0 4px">Arraste com o dedo / mouse • Belisque para zoom</p>
-        <div class="vixi-crop-actions">
-          <button class="cancel" type="button">Cancelar</button>
-          <button class="save"   type="button">✅ Usar imagem</button>
-        </div>
-      </div>`;
-      document.body.appendChild(modal);
-    }
+    var old = document.getElementById('vixiCropModal');
+    if(old) old.remove();
 
-    const titleEl = modal.querySelector('h3');
-    const frame   = modal.querySelector('.vixi-crop-frame');
-    const img     = modal.querySelector('img');
-    const zoomEl  = modal.querySelector('[data-crop-zoom]');
-    const closeEl = modal.querySelector('.vixi-crop-close');
-    const cancelEl= modal.querySelector('.cancel');
-    const saveEl  = modal.querySelector('.save');
+    var modal = document.createElement('div');
+    modal.id = 'vixiCropModal';
+    modal.className = 'vixi-crop-modal open';
+    modal.innerHTML =
+      '<div class="vixi-crop-box" role="dialog" aria-modal="true">'+
+        '<div class="vixi-crop-head">'+
+          '<h3>'+title+'</h3>'+
+          '<button class="vixi-crop-close" type="button">✕</button>'+
+        '</div>'+
+        '<div class="vixi-crop-frame"><img id="vixiCropImg" alt="" style="max-width:100%;display:block"></div>'+
+        '<div class="vixi-crop-tools">'+
+          '<button type="button" class="vcTool" data-act="rotL">↺ −90°</button>'+
+          '<button type="button" class="vcTool" data-act="rotR">↻ +90°</button>'+
+          '<button type="button" class="vcTool" data-act="flipH">⇔ Espelhar</button>'+
+          '<button type="button" class="vcTool" data-act="zoom+">🔍+</button>'+
+          '<button type="button" class="vcTool" data-act="zoom-">🔍−</button>'+
+          '<button type="button" class="vcTool" data-act="reset">⊙ Reset</button>'+
+        '</div>'+
+        '<p style="font-size:11px;color:var(--gray);font-weight:600;text-align:center;margin:4px 0 6px">Arraste a imagem ou a área de corte • Pinça para zoom no mobile</p>'+
+        '<div class="vixi-crop-actions">'+
+          '<button class="cancel" type="button">Cancelar</button>'+
+          '<button class="save" type="button">✅ Usar imagem</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(modal);
 
-    titleEl.textContent = opts.title || 'Enquadrar imagem';
-    frame.style.aspectRatio = String(aspect);
-
-    let state = {x:0, y:0, scale:1, dragging:false, sx:0, sy:0, pinchDist:null};
-    let finished = false;
-    const url = URL.createObjectURL(file);
-
-    function applyT(){
-      img.style.transform = `translate(-50%,-50%) translate(${state.x}px,${state.y}px) scale(${state.scale})`;
-      zoomEl.value = state.scale;
-    }
-    function initScale(){
-      const fw = frame.offsetWidth  || 420;
-      const fh = frame.offsetHeight || Math.round(fw/aspect);
-      const s  = Math.max(fw/img.naturalWidth, fh/img.naturalHeight);
-      state = {x:0,y:0,scale:s,dragging:false,sx:0,sy:0,pinchDist:null};
-      zoomEl.min  = String(Math.max(0.1, s*0.5));
-      zoomEl.max  = String(s*10);
-      zoomEl.step = String(s*0.01);
-      applyT();
-    }
-
-    img.onload = initScale;
-    zoomEl.oninput = function(){ state.scale = parseFloat(this.value); applyT(); };
-
-    // Mouse drag
-    frame.addEventListener('mousedown', function(e){
-      state.dragging=true; state.sx=e.clientX-state.x; state.sy=e.clientY-state.y;
-      frame.style.cursor='grabbing'; e.preventDefault();
-    });
-    const mmove = function(e){ if(!state.dragging)return; state.x=e.clientX-state.sx; state.y=e.clientY-state.sy; applyT(); };
-    const mup   = function(){ state.dragging=false; frame.style.cursor='grab'; };
-    window.addEventListener('mousemove',mmove);
-    window.addEventListener('mouseup',mup);
-
-    // Wheel zoom
-    frame.addEventListener('wheel', function(e){
-      e.preventDefault();
-      state.scale = Math.max(parseFloat(zoomEl.min), Math.min(parseFloat(zoomEl.max), state.scale*(e.deltaY<0?1.1:0.9)));
-      applyT();
-    },{passive:false});
-
-    // Touch drag + pinch
-    frame.addEventListener('touchstart', function(e){
-      e.preventDefault();
-      if(e.touches.length===1){
-        state.dragging=true;
-        state.sx=e.touches[0].clientX-state.x; state.sy=e.touches[0].clientY-state.y;
-        state.pinchDist=null;
-      }else if(e.touches.length===2){
-        state.dragging=false;
-        state.pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      }
-    },{passive:false});
-    frame.addEventListener('touchmove', function(e){
-      e.preventDefault();
-      if(e.touches.length===1&&state.dragging){
-        state.x=e.touches[0].clientX-state.sx; state.y=e.touches[0].clientY-state.sy;
-      }else if(e.touches.length===2&&state.pinchDist){
-        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        state.scale=Math.max(parseFloat(zoomEl.min),Math.min(parseFloat(zoomEl.max),state.scale*(d/state.pinchDist)));
-        state.pinchDist=d;
-      }
-      applyT();
-    },{passive:false});
-    frame.addEventListener('touchend',function(e){
-      if(e.touches.length<1) state.dragging=false;
-      if(e.touches.length<2) state.pinchDist=null;
-    });
+    var cropImg  = modal.querySelector('#vixiCropImg');
+    var objUrl   = URL.createObjectURL(file);
+    var _cropper = null;
+    var _scaleX  = 1;
+    var _done    = false;
 
     function cleanup(){
-      modal.classList.remove('open');
-      URL.revokeObjectURL(url);
-      window.removeEventListener('mousemove',mmove);
-      window.removeEventListener('mouseup',mup);
+      URL.revokeObjectURL(objUrl);
+      if(_cropper){_cropper.destroy();_cropper=null;}
+      modal.remove();
     }
-    function onCancel(){ if(finished)return; finished=true; cleanup(); resolve(null); }
-    function onSave(){
-      if(finished)return; finished=true;
-      const fw = frame.offsetWidth, fh = frame.offsetHeight;
-      const cropW = fw/state.scale, cropH = fh/state.scale;
-      const cx = img.naturalWidth/2 - state.x/state.scale;
-      const cy = img.naturalHeight/2 - state.y/state.scale;
-      const canvas = document.createElement('canvas');
-      canvas.width=outW; canvas.height=outH;
-      canvas.getContext('2d').drawImage(img, cx-cropW/2, cy-cropH/2, cropW, cropH, 0, 0, outW, outH);
-      canvas.toBlob(blob=>{
-        if(!blob){cleanup();reject(new Error('Falha ao cortar imagem'));return;}
-        const name = String(file.name||'imagem.jpg').replace(/\.[^.]+$/,'')+'-enquadrada.jpg';
-        const dataUrl = canvas.toDataURL('image/jpeg',.9);
-        cleanup();
-        resolve({file:new File([blob],name,{type:'image/jpeg'}), dataUrl});
-      },'image/jpeg',.9);
+    function finish(result){
+      if(_done) return; _done=true;
+      cleanup(); resolve(result);
     }
 
-    closeEl.onclick  = onCancel;
-    cancelEl.onclick = onCancel;
-    saveEl.onclick   = onSave;
+    cropImg.onload = function(){
+      if(typeof Cropper==='undefined'){
+        // Fallback: cover-fit to output size without interactive crop
+        return;
+      }
+      _cropper = new Cropper(cropImg,{
+        aspectRatio:   aspect,
+        viewMode:      1,
+        dragMode:      'move',
+        autoCropArea:  0.98,
+        movable:       true,
+        zoomable:      true,
+        rotatable:     true,
+        scalable:      true,
+        guides:        true,
+        center:        true,
+        background:    true,
+        highlight:     true,
+        cropBoxMovable:    true,
+        cropBoxResizable:  true,
+        responsive:    true,
+        checkOrientation: true,
+      });
+    };
+    cropImg.src = objUrl;
 
-    img.src = url;
-    modal.classList.add('open');
+    modal.querySelectorAll('.vcTool').forEach(function(btn){
+      btn.onclick = function(){
+        if(!_cropper) return;
+        var act = btn.dataset.act;
+        if(act==='rotL')  _cropper.rotate(-90);
+        if(act==='rotR')  _cropper.rotate(90);
+        if(act==='flipH') { _scaleX=-_scaleX; _cropper.scaleX(_scaleX); }
+        if(act==='zoom+') _cropper.zoom(0.1);
+        if(act==='zoom-') _cropper.zoom(-0.1);
+        if(act==='reset') { _scaleX=1; _cropper.reset(); }
+      };
+    });
+
+    modal.querySelector('.vixi-crop-close').onclick = function(){ finish(null); };
+    modal.querySelector('.cancel').onclick           = function(){ finish(null); };
+    modal.querySelector('.save').onclick = function(){
+      if(!_cropper){
+        // Fallback save: cover-fit
+        var cv = document.createElement('canvas');
+        cv.width=outW; cv.height=outH;
+        var tmp=new Image(); tmp.src=objUrl;
+        tmp.onload=function(){
+          var s=Math.max(outW/tmp.width,outH/tmp.height);
+          cv.getContext('2d').drawImage(tmp,(outW-tmp.width*s)/2,(outH-tmp.height*s)/2,tmp.width*s,tmp.height*s);
+          cv.toBlob(function(b){ finish({file:new File([b],file.name,{type:'image/jpeg'}),dataUrl:cv.toDataURL('image/jpeg',0.92)}); },'image/jpeg',0.92);
+        };
+        return;
+      }
+      var canvas = _cropper.getCroppedCanvas({width:outW,height:outH,imageSmoothingQuality:'high'});
+      canvas.toBlob(function(blob){
+        if(!blob){finish(null);return;}
+        var name=String(file.name||'img.jpg').replace(/\.[^.]+$/,'')+'-crop.jpg';
+        finish({file:new File([blob],name,{type:'image/jpeg'}),dataUrl:canvas.toDataURL('image/jpeg',0.92)});
+      },'image/jpeg',0.92);
+    };
   });
 }
 
@@ -780,8 +755,8 @@ function syncCategoriesUI(){
     var roupasDD=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
     var colDD='<a href="clothes.html?cat=colecao">🌟 Ver todas as coleções</a>'
       +(colecoes.length?'<div class="nav-dd-sep"></div>'+colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join(''):'');
-    var menuHtml='<div class="nav-dd-label">Loja</div><a href="index.html">🏠 Início</a><a href="clothes.html" class="hot">🔥 Novidades</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Minha Conta</div><a href="conta.html">👤 Minha Conta</a><a href="cart.html">🛒 Carrinho</a><div class="nav-dd-sep"></div><div class="nav-dd-label">Contato</div><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
-    nav.innerHTML='<div class="nav-dd nav-menu-dd"><button class="nav-dd-btn" type="button">📋 Menu ▾</button><div class="nav-dd-menu">'+menuHtml+'</div></div>'
+    nav.innerHTML=
+      '<a href="clothes.html" class="nav-link-hot">🔥 Novidades</a>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+roupasDD+'</div></div>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▾</button><div class="nav-dd-menu">'+colDD+'</div></div>';
   }
@@ -790,9 +765,8 @@ function syncCategoriesUI(){
     var close='<button class="mob-close" id="mobClose">✕</button>';
     var links=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'" onclick="closeMob()">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
     var colLinks=colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+c.id+'" onclick="closeMob()">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join('');
-    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🛍️ Roupas</a>'+links
-      +'<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>'+colLinks
-      +'<a href="cart.html" onclick="closeMob()">🛒 Meu Carrinho</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>';
+    mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🔥 Novidades</a><a href="clothes.html" onclick="closeMob()">🛍️ Roupas</a>'+links
+      +'<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>'+colLinks;
     document.getElementById('mobClose')&&document.getElementById('mobClose').addEventListener('click',closeMob);
   }
   var tabs=document.querySelector('.prod-tabs');
