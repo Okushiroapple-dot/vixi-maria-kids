@@ -614,7 +614,7 @@ function syncAdminNav(){
     dd.addEventListener('mouseenter',function(){dd.classList.add('open');});
     dd.addEventListener('mouseleave',function(){dd.classList.remove('open');});
     var btn=dd.querySelector('.nav-dd-btn');
-    if(btn) btn.addEventListener('click',function(){dd.classList.toggle('open');});
+    if(btn) btn.addEventListener('click',function(e){e.stopPropagation();dd.classList.toggle('open');});
   }
 }
 window.syncAdminNav=syncAdminNav;
@@ -832,6 +832,8 @@ function syncCategoriesUI(){
         if(!btn) return;
         var dd=btn.closest('.nav-dd');
         if(!dd) return;
+        // deixa syncAdminNav gerenciar seu próprio dropdown
+        if(dd.classList.contains('nav-admin-dd')) return;
         e.stopPropagation();
         nav.querySelectorAll('.nav-dd').forEach(function(d){if(d!==dd)d.classList.remove('open');});
         dd.classList.toggle('open');
