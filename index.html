@@ -857,6 +857,18 @@
   </div>
 </section>
 
+<!-- Coleções Showcase — 2 cards lado a lado -->
+<section class="section" id="secColecoesCards" style="display:none">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">exclusivas</span>
+      <h2>Nossas Coleções 🌟</h2>
+      <p>Peças temáticas selecionadas com muito carinho para cada estação.</p>
+    </div>
+    <div class="colcard-grid" id="colcardGrid"></div>
+  </div>
+</section>
+
 <!-- Favorites -->
 <section class="section" id="favoritos">
   <div class="wrap">
@@ -2291,6 +2303,8 @@ function getCats(){
 }
 function saveCats(cats){localStorage.setItem('vixiCategories', JSON.stringify(cats));}
 function getCatLabel(id){const c=getCats().find(x=>x.id===id); return c ? c.label : id;}
+function getColecoes(){try{return JSON.parse(localStorage.getItem('vixiColecoes')||'[]');}catch(e){return [];}}
+function saveColecoes(list){localStorage.setItem('vixiColecoes',JSON.stringify(list));if(window.vixiSaveCloud)window.vixiSaveCloud('vixiColecoes',list);}
 function getCatIcon(id){const c=getCats().find(x=>x.id===id); return c ? c.icon : '🛍️';}
 function getProduct(id){return PRODS.find(p=>p.id===id);}
 function escapeHtml(str){return String(str||'').replace(/[&<>'"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
@@ -2815,6 +2829,57 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     if(sel) sel.innerHTML = cats.map(c=>`<option value="${c.id}">${c.icon} ${escapeHtml(c.label)}</option>`).join('');
   };
 
+  function renderAnnBar(){
+    var track=document.getElementById('annTrack');
+    if(!track) return;
+    var items=[];
+    try{items=JSON.parse(localStorage.getItem('vixiAnnItems')||'[]');}catch(e){}
+    var annDiv=track.closest('.ann');
+    if(!items.length){if(annDiv)annDiv.style.display='none';track.innerHTML='';return;}
+    if(annDiv)annDiv.style.display='';
+    function mkItem(it,mirror,idx){
+      return '<div class="ann-item"'+(mirror?' data-ann-mirror="'+(idx+1)+'"':'')+'>'+
+        '<span class="ann-icon">'+escapeHtml(it.icon||'')+'</span> '+
+        '<span class="ann-copy">'+escapeHtml(it.text||'')+'</span> '+
+        '<span class="ann-sep">✦</span></div>';
+    }
+    track.innerHTML=items.map(function(it,i){return mkItem(it,false,i);}).join('')
+                   +items.map(function(it,i){return mkItem(it,true,i);}).join('');
+    var chars=items.reduce(function(s,it){return s+(it.text||'').length;},0);
+    track.style.animationDuration=Math.max(12,Math.round(chars*0.35))+'s';
+  }
+  window.renderAnnBar=renderAnnBar;
+
+  function renderColecoesShowcase(){
+    var sec=document.getElementById('secColecoesCards');
+    var grid=document.getElementById('colcardGrid');
+    if(!sec||!grid) return;
+    var cols=getColecoes().slice(0,2);
+    if(!cols.length){sec.style.display='none';return;}
+    sec.style.display='';
+    var slots=['🌸','🎀','👗','👶'];
+    grid.innerHTML=cols.map(function(c){
+      var prods=PRODS.filter(function(p){return p.colecao===c.id;}).slice(0,4);
+      var imgs='';
+      for(var i=0;i<4;i++){
+        if(prods[i]) imgs+='<img src="'+escapeHtml(prods[i].img)+'" alt="'+escapeHtml(prods[i].name)+'" loading="lazy">';
+        else imgs+='<div class="colcard-placeholder">'+slots[i]+'</div>';
+      }
+      var count=PRODS.filter(function(p){return p.colecao===c.id;}).length;
+      return '<div class="colcard">'
+        +'<div class="colcard-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+        +'<div class="colcard-imgs">'+imgs+'</div>'
+        +'<div class="colcard-foot">'
+        +'<div><div class="colcard-title">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+        +(count?'<div class="colcard-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
+        +'</div>'
+        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="colcard-btn">Ver coleção →</a>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+  window.renderColecoesShowcase=renderColecoesShowcase;
+
   function getWeeklyFavorites(){
     const tagged = PRODS.filter(p=>foldText([p.badge,p.tags,p.cl,p.cat].join(' ')).includes('querid'));
     if(tagged.length) return tagged;
@@ -2890,6 +2955,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     if(more) more.style.display = list.length>0 ? 'flex' : 'none';
     decorateVisualTargets();
     renderWeeklyFavoritesCarousel();
+    renderColecoesShowcase();
   };
 
   window.runSearch = function(){
@@ -3110,7 +3176,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     if(sel) sel.value = cat;
   };
   const oldSaveProduct = saveProduct;
-  window.saveProduct = function(){ oldSaveProduct(); applyProductImages(); startWeeklyFavoritesCarousel(); };
+  window.saveProduct = function(){ oldSaveProduct(); applyProductImages(); startWeeklyFavoritesCarousel(); renderColecoesShowcase(); };
 
   function ensureEditorChrome(){
     if(!document.getElementById('vixiImageInput')){
@@ -4230,6 +4296,8 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
   syncCategoriesUI();
   renderProds(currentFilter||'all');
   startWeeklyFavoritesCarousel();
+  renderAnnBar();
+  renderColecoesShowcase();
   renderCustomSections();
   decorateVisualTargets();
   renderCustomBlocks();
@@ -4322,6 +4390,8 @@ async function vixiApplyCloudData() {
     try { window.syncCategoriesUI?.(); } catch(e) {}
     try { window.renderProds?.(window.currentFilter || 'all'); } catch(e) {}
     try { window.startWeeklyFavoritesCarousel?.(); } catch(e) {}
+    try { window.renderAnnBar?.(); } catch(e) {}
+    try { window.renderColecoesShowcase?.(); } catch(e) {}
   }
 }
 
@@ -4367,7 +4437,7 @@ console.log("Firebase conectado!");
 (function(){
   const ADMIN_KEY = 'vixiAdmin_v2';
   const IMG_KEY = 'vixiProductImages';
-  const CLOUD_KEYS = [ADMIN_KEY, IMG_KEY, 'vixiVisualImages', 'vixiContent', 'vixiCategories', 'vixiSectionOrder'];
+  const CLOUD_KEYS = [ADMIN_KEY, IMG_KEY, 'vixiVisualImages', 'vixiContent', 'vixiCategories', 'vixiSectionOrder', 'vixiAnnItems', 'vixiColecoes'];
 
   function parseJson(key, fallback){
     try { return JSON.parse(localStorage.getItem(key) || 'null') || fallback; }
@@ -4409,6 +4479,7 @@ console.log("Firebase conectado!");
       }
       if (typeof updateStats === 'function') updateStats();
       if (typeof startWeeklyFavoritesCarousel === 'function') startWeeklyFavoritesCarousel();
+      if (typeof window.renderColecoesShowcase === 'function') window.renderColecoesShowcase();
       console.log('Admin sincronizado com a página principal ✅');
     } catch(err){
       console.error('Erro ao sincronizar admin com home:', err);
@@ -4430,6 +4501,8 @@ console.log("Firebase conectado!");
     if (typeof applyVisualImages === 'function') applyVisualImages();
     if (typeof syncCategoriesUI === 'function') syncCategoriesUI();
     if (typeof window.syncAdminNav === 'function') window.syncAdminNav();
+    if (typeof window.renderAnnBar === 'function') window.renderAnnBar();
+    if (typeof window.renderColecoesShowcase === 'function') window.renderColecoesShowcase();
     applySavedProductsToHome();
   }
 

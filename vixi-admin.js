@@ -1626,3 +1626,35 @@ window.destroyProductDragDrop=typeof destroyProductDragDrop!=='undefined'?destro
 window.loadAdminOrders=typeof loadAdminOrders!=='undefined'?loadAdminOrders:window.loadAdminOrders;
 window.renderOrdersList=typeof renderOrdersList!=='undefined'?renderOrdersList:window.renderOrdersList;
 window.showOrderDetail=typeof showOrderDetail!=='undefined'?showOrderDetail:window.showOrderDetail;
+
+// ── Admin nav dropdown (disponível em todas as páginas) ──
+if (!window.syncAdminNav) {
+  window.syncAdminNav = function() {
+    var nav = document.querySelector('header nav');
+    if (!nav) return;
+    nav.querySelector('.nav-admin-dd')?.remove();
+    if (window.currentUser?.email !== 'viximariakids@viximariakids.com') return;
+    var items = [
+      ['admin.html','🏠','Entrar no Painel'],
+      ['admin.html?sec=products','📦','Produtos'],
+      ['admin.html?sec=add','➕','Adicionar'],
+      ['admin.html?sec=categories','🗂️','Categorias'],
+      ['index.html?admin=visual','🎨','Editar Página'],
+      ['admin.html?sec=orders','📊','Pedidos'],
+      ['admin.html?sec=backup','💾','Backups']
+    ];
+    var links = items.map(function(i){ return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>'; }).join('');
+    var html = '<div class="nav-dd nav-admin-dd"><button class="nav-dd-btn nav-admin-btn" type="button">⚙️ Admin ▾</button><div class="nav-dd-menu">'+links+'</div></div>';
+    var allDDs = nav.querySelectorAll('.nav-dd:not(.nav-admin-dd)');
+    var lastDD = allDDs[allDDs.length - 1];
+    if (lastDD) lastDD.insertAdjacentHTML('afterend', html);
+    else nav.insertAdjacentHTML('beforeend', html);
+    var dd = nav.querySelector('.nav-admin-dd');
+    if (dd) {
+      dd.addEventListener('mouseenter', function(){ dd.classList.add('open'); });
+      dd.addEventListener('mouseleave', function(){ dd.classList.remove('open'); });
+      var btn = dd.querySelector('.nav-dd-btn');
+      if (btn) btn.addEventListener('click', function(e){ e.stopPropagation(); dd.classList.toggle('open'); });
+    }
+  };
+}

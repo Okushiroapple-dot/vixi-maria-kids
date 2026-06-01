@@ -947,6 +947,21 @@ body.vixi-editing [contenteditable="true"]{
   user-select:text!important;
 }
 
+/* ──── COLEÇÕES SHOWCASE CARDS ──── */
+.colcard-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.colcard{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(30,0,26,.09);border:1.5px solid var(--line);transition:transform .25s,box-shadow .25s;display:flex;flex-direction:column}
+.colcard:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(242,39,110,.13)}
+.colcard-ribbon{background:var(--pink);color:#fff;padding:11px 20px;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;font-family:var(--font-d)}
+.colcard-imgs{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.colcard-imgs img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.colcard-placeholder{width:100%;aspect-ratio:1;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:32px}
+.colcard-foot{padding:18px 22px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.colcard-title{font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--ink);margin-bottom:4px}
+.colcard-count{font-size:12px;color:var(--gray);font-weight:700}
+.colcard-btn{background:var(--pink);color:#fff;border:none;border-radius:99px;padding:10px 22px;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap;display:inline-flex;align-items:center;box-shadow:var(--sh1)}
+.colcard-btn:hover{background:var(--ink-mid);transform:translateY(-2px)}
+@media(max-width:700px){.colcard-grid{grid-template-columns:1fr}}
+
 /* ──── PERFORMANCE HINTS (continuously animating elements) ──── */
 .ann-track{will-change:transform}
 .hero-art .main-card,.float-el{will-change:transform}

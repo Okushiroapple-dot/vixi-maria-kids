@@ -216,6 +216,7 @@ function renderColecoesSection(){
       +'</div>'
       +'</a>';
   }).join('');
+  try{if(window.renderColecoesShowcase)window.renderColecoesShowcase();}catch(e){}
 }
 window.renderColecoesSection=renderColecoesSection;
 
@@ -824,6 +825,21 @@ function syncCategoriesUI(){
       '<a href="clothes.html" class="nav-link-hot">🔥 Novidades</a>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+roupasDD+'</div></div>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▾</button><div class="nav-dd-menu">'+colDD+'</div></div>';
+    if(!nav._vixiNavClick){
+      nav._vixiNavClick=true;
+      nav.addEventListener('click',function(e){
+        var btn=e.target.closest('.nav-dd-btn');
+        if(!btn) return;
+        var dd=btn.closest('.nav-dd');
+        if(!dd) return;
+        e.stopPropagation();
+        nav.querySelectorAll('.nav-dd').forEach(function(d){if(d!==dd)d.classList.remove('open');});
+        dd.classList.toggle('open');
+      });
+      document.addEventListener('click',function(){
+        if(nav) nav.querySelectorAll('.nav-dd').forEach(function(d){d.classList.remove('open');});
+      });
+    }
   }
   var mob=document.getElementById('mobMenu');
   if(mob){
