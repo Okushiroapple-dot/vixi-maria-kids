@@ -2796,11 +2796,11 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
 
   window.syncCategoriesUI = function(){
     const cats = getCats();
+    const regularCats = cats.filter(c => c.id !== 'colecao');
+    const colecoes = typeof getColecoes === 'function' ? getColecoes() : [];
     const nav = document.querySelector('header nav');
     if(nav){
       nav.className = 'vixi-main-nav';
-      const regularCats = cats.filter(c => c.id !== 'colecao');
-      const colecoes = typeof getColecoes === 'function' ? getColecoes() : [];
       const colDD = `<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>`
         + (colecoes.length ? colecoes.map(c => `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`).join('') : '');
       nav.innerHTML = `<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>
