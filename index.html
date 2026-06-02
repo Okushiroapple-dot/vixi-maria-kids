@@ -2468,6 +2468,18 @@ window.syncHeaderAuth(window.currentUser || null);
 .hero-fav-actions button,.hero-fav-actions a{border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none}
 .hero-fav-actions button{background:var(--pink);color:#fff}.hero-fav-actions a{background:var(--pink-pale);color:var(--pink)}
 .hero-fav-dots{display:flex;gap:6px;justify-content:center}.hero-fav-dots span{width:7px;height:7px;border-radius:50%;background:var(--line)}.hero-fav-dots span.on{background:var(--pink)}
+.colsec-dual{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
+@media(max-width:600px){.colsec-dual{grid-template-columns:1fr;gap:20px}}
+.colsec-card{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.07);padding:20px;display:grid;gap:10px;position:relative}
+.colsec-ribbon{display:inline-flex;align-items:center;gap:6px;background:var(--pink);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;border-radius:999px;padding:5px 14px;align-self:start;width:fit-content}
+.colsec-slide{opacity:1;transform:translateY(0);transition:opacity .28s ease,transform .28s ease;display:grid;gap:8px}
+.colsec-slide.swap{opacity:0;transform:translateY(8px)}
+.colsec-img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;background:var(--pink-pale)}
+.colsec-name{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--ink-mid);line-height:1.15}
+.colsec-price{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--pink)}
+.colsec-dots{display:flex;gap:5px;justify-content:center}.colsec-dots span{width:6px;height:6px;border-radius:50%;background:var(--line)}.colsec-dots span.on{background:var(--pink)}
+.colsec-count{font-size:12px;color:var(--gray);font-weight:700}
+.colsec-btn{display:block;border-radius:999px;padding:11px 20px;background:var(--pink-pale);color:var(--pink);font-weight:900;font-size:13px;text-decoration:none;text-align:center;transition:background .18s}.colsec-btn:hover{background:var(--pink);color:#fff}
 .prod-card{box-shadow:0 8px 24px rgba(30,0,26,.06);border:1px solid rgba(245,215,229,.9)}
 .prod-card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(30,0,26,.12)}
 .prod-desc{font-size:13px;color:var(--gray);font-weight:700;margin:-4px 0 10px;line-height:1.35}
@@ -2865,29 +2877,59 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     var sec=document.getElementById('secColecoesCards');
     var grid=document.getElementById('colcardGrid');
     if(!sec||!grid) return;
-    var cols=getColecoes().slice(0,2);
+    var allCols=getColecoes();
+    var featured=typeof getFeaturedColecoes==='function'?getFeaturedColecoes():[];
+    var cols=[];
+    if(featured.length>=2){
+      cols=featured.slice(0,2).map(function(id){return allCols.find(function(c){return c.id===id;});}).filter(Boolean);
+    }
+    if(cols.length<2) cols=allCols.slice(0,2);
     if(!cols.length){sec.style.display='none';return;}
     sec.style.display='';
-    var slots=['🌸','🎀','👗','👶'];
-    grid.innerHTML=cols.map(function(c){
-      var prods=PRODS.filter(function(p){return p.colecao===c.id;}).slice(0,4);
-      var imgs='';
-      for(var i=0;i<4;i++){
-        if(prods[i]) imgs+='<img src="'+escapeHtml(prods[i].img)+'" alt="'+escapeHtml(prods[i].name)+'" loading="lazy">';
-        else imgs+='<div class="col-placeholder">'+slots[i]+'</div>';
-      }
-      var count=PRODS.filter(function(p){return p.colecao===c.id;}).length;
-      return '<div class="colecao-float-card">'
-        +'<div class="col-ribbon">'+escapeHtml(c.name||c.id)+'</div>'
-        +'<div class="col-imgs">'+imgs+'</div>'
-        +'<div class="col-info">'
-        +'<div class="col-name">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-        +(count?'<div class="col-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
-        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
-        +'</div>'
+    var _csi=[0,0];
+    function _colsecSlideHtml(c,idx){
+      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
+      var p=prods[idx]||prods[0];
+      if(!p) return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:56px;background:var(--pink-pale)">'+(c.icon||'🌟')+'</div>';
+      return '<img class="colsec-img" src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
+        +'<div class="colsec-name">'+escapeHtml(p.name)+'</div>'
+        +'<div class="colsec-price">'+money(p.price)+'</div>';
+    }
+    grid.innerHTML='<div class="colsec-dual">'+cols.map(function(c,ci){
+      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
+      var count=prods.length;
+      var dots=prods.length>1?'<div class="colsec-dots">'+prods.map(function(_,di){return '<span'+(di===0?' class="on"':'')+'>'+' </span>';}).join('')+'</div>':'';
+      return '<div class="colsec-card" data-colsec="'+ci+'">'
+        +'<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+        +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_colsecSlideHtml(c,0)+'</div>'
+        +dots
+        +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
+        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="colsec-btn">Ver coleção →</a>'
         +'</div>';
-    }).join('');
+    }).join('')+'</div>';
+    // iniciar carrossel
+    _colseTimers.forEach(clearInterval);
+    _colseTimers=[];
+    cols.forEach(function(c,ci){
+      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
+      if(prods.length<=1) return;
+      var t=setInterval(function(){
+        if(window.visualEditorOn||document.activeElement?.isContentEditable) return;
+        _csi[ci]=(_csi[ci]+1)%prods.length;
+        var slide=document.querySelector('[data-colsec-slide="'+ci+'"]');
+        if(!slide) return;
+        slide.classList.add('swap');
+        setTimeout(function(){
+          slide.innerHTML=_colsecSlideHtml(c,_csi[ci]);
+          slide.classList.remove('swap');
+          var card=document.querySelector('[data-colsec="'+ci+'"]');
+          if(card) card.querySelectorAll('.colsec-dots span').forEach(function(s,si){s.classList.toggle('on',si===_csi[ci]);});
+        },280);
+      },4500+ci*1800);
+      _colseTimers.push(t);
+    });
   }
+  var _colseTimers=[];
   window.renderColecoesShowcase=renderColecoesShowcase;
 
   function getWeeklyFavorites(){
@@ -3517,7 +3559,8 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       ['categorias', '#categorias'],
       ['sizes', '.sizes-section'],
       ['colecao', '#colecao'],
-      ['promos', '.promo-row'] ,
+      ['promos', '.promo-row'],
+      ['secColecoesCards', '#secColecoesCards'],
       ['sobre', '#sobre'],
       ['instagram', '#instagram']
     ];
@@ -3747,12 +3790,18 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
   function applySectionOrder(){
     let order = readJson(SECTION_ORDER_KEY,[]);
     if(!order.length) return;
-    // Garante secColecoesCards antes de 'sobre' se não estiver na ordem salva
-    if(!order.includes('secColecoesCards') && document.getElementById('secColecoesCards')){
-      const idx = order.indexOf('sobre');
-      if(idx>=0) order.splice(idx,0,'secColecoesCards');
-      else order.push('secColecoesCards');
-      writeJson(SECTION_ORDER_KEY, order);
+    // Garante secColecoesCards na posição correta (após promos, antes de sobre)
+    if(document.getElementById('secColecoesCards')){
+      const cIdx = order.indexOf('secColecoesCards');
+      const pIdx = order.indexOf('promos');
+      // Reposiciona se ausente ou se está antes de promos (posição errada/herdada)
+      if(cIdx < 0 || (pIdx >= 0 && cIdx < pIdx)){
+        if(cIdx >= 0) order.splice(cIdx, 1);
+        const sobreAt = order.indexOf('sobre');
+        if(sobreAt >= 0) order.splice(sobreAt, 0, 'secColecoesCards');
+        else order.push('secColecoesCards');
+        writeJson(SECTION_ORDER_KEY, order);
+      }
     }
     const els = order.map(k=>document.querySelector(`[data-section-key="${k}"]`)).filter(Boolean);
     const first = els[0];
@@ -3792,9 +3841,10 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     promises:   {icon:'✨', name:'Promessas'},
     categorias: {icon:'📂', name:'Categorias'},
     sizes:      {icon:'📏', name:'Tamanhos'},
-    colecao:    {icon:'👗', name:'Coleção'},
-    promos:     {icon:'🏷️', name:'Promoções'},
-    sobre:      {icon:'💌', name:'Sobre'},
+    colecao:         {icon:'👗', name:'Coleção'},
+    promos:          {icon:'🏷️', name:'Promoções'},
+    secColecoesCards:{icon:'🌟', name:'Nossas Coleções'},
+    sobre:           {icon:'💌', name:'Sobre'},
     instagram:  {icon:'📸', name:'Instagram'},
   };
   function _vsbMeta(key){ return VSB_META[key] || {icon:'📄', name: key.startsWith('cs_')?'Seção personalizada':key}; }

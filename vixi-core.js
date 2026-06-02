@@ -197,6 +197,15 @@ function saveColecoes(list){
 }
 window.getColecoes=getColecoes;
 window.saveColecoes=saveColecoes;
+function getFeaturedColecoes(){
+  try{return JSON.parse(localStorage.getItem('vixiFeaturedColecoes')||'[]');}catch(e){return [];}
+}
+function saveFeaturedColecoes(list){
+  localStorage.setItem('vixiFeaturedColecoes',JSON.stringify(list));
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiFeaturedColecoes',list);
+}
+window.getFeaturedColecoes=getFeaturedColecoes;
+window.saveFeaturedColecoes=saveFeaturedColecoes;
 
 // ── Renderiza seção visual de Coleções (subcoleções como tiles) ──
 function renderColecoesSection(){

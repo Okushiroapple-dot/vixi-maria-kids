@@ -1220,15 +1220,49 @@ function loadColecoesAdmin(){
   renderColecoesAdmin();
 }
 
+function _getFeatured(){
+  try{ return JSON.parse(localStorage.getItem('vixiFeaturedColecoes')||'[]'); }catch(e){ return []; }
+}
+
+function _toggleFeatured(id){
+  var cur = _getFeatured();
+  var idx = cur.indexOf(id);
+  if(idx >= 0){
+    cur.splice(idx,1);
+  } else {
+    if(cur.length >= 2){ showToast('Máximo 2 coleções em destaque. Desmarque uma primeiro.'); renderColecoesAdmin(); return; }
+    cur.push(id);
+  }
+  localStorage.setItem('vixiFeaturedColecoes', JSON.stringify(cur));
+  if(window.vixiSaveCloud) window.vixiSaveCloud('vixiFeaturedColecoes', cur);
+  renderColecoesAdmin();
+}
+window._toggleFeatured = _toggleFeatured;
+
 function renderColecoesAdmin(){
   var box = document.getElementById('colecoesList');
   if(!box) return;
+  var featured = _getFeatured();
   if(!_colecoes.length){
     box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:12px 0">Nenhuma subcoleção cadastrada.</p>';
     return;
   }
-  box.innerHTML = _colecoes.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--pink-pale);border-radius:12px;padding:10px 12px;border:1.5px solid var(--line)">'
+  // Hint acima da lista
+  var hint='<div style="display:flex;align-items:center;gap:8px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;font-weight:700;color:#795548">'
+    +'<span style="font-size:16px">⭐</span>'
+    +'<span>Marque exatamente <strong>2 coleções</strong> que aparecerão como carrossel na página inicial. ('+featured.length+'/2 selecionadas)</span>'
+    +'</div>';
+  box.innerHTML = hint + _colecoes.map(function(c,i){
+    var isFeat = featured.includes(c.id);
+    var featNum = isFeat ? (featured.indexOf(c.id)+1) : 0;
+    var border = isFeat ? '2px solid var(--pink)' : '1.5px solid var(--line)';
+    var bg = isFeat ? '#fff0f7' : 'var(--pink-pale)';
+    return '<div style="display:flex;align-items:center;gap:8px;background:'+bg+';border-radius:12px;padding:10px 12px;border:'+border+';margin-bottom:6px">'
+      // Checkbox de destaque
+      +'<label title="Destacar na página inicial" style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;min-width:38px">'
+        +'<input type="checkbox"'+(isFeat?' checked':'')+' onchange="_toggleFeatured(\''+escapeHtml(c.id)+'\')" style="width:18px;height:18px;accent-color:var(--pink);cursor:pointer">'
+        +(isFeat?'<span style="font-size:9px;font-weight:900;color:var(--pink)">'+featNum+'ª</span>':'<span style="font-size:9px;color:var(--gray)">dest.</span>')
+      +'</label>'
       +'<input type="text" value="'+escapeHtml(c.icon||'')+'" maxlength="4" oninput="_colecoes['+i+'].icon=this.value" style="width:48px;padding:6px;border:2px solid var(--line);border-radius:10px;font-size:18px;text-align:center;background:#fff;outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
       +'<input type="text" value="'+escapeHtml(c.name||'')+'" oninput="_colecoes['+i+'].name=this.value" placeholder="Nome" style="flex:1;padding:7px 12px;border:2px solid var(--line);border-radius:10px;font:inherit;font-size:13px;background:#fff;outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
       +'<input type="text" value="'+escapeHtml(c.id||'')+'" oninput="_colecoes['+i+'].id=this.value.replace(/[^a-z0-9-]/g,\'-\').toLowerCase()" placeholder="id-unico" style="width:130px;padding:7px 10px;border:2px solid var(--line);border-radius:10px;font:inherit;font-size:12px;background:#f9f9f9;outline:none;box-sizing:border-box;color:var(--gray)" onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'var(--line)\'">'
@@ -1252,17 +1286,22 @@ function addColecaoItem(){
 }
 
 function removeColecaoItem(i){
+  // Remove das destaques também se estava lá
+  var removedId = _colecoes[i]?.id;
   _colecoes.splice(i,1);
+  if(removedId){
+    var feat = _getFeatured().filter(function(id){ return id !== removedId; });
+    localStorage.setItem('vixiFeaturedColecoes', JSON.stringify(feat));
+  }
   renderColecoesAdmin();
 }
 
 async function saveColecoesList(){
   var btn = document.querySelector('#admSecColecoes .mini-btn.primary');
   if(btn){btn.textContent='Salvando...';btn.disabled=true;}
-  // Lê valores atuais dos inputs
-  var rows = document.querySelectorAll('#colecoesList > div');
+  var rows = document.querySelectorAll('#colecoesList > div:not(:first-child)');
   rows.forEach(function(row,i){
-    var inputs = row.querySelectorAll('input');
+    var inputs = row.querySelectorAll('input[type="text"]');
     if(inputs[0]&&_colecoes[i]) _colecoes[i].icon = inputs[0].value;
     if(inputs[1]&&_colecoes[i]) _colecoes[i].name = inputs[1].value;
     if(inputs[2]&&_colecoes[i]) _colecoes[i].id   = inputs[2].value.replace(/[^a-z0-9-]/g,'-').toLowerCase();
