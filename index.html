@@ -2797,7 +2797,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       nav.className = 'vixi-main-nav';
       const regularCats = cats.filter(c => c.id !== 'colecao');
       const colecoes = typeof getColecoes === 'function' ? getColecoes() : [];
-      const colDD = '<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>'
+      const colDD = `<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>`
         + (colecoes.length ? colecoes.map(c => `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`).join('') : '');
       nav.innerHTML = `<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>
         <div class="nav-dd">
@@ -2808,6 +2808,22 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
           <button class="nav-dd-btn" type="button">🌟 Coleção ▼</button>
           <div class="nav-dd-menu">${colDD}</div>
         </div>`;
+      if(!nav._vixiNavClick){
+        nav._vixiNavClick=true;
+        nav.addEventListener('click',function(e){
+          var btn=e.target.closest('.nav-dd-btn');
+          if(!btn) return;
+          var dd=btn.closest('.nav-dd');
+          if(!dd||dd.classList.contains('nav-admin-dd')) return;
+          e.stopPropagation();
+          nav.querySelectorAll('.nav-dd').forEach(function(d){if(d!==dd)d.classList.remove('open');});
+          dd.classList.toggle('open');
+        });
+        document.addEventListener('click',function(){
+          if(nav) nav.querySelectorAll('.nav-dd').forEach(function(d){d.classList.remove('open');});
+        });
+      }
+      if(typeof syncAdminNav==='function') syncAdminNav();
     }
     const mob = document.getElementById('mobMenu');
     if(mob){
