@@ -948,19 +948,28 @@ body.vixi-editing [contenteditable="true"]{
 }
 
 /* ──── COLEÇÕES SHOWCASE — CARDS FLUTUANTES ──── */
-.colecao-float-wrap{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:36px;padding:16px 0 8px}
-.colecao-float-card{position:relative;background:#fff;border-radius:var(--r32);box-shadow:0 24px 64px rgba(30,0,26,.14);overflow:hidden;animation:cardFloat 4s ease-in-out infinite;will-change:transform;display:flex;flex-direction:column}
-.colecao-float-card:nth-child(2){animation-delay:1.4s}
-.colecao-float-card .col-ribbon{background:var(--yellow);color:var(--ink);padding:6px 16px;font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;text-align:center}
-.colecao-float-card .col-imgs{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.colecao-float-card .col-imgs img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.colecao-float-card .col-placeholder{width:100%;aspect-ratio:1;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:40px}
-.colecao-float-card .col-info{padding:20px 24px 26px;display:flex;flex-direction:column;gap:6px;flex:1}
-.colecao-float-card .col-name{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--ink-mid)}
-.colecao-float-card .col-count{font-size:13px;font-weight:700;color:var(--gray)}
-.colecao-float-card .col-btn{margin-top:auto;background:var(--pink);color:#fff;border:none;border-radius:99px;padding:12px 26px;font-family:var(--font-b);font-weight:900;font-size:14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;align-self:flex-start;transition:all .2s;box-shadow:0 4px 14px rgba(242,39,110,.3)}
-.colecao-float-card .col-btn:hover{background:var(--ink-mid);transform:translateY(-2px);box-shadow:0 8px 24px rgba(30,0,26,.18)}
-@media(max-width:720px){.colecao-float-wrap{grid-template-columns:1fr;gap:28px}}
+.colecao-float-wrap{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:24px 20px 16px}
+/* wrapper que ancora os float-el de cada card */
+.colsec-art{position:relative;display:flex;align-items:center;justify-content:center}
+.colsec-art .float-el{pointer-events:none}
+/* o card em si — igual ao .main-card do hero */
+.colsec-float-card{position:relative;background:#fff;border-radius:var(--r32);padding:28px 24px 24px;box-shadow:var(--sh3);width:100%;max-width:320px;text-align:center;overflow:hidden;animation:cardFloat 4.2s ease-in-out infinite;will-change:transform;display:flex;flex-direction:column;gap:10px}
+.colsec-art:nth-child(2) .colsec-float-card{animation-delay:1.6s}
+/* ribbon como no Queridinha — fundo amarelo */
+.colsec-float-card .colsec-ribbon{position:absolute;top:16px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--yellow);color:var(--ink);padding:5px 16px;border-radius:var(--r99);font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase}
+/* imagem do carrossel */
+.colsec-float-card .colsec-img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:16px;background:var(--pink-pale);margin-top:30px}
+.colsec-float-card .colsec-slide{display:grid;gap:8px;opacity:1;transform:translateY(0);transition:opacity .28s ease,transform .28s ease}
+.colsec-float-card .colsec-slide.swap{opacity:0;transform:translateY(8px)}
+.colsec-float-card .colsec-name{font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--ink-mid);line-height:1.2}
+.colsec-float-card .colsec-price{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--pink)}
+.colsec-float-card .colsec-dots{display:flex;gap:5px;justify-content:center}
+.colsec-float-card .colsec-dots span{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.colsec-float-card .colsec-dots span.on{background:var(--pink)}
+.colsec-float-card .colsec-count{font-size:12px;font-weight:700;color:var(--gray)}
+.colsec-float-card .col-btn{margin-top:4px;background:var(--pink);color:#fff;border:none;border-radius:99px;padding:12px 24px;font-family:var(--font-b);font-weight:900;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 14px rgba(242,39,110,.3)}
+.colsec-float-card .col-btn:hover{background:var(--ink-mid);transform:translateY(-2px)}
+@media(max-width:720px){.colecao-float-wrap{grid-template-columns:1fr;gap:48px}}
 
 /* ──── PERFORMANCE HINTS (continuously animating elements) ──── */
 .ann-track{will-change:transform}

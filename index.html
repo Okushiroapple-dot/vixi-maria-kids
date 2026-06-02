@@ -2468,18 +2468,6 @@ window.syncHeaderAuth(window.currentUser || null);
 .hero-fav-actions button,.hero-fav-actions a{border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none}
 .hero-fav-actions button{background:var(--pink);color:#fff}.hero-fav-actions a{background:var(--pink-pale);color:var(--pink)}
 .hero-fav-dots{display:flex;gap:6px;justify-content:center}.hero-fav-dots span{width:7px;height:7px;border-radius:50%;background:var(--line)}.hero-fav-dots span.on{background:var(--pink)}
-.colsec-dual{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
-@media(max-width:600px){.colsec-dual{grid-template-columns:1fr;gap:20px}}
-.colsec-card{background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.07);padding:20px;display:grid;gap:10px;position:relative}
-.colsec-ribbon{display:inline-flex;align-items:center;gap:6px;background:var(--pink);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;border-radius:999px;padding:5px 14px;align-self:start;width:fit-content}
-.colsec-slide{opacity:1;transform:translateY(0);transition:opacity .28s ease,transform .28s ease;display:grid;gap:8px}
-.colsec-slide.swap{opacity:0;transform:translateY(8px)}
-.colsec-img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;background:var(--pink-pale)}
-.colsec-name{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--ink-mid);line-height:1.15}
-.colsec-price{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--pink)}
-.colsec-dots{display:flex;gap:5px;justify-content:center}.colsec-dots span{width:6px;height:6px;border-radius:50%;background:var(--line)}.colsec-dots span.on{background:var(--pink)}
-.colsec-count{font-size:12px;color:var(--gray);font-weight:700}
-.colsec-btn{display:block;border-radius:999px;padding:11px 20px;background:var(--pink-pale);color:var(--pink);font-weight:900;font-size:13px;text-decoration:none;text-align:center;transition:background .18s}.colsec-btn:hover{background:var(--pink);color:#fff}
 .prod-card{box-shadow:0 8px 24px rgba(30,0,26,.06);border:1px solid rgba(245,215,229,.9)}
 .prod-card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(30,0,26,.12)}
 .prod-desc{font-size:13px;color:var(--gray);font-weight:700;margin:-4px 0 10px;line-height:1.35}
@@ -2873,6 +2861,13 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
   }
   window.renderAnnBar=renderAnnBar;
 
+  // Emojis flutuantes por card (igual hero-art)
+  var _COLSEC_FLOATS=[
+    ['🌸','🎀','✨','💫'],
+    ['🌟','🎀','🌸','💝']
+  ];
+  var _colseTimers=[];
+
   function renderColecoesShowcase(){
     var sec=document.getElementById('secColecoesCards');
     var grid=document.getElementById('colcardGrid');
@@ -2887,27 +2882,38 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     if(!cols.length){sec.style.display='none';return;}
     sec.style.display='';
     var _csi=[0,0];
-    function _colsecSlideHtml(c,idx){
+
+    function _slideHtml(c,idx){
       var prods=PRODS.filter(function(p){return p.colecao===c.id;});
       var p=prods[idx]||prods[0];
-      if(!p) return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:56px;background:var(--pink-pale)">'+(c.icon||'🌟')+'</div>';
+      if(!p) return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:64px;">'+(c.icon||'🌟')+'</div>';
       return '<img class="colsec-img" src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
         +'<div class="colsec-name">'+escapeHtml(p.name)+'</div>'
         +'<div class="colsec-price">'+money(p.price)+'</div>';
     }
-    grid.innerHTML='<div class="colsec-dual">'+cols.map(function(c,ci){
+
+    grid.innerHTML=cols.map(function(c,ci){
       var prods=PRODS.filter(function(p){return p.colecao===c.id;});
       var count=prods.length;
-      var dots=prods.length>1?'<div class="colsec-dots">'+prods.map(function(_,di){return '<span'+(di===0?' class="on"':'')+'>'+' </span>';}).join('')+'</div>':'';
-      return '<div class="colsec-card" data-colsec="'+ci+'">'
-        +'<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-        +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_colsecSlideHtml(c,0)+'</div>'
-        +dots
-        +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
-        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="colsec-btn">Ver coleção →</a>'
+      var floats=_COLSEC_FLOATS[ci]||_COLSEC_FLOATS[0];
+      var dots=prods.length>1
+        ?'<div class="colsec-dots">'+prods.map(function(_,di){return '<span'+(di===0?' class="on"':'')+'>&#8203;</span>';}).join('')+'</div>'
+        :'';
+      return '<div class="colsec-art">'
+        +'<div class="float-el f1">'+floats[0]+'</div>'
+        +'<div class="float-el f2">'+floats[1]+'</div>'
+        +'<div class="float-el f3">'+floats[2]+'</div>'
+        +'<div class="colsec-float-card" data-colsec="'+ci+'">'
+          +'<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+          +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_slideHtml(c,0)+'</div>'
+          +dots
+          +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
+          +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
+        +'</div>'
         +'</div>';
-    }).join('')+'</div>';
-    // iniciar carrossel
+    }).join('');
+
+    // carrossel
     _colseTimers.forEach(clearInterval);
     _colseTimers=[];
     cols.forEach(function(c,ci){
@@ -2920,7 +2926,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
         if(!slide) return;
         slide.classList.add('swap');
         setTimeout(function(){
-          slide.innerHTML=_colsecSlideHtml(c,_csi[ci]);
+          slide.innerHTML=_slideHtml(c,_csi[ci]);
           slide.classList.remove('swap');
           var card=document.querySelector('[data-colsec="'+ci+'"]');
           if(card) card.querySelectorAll('.colsec-dots span').forEach(function(s,si){s.classList.toggle('on',si===_csi[ci]);});
@@ -2929,7 +2935,6 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       _colseTimers.push(t);
     });
   }
-  var _colseTimers=[];
   window.renderColecoesShowcase=renderColecoesShowcase;
 
   function getWeeklyFavorites(){
