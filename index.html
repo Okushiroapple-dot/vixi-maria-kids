@@ -2883,17 +2883,9 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     sec.style.display='';
     var _csi=[0,0];
 
-    // Retorna produtos da coleção; fallback: cat=colecao; fallback: todos
-    function _prodsFor(c,ci){
-      var byColecao=PRODS.filter(function(p){return p.colecao===c.id&&p.img;});
-      if(byColecao.length) return byColecao;
-      // Fallback: produtos da categoria coleção, deslocados por ci para não repetir imagens
-      var byCat=PRODS.filter(function(p){return p.cat==='colecao'&&p.img;});
-      if(!byCat.length) byCat=PRODS.filter(function(p){return p.img;});
-      if(!byCat.length) return [];
-      // Embaralha com seed diferente por card
-      var arr=byCat.slice().sort(function(){return 0.5-Math.sin(ci*999);});
-      return arr;
+    // Retorna SOMENTE os produtos com colecao===c.id que tenham imagem
+    function _prodsFor(c){
+      return PRODS.filter(function(p){return p.colecao===c.id&&p.img;});
     }
 
     function _slideHtml(prods,idx){
@@ -2904,33 +2896,41 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
         +'<div class="colsec-price">'+money(p.price)+'</div>';
     }
 
+    function _emptySlide(c){
+      return '<div class="colsec-img" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--pink-pale);font-size:42px;">'
+        +(c.icon||'🌟')
+        +'<span style="font-size:11px;font-weight:900;color:var(--gray);letter-spacing:1px;text-transform:uppercase">Nenhum produto ainda</span>'
+        +'</div>';
+    }
+
     grid.innerHTML=cols.map(function(c,ci){
-      var prods=_prodsFor(c,ci);
-      var realCount=PRODS.filter(function(p){return p.colecao===c.id;}).length;
+      var prods=_prodsFor(c);
+      var count=prods.length;
       var floats=_COLSEC_FLOATS[ci]||_COLSEC_FLOATS[0];
-      var MAX_DOTS=Math.min(prods.length,8);
-      var dots=prods.length>1
+      var MAX_DOTS=Math.min(count,8);
+      var dots=count>1
         ?'<div class="colsec-dots">'+Array.from({length:MAX_DOTS},function(_,di){return '<span'+(di===0?' class="on"':'')+'>&#8203;</span>';}).join('')+'</div>'
         :'';
+      var slideContent=count>0?_slideHtml(prods,0):_emptySlide(c);
       return '<div class="colsec-art">'
         +'<div class="float-el f1">'+floats[0]+'</div>'
         +'<div class="float-el f2">'+floats[1]+'</div>'
         +'<div class="float-el f3">'+floats[2]+'</div>'
         +'<div class="colsec-float-card" data-colsec="'+ci+'">'
           +'<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-          +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_slideHtml(prods,0)+'</div>'
+          +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+slideContent+'</div>'
           +dots
-          +(realCount?'<div class="colsec-count">'+realCount+' peça'+(realCount!==1?'s':'')+' nesta coleção</div>':'')
+          +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
           +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
         +'</div>'
         +'</div>';
     }).join('');
 
-    // carrossel
+    // carrossel — só para coleções com 2+ produtos
     _colseTimers.forEach(clearInterval);
     _colseTimers=[];
     cols.forEach(function(c,ci){
-      var prods=_prodsFor(c,ci);
+      var prods=_prodsFor(c);
       if(prods.length<=1) return;
       var MAX_DOTS=Math.min(prods.length,8);
       var t=setInterval(function(){
