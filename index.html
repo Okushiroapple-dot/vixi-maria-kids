@@ -2322,15 +2322,15 @@ function syncCategoriesUI(){
   if(nav){
     nav.className='vixi-main-nav';
     var roupasLinks=regularCats.map(function(c){
-      return '<a href="javascript:void(0)" onclick="filterCategory('' + c.id + '')">'+c.icon+' '+escapeHtml(c.label)+'</a>';
+      return `<a href="javascript:void(0)" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`;
     }).join('');
-    var colLinks='<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>';
+    var colLinks=`<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>`;
     if(colecoes.length){
       colLinks+=colecoes.map(function(c){
-        return '<a href="javascript:void(0)" onclick="filterColecao('' + c.id + '')">'+( c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';
+        return `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`;
       }).join('');
     }
-    nav.innerHTML='<a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>'
+    nav.innerHTML=`<a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>`
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu">'+roupasLinks+'</div></div>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🌟 Coleção ▾</button><div class="nav-dd-menu">'+colLinks+'</div></div>';
   }
@@ -2515,10 +2515,6 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
 .vixi-crop-modal.open{display:flex}.vixi-crop-box{width:min(720px,96vw);background:#fff;border-radius:8px;box-shadow:var(--sh3);padding:18px;display:grid;gap:14px}.vixi-crop-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.vixi-crop-head h3{font-family:var(--font-d);font-size:22px;color:var(--ink)}.vixi-crop-close{width:36px;height:36px;border:0;border-radius:50%;background:var(--pink-pale);color:var(--pink);font-weight:900;cursor:pointer}.vixi-crop-frame{width:min(420px,82vw);aspect-ratio:1;margin:0 auto;background:#f7edf2;border-radius:8px;overflow:hidden;position:relative}.vixi-crop-frame img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center}.vixi-crop-controls{display:grid;gap:10px}.vixi-crop-controls label{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:10px;font-size:13px;font-weight:900;color:var(--ink-mid)}.vixi-crop-controls input{width:100%;accent-color:var(--pink)}.vixi-crop-actions{display:flex;justify-content:flex-end;gap:10px}.vixi-crop-actions button{border:0;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer}.vixi-crop-actions .cancel{background:var(--pink-pale);color:var(--ink-mid)}.vixi-crop-actions .save{background:var(--pink);color:#fff}
 @media(max-width:760px){.hero-inner{grid-template-columns:1fr}.hero-art{order:-1}.hdr{height:auto;min-height:68px}.hdr-cta{display:none}.cat-row{grid-template-columns:1fr}.nav-dd-menu{position:static;transform:none;box-shadow:none;margin-top:6px}.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{transform:none}}
 </style>
-
-<!-- vixi-core carregado antes do IIFE para garantir getCats, renderAnnBar, etc. -->
-<script src="vixi-core.js"></script>
-<script src="vixi-admin.js"></script>
 
 <script>
 // Modern visual editor, dynamic nav, and persistence hardening.
