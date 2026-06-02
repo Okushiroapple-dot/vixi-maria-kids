@@ -20,38 +20,40 @@
 <body>
 
 <!-- Announce Bar -->
-<section class="ann" aria-label="Avisos">
+<div class="ann">
   <div class="ann-track" id="annTrack"></div>
-</section>
+</div>
 
 <!-- Header -->
 <header>
   <div class="hdr">
-    <a href="#" class="logo">
+    <a href="index.html" class="logo">
       <div class="logo-icon">🌸</div>
       <div class="logo-text">
         <span class="logo-name">vixi maria</span>
         <span class="logo-sub">kids</span>
       </div>
     </a>
-    <nav class="vixi-main-nav" id="mainNav">
-      <a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>
+    <nav>
+      <a href="index.html">🏠 Início</a>
       <div class="nav-dd">
         <button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button>
         <div class="nav-dd-menu">
-          <a href="javascript:void(0)" onclick="filterCategory('meninas')">👗 Meninas</a>
-          <a href="javascript:void(0)" onclick="filterCategory('meninos')">⚽ Meninos</a>
-          <a href="javascript:void(0)" onclick="filterCategory('bebes')">🍼 Bebês</a>
-          <a href="javascript:void(0)" onclick="filterCategory('juvenil')">✨ Juvenil</a>
-          <a href="javascript:void(0)" onclick="filterCategory('acessorios')">🎀 Acessórios</a>
+          <a href="clothes.html">Todas as roupas</a>
+          <a href="clothes.html?cat=meninas">👗 Meninas</a>
+          <a href="clothes.html?cat=meninos">⚽ Meninos</a>
+          <a href="clothes.html?cat=bebes">🍼 Bebês</a>
+          <a href="clothes.html?cat=juvenil">✨ Juvenil</a>
+          <a href="clothes.html?cat=acessorios">🎀 Acessórios</a>
         </div>
       </div>
       <div class="nav-dd">
         <button class="nav-dd-btn" type="button">🌟 Coleção ▾</button>
         <div class="nav-dd-menu" id="colecaoNavMenu">
-          <a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>
+          <a href="clothes.html?cat=colecao">🌟 Ver todas as coleções</a>
         </div>
       </div>
+      <a href="clothes.html?cat=novidades" class="hot">🔥 Novidades</a>
     </nav>
     <div class="hdr-icons">
       <button class="ibt" title="Buscar" id="searchBtn">🔍</button>
@@ -69,12 +71,14 @@
 <!-- Mobile Menu -->
 <div class="mob-menu" id="mobMenu">
   <button class="mob-close" id="mobClose">✕</button>
-  <a href="#meninas" onclick="closeMob()">👧 meninas</a>
-  <a href="#meninos" onclick="closeMob()">🧒 meninos</a>
-  <a href="#bebes" onclick="closeMob()">🍼 bebês</a>
-  <a href="#juvenil" onclick="closeMob()">✨ juvenil</a>
-  <a href="#favoritos" onclick="closeMob()">💖 favoritos</a>
-  <a href="#colecao" onclick="closeMob()">🔥 novidades</a>
+  <a href="index.html" onclick="closeMob()">🏠 Início</a>
+  <a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>
+  <a href="clothes.html?cat=meninas" onclick="closeMob()">👗 Meninas</a>
+  <a href="clothes.html?cat=meninos" onclick="closeMob()">⚽ Meninos</a>
+  <a href="clothes.html?cat=bebes" onclick="closeMob()">🍼 Bebês</a>
+  <a href="clothes.html?cat=juvenil" onclick="closeMob()">✨ Juvenil</a>
+  <a href="clothes.html?cat=acessorios" onclick="closeMob()">🎀 Acessórios</a>
+  <a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>
   <a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>
 </div>
 
@@ -2511,6 +2515,10 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
 .vixi-crop-modal.open{display:flex}.vixi-crop-box{width:min(720px,96vw);background:#fff;border-radius:8px;box-shadow:var(--sh3);padding:18px;display:grid;gap:14px}.vixi-crop-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.vixi-crop-head h3{font-family:var(--font-d);font-size:22px;color:var(--ink)}.vixi-crop-close{width:36px;height:36px;border:0;border-radius:50%;background:var(--pink-pale);color:var(--pink);font-weight:900;cursor:pointer}.vixi-crop-frame{width:min(420px,82vw);aspect-ratio:1;margin:0 auto;background:#f7edf2;border-radius:8px;overflow:hidden;position:relative}.vixi-crop-frame img{position:absolute;left:50%;top:50%;max-width:none;user-select:none;pointer-events:none;transform-origin:center}.vixi-crop-controls{display:grid;gap:10px}.vixi-crop-controls label{display:grid;grid-template-columns:70px 1fr;align-items:center;gap:10px;font-size:13px;font-weight:900;color:var(--ink-mid)}.vixi-crop-controls input{width:100%;accent-color:var(--pink)}.vixi-crop-actions{display:flex;justify-content:flex-end;gap:10px}.vixi-crop-actions button{border:0;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer}.vixi-crop-actions .cancel{background:var(--pink-pale);color:var(--ink-mid)}.vixi-crop-actions .save{background:var(--pink);color:#fff}
 @media(max-width:760px){.hero-inner{grid-template-columns:1fr}.hero-art{order:-1}.hdr{height:auto;min-height:68px}.hdr-cta{display:none}.cat-row{grid-template-columns:1fr}.nav-dd-menu{position:static;transform:none;box-shadow:none;margin-top:6px}.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{transform:none}}
 </style>
+
+<!-- vixi-core carregado antes do IIFE para garantir getCats, renderAnnBar, etc. -->
+<script src="vixi-core.js"></script>
+<script src="vixi-admin.js"></script>
 
 <script>
 // Modern visual editor, dynamic nav, and persistence hardening.
