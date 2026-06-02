@@ -895,8 +895,8 @@
       <h2>Nossas Coleções 🌟</h2>
       <p>Peças temáticas selecionadas com muito carinho para cada estação.</p>
     </div>
-    <div class="colcard-grid" id="colcardGrid"></div>
-    <div style="text-align:center;margin-top:40px">
+    <div class="colecao-float-wrap" id="colcardGrid"></div>
+    <div style="text-align:center;margin-top:44px">
       <a href="clothes.html?cat=colecao" class="btn-main">Ver todas as coleções →</a>
     </div>
   </div>
@@ -2865,7 +2865,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     var sec=document.getElementById('secColecoesCards');
     var grid=document.getElementById('colcardGrid');
     if(!sec||!grid) return;
-    var cols=getColecoes();
+    var cols=getColecoes().slice(0,2);
     if(!cols.length){sec.style.display='none';return;}
     sec.style.display='';
     var slots=['🌸','🎀','👗','👶'];
@@ -2874,17 +2874,16 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       var imgs='';
       for(var i=0;i<4;i++){
         if(prods[i]) imgs+='<img src="'+escapeHtml(prods[i].img)+'" alt="'+escapeHtml(prods[i].name)+'" loading="lazy">';
-        else imgs+='<div class="colcard-placeholder">'+slots[i]+'</div>';
+        else imgs+='<div class="col-placeholder">'+slots[i]+'</div>';
       }
       var count=PRODS.filter(function(p){return p.colecao===c.id;}).length;
-      return '<div class="colcard">'
-        +'<div class="colcard-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-        +'<div class="colcard-imgs">'+imgs+'</div>'
-        +'<div class="colcard-foot">'
-        +'<div><div class="colcard-title">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-        +(count?'<div class="colcard-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
-        +'</div>'
-        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="colcard-btn">Ver coleção →</a>'
+      return '<div class="colecao-float-card">'
+        +'<div class="col-ribbon">'+escapeHtml(c.name||c.id)+'</div>'
+        +'<div class="col-imgs">'+imgs+'</div>'
+        +'<div class="col-info">'
+        +'<div class="col-name">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+        +(count?'<div class="col-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
+        +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
         +'</div>'
         +'</div>';
     }).join('');
