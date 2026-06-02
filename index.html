@@ -2883,21 +2883,34 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     sec.style.display='';
     var _csi=[0,0];
 
-    function _slideHtml(c,idx){
-      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
-      var p=prods[idx]||prods[0];
-      if(!p) return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:64px;">'+(c.icon||'🌟')+'</div>';
-      return '<img class="colsec-img" src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'
-        +'<div class="colsec-name">'+escapeHtml(p.name)+'</div>'
+    // Retorna produtos da coleção; fallback: cat=colecao; fallback: todos
+    function _prodsFor(c,ci){
+      var byColecao=PRODS.filter(function(p){return p.colecao===c.id&&p.img;});
+      if(byColecao.length) return byColecao;
+      // Fallback: produtos da categoria coleção, deslocados por ci para não repetir imagens
+      var byCat=PRODS.filter(function(p){return p.cat==='colecao'&&p.img;});
+      if(!byCat.length) byCat=PRODS.filter(function(p){return p.img;});
+      if(!byCat.length) return [];
+      // Embaralha com seed diferente por card
+      var arr=byCat.slice().sort(function(){return 0.5-Math.sin(ci*999);});
+      return arr;
+    }
+
+    function _slideHtml(prods,idx){
+      var p=prods[idx%prods.length];
+      if(!p||!p.img) return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:64px;">🌟</div>';
+      return '<img class="colsec-img" src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name||'')+'" loading="lazy">'
+        +'<div class="colsec-name">'+escapeHtml(p.name||'')+'</div>'
         +'<div class="colsec-price">'+money(p.price)+'</div>';
     }
 
     grid.innerHTML=cols.map(function(c,ci){
-      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
-      var count=prods.length;
+      var prods=_prodsFor(c,ci);
+      var realCount=PRODS.filter(function(p){return p.colecao===c.id;}).length;
       var floats=_COLSEC_FLOATS[ci]||_COLSEC_FLOATS[0];
+      var MAX_DOTS=Math.min(prods.length,8);
       var dots=prods.length>1
-        ?'<div class="colsec-dots">'+prods.map(function(_,di){return '<span'+(di===0?' class="on"':'')+'>&#8203;</span>';}).join('')+'</div>'
+        ?'<div class="colsec-dots">'+Array.from({length:MAX_DOTS},function(_,di){return '<span'+(di===0?' class="on"':'')+'>&#8203;</span>';}).join('')+'</div>'
         :'';
       return '<div class="colsec-art">'
         +'<div class="float-el f1">'+floats[0]+'</div>'
@@ -2905,9 +2918,9 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
         +'<div class="float-el f3">'+floats[2]+'</div>'
         +'<div class="colsec-float-card" data-colsec="'+ci+'">'
           +'<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
-          +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_slideHtml(c,0)+'</div>'
+          +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+_slideHtml(prods,0)+'</div>'
           +dots
-          +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
+          +(realCount?'<div class="colsec-count">'+realCount+' peça'+(realCount!==1?'s':'')+' nesta coleção</div>':'')
           +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
         +'</div>'
         +'</div>';
@@ -2917,8 +2930,9 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     _colseTimers.forEach(clearInterval);
     _colseTimers=[];
     cols.forEach(function(c,ci){
-      var prods=PRODS.filter(function(p){return p.colecao===c.id;});
+      var prods=_prodsFor(c,ci);
       if(prods.length<=1) return;
+      var MAX_DOTS=Math.min(prods.length,8);
       var t=setInterval(function(){
         if(window.visualEditorOn||document.activeElement?.isContentEditable) return;
         _csi[ci]=(_csi[ci]+1)%prods.length;
@@ -2926,10 +2940,10 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
         if(!slide) return;
         slide.classList.add('swap');
         setTimeout(function(){
-          slide.innerHTML=_slideHtml(c,_csi[ci]);
+          slide.innerHTML=_slideHtml(prods,_csi[ci]);
           slide.classList.remove('swap');
           var card=document.querySelector('[data-colsec="'+ci+'"]');
-          if(card) card.querySelectorAll('.colsec-dots span').forEach(function(s,si){s.classList.toggle('on',si===_csi[ci]);});
+          if(card) card.querySelectorAll('.colsec-dots span').forEach(function(s,si){s.classList.toggle('on',si===_csi[ci]%MAX_DOTS);});
         },280);
       },4500+ci*1800);
       _colseTimers.push(t);
