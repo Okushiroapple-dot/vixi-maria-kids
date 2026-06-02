@@ -2828,7 +2828,10 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     const mob = document.getElementById('mobMenu');
     if(mob){
       const close = '<button class="mob-close" id="mobClose">×</button>';
-      mob.innerHTML = close + `<a href="#colecao" onclick="filterCategory('all');closeMob()">Novidades</a>` + regularCats.map(c=>`<a hre
+      mob.innerHTML = close
+        + `<a href="#colecao" onclick="filterCategory('all');closeMob()">🔥 Novidades</a>`
+        + regularCats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${escapeHtml(c.label)}</a>`).join('')
+        + `<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>`;
       document.getElementById('mobClose')?.addEventListener('click', closeMob);
     }
     const tabs = document.querySelector('.prod-tabs');
