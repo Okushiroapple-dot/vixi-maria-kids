@@ -1153,12 +1153,15 @@ function selectSize(el){
 
 renderProds('all');
 
-// Filter tabs
+// Filter tabs — redireciona para clothes.html em vez de filtrar no index
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-    t.classList.add('on');
-    renderProds(t.dataset.f);
+    const f = t.dataset.f;
+    if(f && f !== 'all'){
+      window.location.href = 'clothes.html?cat=' + encodeURIComponent(f);
+    } else {
+      window.location.href = 'clothes.html';
+    }
   });
 });
 
@@ -2355,7 +2358,13 @@ function renderProds(filter='all'){
     </article>`}).join('') || '<p class="empty-state" style="grid-column:1/-1">Nenhum produto encontrado nessa seleção.</p>';
   const more=document.getElementById('viewMoreBtn'); if(more) more.style.display=list.length>0?'flex':'none';
 }
-function filterCategory(cat){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.f===cat)); visibleCount=4; activeSizeFilter=null; renderProds(cat);}
+function filterCategory(cat){
+  if(cat && cat!=='all'){
+    window.location.href='clothes.html?cat='+encodeURIComponent(cat);
+  } else {
+    window.location.href='clothes.html';
+  }
+}
 function filterSize(sz){activeSizeFilter=sz; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all')); visibleCount=4; renderProds('all');  showToast(`Mostrando tamanho ${sz} 📏`);}
 function loadMore(){visibleCount+=8;renderProds(document.querySelector('.tab.on')?.dataset.f||'all');}
 function addCart(id,e){if(e)e.stopPropagation(); const p=getProduct(id); if(!p)return; const item=cart.find(x=>x.id===id); if(item)item.qty++; else cart.push({id,qty:1}); saveCart(); showToast(`${p.name} adicionado ao carrinho 🛍️`);}

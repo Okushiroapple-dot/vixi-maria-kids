@@ -763,9 +763,9 @@ function renderProds(filter='all'){
   let list=PRODS.filter(p=>{
     if(filter==='novidades') return p.badge==='NOVO'||p.badge==='NOVO_HIDDEN';
     if(filter==='colecao'){
-      // Filtra por coleção: se currentSubcat definido, filtra pelo ID; senão mostra todos com coleção
       if(currentSubcat) return p.colecao===currentSubcat;
-      return !!p.colecao;
+      // Mostra produtos com cat=colecao OU com subcoleção atribuída
+      return p.cat==='colecao' || !!p.colecao;
     }
     if(filter!=='all'&&p.cat!==filter) return false;
     return true;
