@@ -948,7 +948,7 @@ body.vixi-editing [contenteditable="true"]{
 }
 
 /* ──── COLEÇÕES SHOWCASE CARDS ──── */
-.colcard-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.colcard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px}
 .colcard{background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(30,0,26,.09);border:1.5px solid var(--line);transition:transform .25s,box-shadow .25s;display:flex;flex-direction:column}
 .colcard:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(242,39,110,.13)}
 .colcard-ribbon{background:var(--pink);color:#fff;padding:11px 20px;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;font-family:var(--font-d)}

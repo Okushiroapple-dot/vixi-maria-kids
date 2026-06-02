@@ -214,21 +214,6 @@
   </div>
 </section>
 
-<!-- Coleções — renderizado dinamicamente pelo JS quando existem subcoleções -->
-<section class="section" id="secColecoes" style="display:none">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">exclusivo</span>
-      <h2>Nossas Coleções 🌟</h2>
-      <p>Peças temáticas selecionadas com muito carinho.</p>
-    </div>
-    <div class="cat-grid" id="colecoesGrid"></div>
-    <div style="text-align:center;margin-top:32px">
-      <a href="clothes.html?cat=colecao" class="btn-main">Ver todas as coleções →</a>
-    </div>
-  </div>
-</section>
-
 <!-- Size Navigator -->
 <section class="section tight">
   <div class="wrap">
@@ -861,18 +846,6 @@
   </div>
 </section>
 
-<!-- Coleções Showcase — 2 cards lado a lado -->
-<section class="section" id="secColecoesCards" style="display:none">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">exclusivas</span>
-      <h2>Nossas Coleções 🌟</h2>
-      <p>Peças temáticas selecionadas com muito carinho para cada estação.</p>
-    </div>
-    <div class="colcard-grid" id="colcardGrid"></div>
-  </div>
-</section>
-
 <!-- Favorites -->
 <section class="section" id="favoritos">
   <div class="wrap">
@@ -910,6 +883,21 @@
         <h3>Promoção da Semana:<br>até 40% off! 🎉</h3>
         <a href="clothes.html" class="btn-main">Aproveitar agora</a>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- Nossas Coleções -->
+<section class="section" id="secColecoesCards" style="display:none">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">exclusivas</span>
+      <h2>Nossas Coleções 🌟</h2>
+      <p>Peças temáticas selecionadas com muito carinho para cada estação.</p>
+    </div>
+    <div class="colcard-grid" id="colcardGrid"></div>
+    <div style="text-align:center;margin-top:40px">
+      <a href="clothes.html?cat=colecao" class="btn-main">Ver todas as coleções →</a>
     </div>
   </div>
 </section>
@@ -2877,7 +2865,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     var sec=document.getElementById('secColecoesCards');
     var grid=document.getElementById('colcardGrid');
     if(!sec||!grid) return;
-    var cols=getColecoes().slice(0,2);
+    var cols=getColecoes();
     if(!cols.length){sec.style.display='none';return;}
     sec.style.display='';
     var slots=['🌸','🎀','👗','👶'];
