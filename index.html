@@ -888,7 +888,7 @@
 </section>
 
 <!-- Nossas Coleções -->
-<section class="section" id="secColecoesCards" style="display:none">
+<section class="section" id="secColecoesCards" data-section-key="secColecoesCards" style="display:none">
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">exclusivas</span>
@@ -3745,8 +3745,15 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     writeJson(SECTION_ORDER_KEY,[...document.querySelectorAll('[data-section-key]')].map(el=>el.dataset.sectionKey));
   }
   function applySectionOrder(){
-    const order = readJson(SECTION_ORDER_KEY,[]);
+    let order = readJson(SECTION_ORDER_KEY,[]);
     if(!order.length) return;
+    // Garante secColecoesCards antes de 'sobre' se não estiver na ordem salva
+    if(!order.includes('secColecoesCards') && document.getElementById('secColecoesCards')){
+      const idx = order.indexOf('sobre');
+      if(idx>=0) order.splice(idx,0,'secColecoesCards');
+      else order.push('secColecoesCards');
+      writeJson(SECTION_ORDER_KEY, order);
+    }
     const els = order.map(k=>document.querySelector(`[data-section-key="${k}"]`)).filter(Boolean);
     const first = els[0];
     if(!first?.parentNode) return;
