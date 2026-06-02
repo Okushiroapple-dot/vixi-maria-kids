@@ -460,7 +460,7 @@ function saveToStorage(){
     const toSave = (window.liveProducts||PRODS).map(p=>{
       if(origIds.has(p.id)){
         if(p.img && p.img !== ORIGINAL_PRODUCT_IMAGES[p.id]) productImgs[p.id]=p.img;
-        return {id:p.id,name:p.name,cat:p.cat,cl:p.cl,price:p.price,old:p.old,badge:p.badge,sizes:p.sizes,desc:p.desc||'',img:p.img||''};
+        return {id:p.id,name:p.name,cat:p.cat,colecao:p.colecao||'',cl:p.cl,price:p.price,old:p.old,badge:p.badge,sizes:p.sizes,desc:p.desc||'',img:p.img||''};
       }
       return p;
     });

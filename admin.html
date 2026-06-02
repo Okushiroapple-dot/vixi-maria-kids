@@ -1319,7 +1319,7 @@ function populateColecaoSelects(currentColecao){
     + cols.map(function(c){ return '<option value="'+escapeHtml(c.id)+'"'+(currentColecao===c.id?' selected':'')+'>'+escapeHtml((c.icon||'🌟')+' '+c.name)+'</option>'; }).join('');
   ['admColecao','admColecaoNew'].forEach(function(id){
     var el=document.getElementById(id);
-    if(el){ var cur=el.value; el.innerHTML=opts; if(cur) el.value=cur; }
+    if(el){ el.innerHTML=opts; el.value=currentColecao||''; }
   });
 }
 window.populateColecaoSelects=populateColecaoSelects;
