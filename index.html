@@ -1153,16 +1153,9 @@ function selectSize(el){
 
 renderProds('all');
 
-// Filter tabs — redireciona para clothes.html em vez de filtrar no index
+// Filter tabs — usa filterCategory (redireciona ou rola conforme o caso)
 document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click',()=>{
-    const f = t.dataset.f;
-    if(f && f !== 'all'){
-      window.location.href = 'clothes.html?cat=' + encodeURIComponent(f);
-    } else {
-      window.location.href = 'clothes.html';
-    }
-  });
+  t.addEventListener('click',()=>{ filterCategory(t.dataset.f); });
 });
 
 // Cart
@@ -2328,7 +2321,7 @@ function syncCategoriesUI(){
   const mob=document.getElementById('mobMenu');
   if(mob){const close=mob.querySelector('.mob-close')?.outerHTML||'<button class="mob-close" id="mobClose">✕</button>'; mob.innerHTML = close + cats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${c.label.toLowerCase()}</a>`).join('') + '<a href="#favoritos" onclick="closeMob()">🥰 favoritos</a><a href="#colecao" onclick="closeMob()">🔥 novidades</a><a href="conta.html" onclick="closeMob()">👤 Minha Conta</a><a href="https://wa.me/'+VIXI_WHATSAPP+'" target="_blank">💬 WhatsApp</a>'; document.getElementById('mobClose')?.addEventListener('click', closeMob);}
   const tabs=document.querySelector('.prod-tabs');
-  if(tabs){const current=document.querySelector('.tab.on')?.dataset.f||'all'; tabs.innerHTML='<button class="tab" data-f="all">Todos</button>'+cats.map(c=>`<button class="tab" data-f="${c.id}">${c.icon} ${c.label}</button>`).join(''); tabs.querySelectorAll('.tab').forEach(t=>{if(t.dataset.f===current)t.classList.add('on'); t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on'); activeSizeFilter=null; renderProds(t.dataset.f);});}); if(!tabs.querySelector('.tab.on')) tabs.querySelector('.tab')?.classList.add('on');}
+  if(tabs){const current=document.querySelector('.tab.on')?.dataset.f||'all'; tabs.innerHTML='<button class="tab" data-f="all">Todos</button>'+cats.map(c=>`<button class="tab" data-f="${c.id}">${c.icon} ${c.label}</button>`).join(''); tabs.querySelectorAll('.tab').forEach(t=>{if(t.dataset.f===current)t.classList.add('on'); t.addEventListener('click',()=>{filterCategory(t.dataset.f);});}); if(!tabs.querySelector('.tab.on')) tabs.querySelector('.tab')?.classList.add('on');}
   const sel=document.getElementById('admCat');
   if(sel){sel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');}
   if(typeof syncAdminNav==='function') syncAdminNav();
@@ -2359,12 +2352,17 @@ function renderProds(filter='all'){
   const more=document.getElementById('viewMoreBtn'); if(more) more.style.display=list.length>0?'flex':'none';
 }
 function filterCategory(cat){
-  if(cat && cat!=='all'){
-    window.location.href='clothes.html?cat='+encodeURIComponent(cat);
-  } else {
-    window.location.href='clothes.html';
+  if(!cat||cat==='all'){
+    // No index, 'all' apenas rola para a seção de produtos
+    document.getElementById('colecao')?.scrollIntoView({behavior:'smooth'});
+    return;
   }
+  window.location.href='clothes.html?cat='+encodeURIComponent(cat);
 }
+// Subcoleções no index também redirecionam
+window.filterColecao=function(id){
+  window.location.href='clothes.html?cat=colecao'+(id?'&subcat='+encodeURIComponent(id):'');
+};
 function filterSize(sz){activeSizeFilter=sz; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all')); visibleCount=4; renderProds('all');  showToast(`Mostrando tamanho ${sz} 📏`);}
 function loadMore(){visibleCount+=8;renderProds(document.querySelector('.tab.on')?.dataset.f||'all');}
 function addCart(id,e){if(e)e.stopPropagation(); const p=getProduct(id); if(!p)return; const item=cart.find(x=>x.id===id); if(item)item.qty++; else cart.push({id,qty:1}); saveCart(); showToast(`${p.name} adicionado ao carrinho 🛍️`);}
