@@ -672,11 +672,23 @@ nav a.active{color:var(--pink);background:var(--pink-pale)}
 #cartTotal{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .cart-pix-badge{font-size:12px;font-weight:900;color:#128c4a;background:#e8fff3;border-radius:6px;padding:3px 8px}
 
-/* ──── CLOTHES PAGE IMPROVEMENTS ──── */
-.clothes-hero{background:linear-gradient(135deg,var(--pink-pale) 0%,#fff 60%,var(--purple-soft) 100%);padding:36px 28px 40px}
-.clothes-hero-inner{max-width:1360px;margin:0 auto}
-.clothes-hero h1{font-family:var(--font-d);font-size:clamp(28px,4vw,44px);color:var(--ink);margin:12px 0 8px;font-weight:700}
-.clothes-hero p{color:var(--gray);font-size:16px;font-weight:500}
+/* ──── CLOTHES / COLECAO PAGE HERO (shared style) ──── */
+.clothes-hero{background:linear-gradient(135deg,var(--pink) 0%,#a0004a 100%);padding:52px 0 44px;text-align:center;color:#fff;position:relative;overflow:hidden}
+.clothes-hero::before{content:'🌸';position:absolute;font-size:180px;opacity:.07;top:-30px;left:-20px;pointer-events:none;line-height:1}
+.clothes-hero::after{content:'✨';position:absolute;font-size:160px;opacity:.07;bottom:-30px;right:-10px;pointer-events:none;line-height:1}
+.clothes-hero-inner{max-width:1360px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+.clothes-hero h1{font-family:var(--font-d);font-size:clamp(28px,5vw,48px);color:#fff;margin:14px 0 8px;font-weight:700;line-height:1.1}
+.clothes-hero p{color:rgba(255,255,255,.88);font-size:clamp(14px,2.5vw,17px);font-weight:600;margin:0}
+.clothes-hero .breadcrumb-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px}
+.clothes-hero .back-btn{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:99px;padding:7px 16px;font-weight:900;font-size:13px;cursor:pointer;transition:.2s;font-family:inherit}
+.clothes-hero .back-btn:hover{background:rgba(255,255,255,.3)}
+.clothes-hero .breadcrumb{color:rgba(255,255,255,.75);font-size:13px;font-weight:700}
+.clothes-hero .breadcrumb a{color:#fff;text-decoration:none}
+/* Cat pills bar below hero */
+.clothes-cat-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:18px 20px 0;background:linear-gradient(to bottom,#a0004a,transparent);position:relative;z-index:1}
+.clothes-cat-pill{border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.12);color:#fff;border-radius:99px;padding:8px 20px;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;text-decoration:none;transition:.18s;display:inline-flex;align-items:center;gap:5px}
+.clothes-cat-pill:hover,.clothes-cat-pill.on{background:#fff;color:var(--pink);border-color:#fff}
+/* keep legacy .back-btn outside hero */
 .back-btn{background:var(--pink-pale);border:none;border-radius:var(--r99);padding:8px 16px;font-family:var(--font-b);font-size:14px;font-weight:800;color:var(--pink);cursor:pointer;transition:all .2s;flex-shrink:0}
 .back-btn:hover{background:var(--pink);color:#fff}
 .breadcrumb{font-size:13px;font-weight:700;color:var(--gray)}

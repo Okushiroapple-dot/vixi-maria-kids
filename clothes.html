@@ -17,6 +17,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vixi-shared.css">
 <link rel="manifest" href="manifest.json">
+<style>
+/* Esconde tabs legados — pills do hero substituem */
+#prodTabs{ display:none !important }
+/* Hero sem section padding extra */
+.clothes-hero + .section{ padding-top:24px }
+</style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://vixi-maria-kids-8c494.web.app/"},{"@type":"ListItem","position":2,"name":"Roupas","item":"https://vixi-maria-kids-8c494.web.app/clothes.html"}]}</script>
 </head>
 <body>
@@ -82,15 +88,15 @@
 <!-- Page Hero -->
 <div class="clothes-hero">
   <div class="clothes-hero-inner">
-    <div style="display:flex;align-items:center;gap:16px;padding:0 0 12px 0">
+    <div class="breadcrumb-row">
       <button class="back-btn" onclick="goBackOrHome()">← Voltar</button>
-      <div class="breadcrumb" style="padding:0">
-        <a href="index.html">Início</a> › <span id="clothesBreadcrumb">Roupas</span>
-      </div>
+      <div class="breadcrumb"><a href="index.html">Início</a> › <span id="clothesBreadcrumb">Roupas</span></div>
     </div>
     <h1 id="clothesTitle">🛍️ Nossas Peças</h1>
-    <p>Encontre o look perfeito para o seu pequeno — do RN ao tamanho 20.</p>
+    <p id="clothesHeroDesc">Encontre o look perfeito para o seu pequeno — do RN ao tamanho 20.</p>
   </div>
+  <!-- Category pills inside hero -->
+  <div class="clothes-cat-pills" id="heroCategPills"></div>
 </div>
 
 <!-- Products Section -->
@@ -356,9 +362,32 @@ function renderCategoryGroups() {
 var _origRenderProds = typeof renderProds === 'function' ? renderProds : null;
 window.renderProds = function(filter) {
   if (_origRenderProds) _origRenderProds(filter);
-  // Show category groups when showing all and no size filter
   setTimeout(renderCategoryGroups, 50);
+  // Update hero pill active state
+  setTimeout(function(){
+    var cur = window.currentFilter || 'all';
+    document.querySelectorAll('.clothes-cat-pill').forEach(function(p){
+      p.classList.toggle('on', p.dataset.f === cur);
+    });
+  }, 10);
 };
+
+// Build category pills inside the hero
+function _buildHeroPills(){
+  var box = document.getElementById('heroCategPills');
+  if(!box) return;
+  var cats = typeof getCats==='function' ? getCats() : [];
+  var regularCats = cats.filter(function(c){ return c.id!=='colecao'; });
+  var cur = window.currentFilter || 'all';
+  var pills = [
+    {f:'all', label:'🛍️ Todas', href:'clothes.html'},
+    {f:'novidades', label:'🔥 Novidades', href:'clothes.html?cat=novidades'}
+  ].concat(regularCats.map(function(c){ return {f:c.id, label:c.icon+' '+c.label, href:'clothes.html?cat='+c.id}; }));
+  pills.push({f:'colecao', label:'🌟 Coleção', href:'colecao.html'});
+  box.innerHTML = pills.map(function(p){
+    return '<a href="'+p.href+'" class="clothes-cat-pill'+(p.f===cur?' on':'')+'" data-f="'+p.f+'">'+p.label+'</a>';
+  }).join('');
+}
 
 document.addEventListener('DOMContentLoaded', function(){
   var params = new URLSearchParams(location.search);
@@ -373,6 +402,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   syncCategoriesUI();
+  _buildHeroPills(); // build category pills inside hero
 
   // Add "Novidades" tab to prod-tabs
   var tabs = document.getElementById('prodTabs');
@@ -427,6 +457,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // Hide loading state after render
   var ls = document.getElementById('loadingState');
   if(ls) ls.style.display = 'none';
+  _buildHeroPills();
 
   // Auto-start visual editor if ?admin=visual or previously active
   if(location.search.includes('admin=visual') || sessionStorage.getItem('vixiEditorActive')==='1'){

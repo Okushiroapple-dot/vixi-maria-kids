@@ -443,71 +443,109 @@ function setColFilter(subcatId){
   }
 }
 
+// Helper: card HTML de um produto
+function _colProdCard(p){
+  var liked    = typeof favorites!=='undefined'&&Array.isArray(favorites)&&favorites.includes(p.id);
+  var badgeStr = String(p.badge||'');
+  var pctMatch = badgeStr.match(/^-?(\d+)%$/);
+  var dispOld  = p.old||null;
+  if(pctMatch&&!dispOld&&p.price){ var pct=parseInt(pctMatch[1],10); if(pct>0&&pct<100) dispOld=Math.ceil(p.price/(1-pct/100)); }
+  var colTag = p.colecao
+    ? '<span class="prod-colecao-tag" onclick="event.stopPropagation();setColFilter(\''+escapeHtml(p.colecao)+'\')">'+
+        (typeof getColecaoName==='function'?getColecaoName(p.colecao):p.colecao)+'</span>'
+    : '';
+  return '<article class="prod-card" data-id="'+p.id+'" onclick="window.location.href=\'product.html?id='+p.id+'\'" style="cursor:pointer">'
+    +'<div class="prod-img-wrap">'
+      +(p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN'?'<span class="pbadge '+(pctMatch?'off':'novo')+'">'+(p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+p.badge:p.badge)+'</span>':'')
+      +'<button class="fav-btn '+(liked?'liked':'')+'" onclick="toggleFav(\''+p.id+'\',this,event)" aria-label="Favoritar">'+(liked?'❤️':'🤍')+'</button>'
+      +'<img src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name||'')+'" loading="lazy">'
+      +'<a class="prod-quick-link" href="product.html?id='+p.id+'" onclick="event.stopPropagation()">Ver produto →</a>'
+    +'</div>'
+    +'<div class="prod-info">'
+      +'<div class="prod-cat">'+(typeof getCatLabel==='function'?getCatLabel(p.cat):(p.cat||''))+colTag+'</div>'
+      +'<h4 class="prod-name">'+escapeHtml(p.name||'')+'</h4>'
+      +'<p class="prod-desc">'+escapeHtml(p.desc||'')+'</p>'
+      +'<div class="prod-sizes">'+(p.sizes||[]).map(function(s){return '<span class="psz">'+escapeHtml(s)+'</span>';}).join('')+'</div>'
+      +'<div class="prod-foot">'
+        +'<div class="prod-price">'
+          +(dispOld?'<span class="pold">'+(typeof money==='function'?money(dispOld):'R$ '+dispOld)+'</span>':'')
+          +'<span class="pnew">'+(typeof money==='function'?money(p.price):'R$ '+p.price)+'</span>'
+        +'</div>'
+        +'<button class="padd" onclick="addCart(\''+p.id+'\',event)" aria-label="Adicionar">+</button>'
+      +'</div>'
+    +'</div>'
+    +'</article>';
+}
+
 function renderColProds(){
   var grid     = document.getElementById('prodGrid');
   var emptyBox = document.getElementById('colEmptyState');
   var moreBtn  = document.getElementById('viewMoreBtn');
   if(!grid) return;
 
-  var list;
-  if(_activeSubcat){
-    list = PRODS.filter(function(p){ return p.colecao === _activeSubcat; });
-  } else {
-    list = PRODS.filter(function(p){ return p.cat === 'colecao' || !!p.colecao; });
-  }
+  var allCols = typeof getColecoes==='function' ? getColecoes() : [];
 
-  var countEl = document.getElementById('prodCount');
-  if(countEl) countEl.textContent = list.length + ' produto'+(list.length!==1?'s':'');
+  // ── Vista agrupada por subcoleção (quando "Todas" selecionado) ──
+  if(!_activeSubcat){
+    var allList = PRODS.filter(function(p){ return p.cat==='colecao'||!!p.colecao; });
+    var countEl = document.getElementById('prodCount');
+    if(countEl) countEl.textContent = allList.length+' produto'+(allList.length!==1?'s':'');
 
-  if(!list.length){
-    grid.innerHTML = '';
-    if(emptyBox) emptyBox.style.display = '';
-    if(moreBtn) moreBtn.style.display = 'none';
+    if(!allList.length){
+      grid.innerHTML='';
+      if(emptyBox) emptyBox.style.display='';
+      if(moreBtn) moreBtn.style.display='none';
+      return;
+    }
+    if(emptyBox) emptyBox.style.display='none';
+    if(moreBtn) moreBtn.style.display='none';
+
+    // Grupos por subcoleção
+    var groups = [];
+    allCols.forEach(function(c){
+      var prods = PRODS.filter(function(p){ return p.colecao===c.id; });
+      if(prods.length) groups.push({col:c, prods:prods});
+    });
+    // Produtos sem subcoleção mas com cat=colecao
+    var noSubcat = PRODS.filter(function(p){ return p.cat==='colecao'&&!p.colecao; });
+    if(noSubcat.length) groups.push({col:{id:'_other',name:'Sem coleção',icon:'🌟'}, prods:noSubcat});
+
+    if(!groups.length){
+      // Fallback flat
+      grid.innerHTML = allList.slice(0,12).map(_colProdCard).join('');
+      return;
+    }
+
+    grid.innerHTML = groups.map(function(g){
+      var total = g.prods.length;
+      var show4 = g.prods.slice(0,4);
+      var isReal = g.col.id !== '_other';
+      return '<div class="cat-group-sec">'
+        +'<div class="cat-group-hdr">'
+          +'<div class="cat-group-title">'+(g.col.icon||'🌟')+' '+escapeHtml(g.col.name)+' <span style="font-size:15px;color:var(--gray);font-weight:600;font-family:var(--font-b)">('+total+')</span></div>'
+          +(total>4&&isReal?'<a href="colecao.html?subcat='+escapeHtml(g.col.id)+'" class="cat-group-more">Ver coleção ('+total+') →</a>':'')
+        +'</div>'
+        +'<div class="prod-grid">'+show4.map(_colProdCard).join('')+'</div>'
+        +'</div>';
+    }).join('');
     return;
   }
-  if(emptyBox) emptyBox.style.display = 'none';
 
-  var show = list.slice(0, window.visibleCount || 12);
-  grid.innerHTML = show.map(function(p){
-    var liked    = typeof favorites !== 'undefined' && Array.isArray(favorites) && favorites.includes(p.id);
-    var badgeStr = String(p.badge||'');
-    var pctMatch = badgeStr.match(/^-?(\d+)%$/);
-    var dispOld  = p.old || null;
-    if(pctMatch && !dispOld && p.price){
-      var pct = parseInt(pctMatch[1],10);
-      if(pct>0&&pct<100) dispOld = Math.ceil(p.price/(1-pct/100));
-    }
-    var colTag = p.colecao
-      ? '<span class="prod-colecao-tag" onclick="event.stopPropagation();setColFilter(\''+escapeHtml(p.colecao)+'\')">'+
-          (typeof getColecaoName==='function'?getColecaoName(p.colecao):p.colecao)+'</span>'
-      : '';
-    return '<article class="prod-card" data-id="'+p.id+'" onclick="window.location.href=\'product.html?id='+p.id+'\'" style="cursor:pointer">'
-      + '<div class="prod-img-wrap">'
-        + (p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN'?
-            '<span class="pbadge '+(pctMatch?'off':'novo')+'">'
-              +(p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+p.badge:p.badge)
-            +'</span>':'')
-        + '<button class="fav-btn '+(liked?'liked':'')+'" onclick="toggleFav(\''+p.id+'\',this,event)" aria-label="Favoritar">'+(liked?'❤️':'🤍')+'</button>'
-        + '<img src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name||'')+'" loading="lazy">'
-        + '<a class="prod-quick-link" href="product.html?id='+p.id+'" onclick="event.stopPropagation()">Ver produto →</a>'
-      + '</div>'
-      + '<div class="prod-info">'
-        + '<div class="prod-cat">'+(typeof getCatLabel==='function'?getCatLabel(p.cat):(p.cat||''))+colTag+'</div>'
-        + '<h4 class="prod-name">'+escapeHtml(p.name||'')+'</h4>'
-        + '<p class="prod-desc">'+escapeHtml(p.desc||'')+'</p>'
-        + '<div class="prod-sizes">'+(p.sizes||[]).map(function(s){return '<span class="psz">'+escapeHtml(s)+'</span>';}).join('')+'</div>'
-        + '<div class="prod-foot">'
-            + '<div class="prod-price">'
-              + (dispOld?'<span class="pold">'+(typeof money==='function'?money(dispOld):'R$ '+dispOld)+'</span>':'')
-              + '<span class="pnew">'+(typeof money==='function'?money(p.price):'R$ '+p.price)+'</span>'
-            + '</div>'
-            + '<button class="padd" onclick="addCart(\''+p.id+'\',event)" aria-label="Adicionar">+</button>'
-          + '</div>'
-      + '</div>'
-      + '</article>';
-  }).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--gray);font-weight:700;padding:40px 0">Nenhum produto encontrado.</p>';
+  // ── Vista filtrada por subcoleção específica ──
+  var list = PRODS.filter(function(p){ return p.colecao===_activeSubcat; });
+  var countEl2 = document.getElementById('prodCount');
+  if(countEl2) countEl2.textContent = list.length+' produto'+(list.length!==1?'s':'');
 
-  if(moreBtn) moreBtn.style.display = list.length > show.length ? 'flex' : 'none';
+  if(!list.length){
+    grid.innerHTML='';
+    if(emptyBox) emptyBox.style.display='';
+    if(moreBtn) moreBtn.style.display='none';
+    return;
+  }
+  if(emptyBox) emptyBox.style.display='none';
+  var show = list.slice(0, window.visibleCount||12);
+  grid.innerHTML = show.map(_colProdCard).join('');
+  if(moreBtn) moreBtn.style.display = list.length>show.length ? 'flex' : 'none';
 }
 
 function loadMore(){
