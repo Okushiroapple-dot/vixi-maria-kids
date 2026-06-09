@@ -2308,10 +2308,10 @@ function syncCategoriesUI(){
     var roupasLinks=regularCats.map(function(c){
       return `<a href="javascript:void(0)" onclick="filterCategory('${c.id}')">${c.icon} ${escapeHtml(c.label)}</a>`;
     }).join('');
-    var colLinks=`<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>`;
+    var colLinks=`<a href="colecao.html">🌟 Ver todas</a>`;
     if(colecoes.length){
       colLinks+=colecoes.map(function(c){
-        return `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`;
+        return `<a href="colecao.html?subcat=${encodeURIComponent(c.id)}">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`;
       }).join('');
     }
     nav.innerHTML=`<a href="#colecao" class="hot" onclick="filterCategory('all')">🔥 Novidades</a>`
@@ -2353,8 +2353,11 @@ function renderProds(filter='all'){
 }
 function filterCategory(cat){
   if(!cat||cat==='all'){
-    // No index, 'all' apenas rola para a seção de produtos
     document.getElementById('colecao')?.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  if(cat==='colecao'){
+    window.location.href='colecao.html';
     return;
   }
   window.location.href='clothes.html?cat='+encodeURIComponent(cat);
@@ -2796,8 +2799,8 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
     const nav = document.querySelector('header nav');
     if(nav){
       nav.className = 'vixi-main-nav';
-      const colDD = `<a href="javascript:void(0)" onclick="filterCategory('colecao')">🌟 Ver todas</a>`
-        + (colecoes.length ? colecoes.map(c => `<a href="javascript:void(0)" onclick="filterColecao('${c.id}')">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`).join('') : '');
+      const colDD = `<a href="colecao.html">🌟 Ver todas</a>`
+        + (colecoes.length ? colecoes.map(c => `<a href="colecao.html?subcat=${encodeURIComponent(c.id)}">${c.icon||'🌟'} ${escapeHtml(c.name)}</a>`).join('') : '');
       nav.innerHTML = `<a href="#colecao" class="hot" onclick="filterCategory('all')">Novidades</a>
         <div class="nav-dd">
           <button class="nav-dd-btn" type="button">Roupas ▼</button>
