@@ -18,9 +18,33 @@
 <link rel="stylesheet" href="vixi-shared.css">
 <link rel="manifest" href="manifest.json">
 <style>
-/* Esconde tabs legados — pills do hero substituem */
+/* Força estilos do hero — override qualquer CSS legado */
+.clothes-hero{
+  background: linear-gradient(135deg, #f2276e 0%, #a0004a 100%) !important;
+  padding: 52px 0 0 !important;
+  text-align: center !important;
+  color: #fff !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border-bottom: none !important;
+}
+.clothes-hero::before{content:'🌸';position:absolute;font-size:180px;opacity:.07;top:-30px;left:-20px;pointer-events:none;line-height:1}
+.clothes-hero::after{content:'✨';position:absolute;font-size:160px;opacity:.07;bottom:-30px;right:-10px;pointer-events:none;line-height:1}
+.clothes-hero-inner{max-width:1360px;margin:0 auto;padding:0 24px 36px;position:relative;z-index:1}
+.clothes-hero h1,.clothes-hero #clothesTitle{color:#fff !important;font-size:clamp(28px,5vw,48px);margin:14px 0 8px;font-weight:700;line-height:1.1}
+.clothes-hero p,.clothes-hero #clothesHeroDesc{color:rgba(255,255,255,.88)!important;font-size:16px}
+.clothes-hero .breadcrumb-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px}
+.clothes-hero .back-btn{background:rgba(255,255,255,.2)!important;color:#fff!important;border:none;border-radius:99px;padding:7px 16px;font-weight:900;font-size:13px;cursor:pointer}
+.clothes-hero .breadcrumb{color:rgba(255,255,255,.75)!important;font-size:13px;font-weight:700}
+.clothes-hero .breadcrumb a{color:#fff!important}
+/* Pills sem background próprio — herda o hero */
+.clothes-cat-pills{
+  background: transparent !important;
+  padding: 16px 20px 20px !important;
+  position: relative; z-index: 1;
+}
+/* Esconde tabs legados */
 #prodTabs{ display:none !important }
-/* Hero sem section padding extra */
 .clothes-hero + .section{ padding-top:24px }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://vixi-maria-kids-8c494.web.app/"},{"@type":"ListItem","position":2,"name":"Roupas","item":"https://vixi-maria-kids-8c494.web.app/clothes.html"}]}</script>
