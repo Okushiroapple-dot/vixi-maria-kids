@@ -22,7 +22,7 @@ body{background:#f5eff3;min-height:100vh}
 #admLoadingScreen p{font-family:var(--font-b);font-weight:700;color:var(--gray);font-size:14px}
 
 /* ── DASHBOARD ── */
-#adminDash{display:none;min-height:100vh;flex-direction:column}
+#adminDash{display:none;height:100vh;flex-direction:column;overflow:hidden;position:fixed;inset:0;background:#f5eff3;z-index:9999}
 #adminDash.open{display:flex}
 
 /* ── TOP BAR ── */
@@ -36,8 +36,10 @@ body{background:#f5eff3;min-height:100vh}
 .adm-tb-btn:hover{background:rgba(255,255,255,.2)}
 
 /* ── HOME MENU ── */
-#admHomeMenu{display:none;overflow-y:auto;flex:1}
-#admHomeMenu.visible{display:block}
+#admHomeMenu{display:none;overflow-y:auto;flex:1;background:#f5eff3}
+#admHomeMenu.visible{display:flex;flex-direction:column}
+.adm-content{display:none}
+.adm-content.active-content{display:flex;flex-direction:column}
 .adm-home-hero{background:linear-gradient(135deg,var(--pink) 0%,#a0004a 100%);padding:32px 24px 28px;color:#fff;position:relative;overflow:hidden}
 .adm-home-hero::after{content:'🌸';position:absolute;font-size:140px;opacity:.07;right:-10px;bottom:-20px;pointer-events:none;line-height:1}
 .adm-home-hero h2{font-family:var(--font-d);font-size:clamp(20px,4vw,28px);font-weight:700;margin:0 0 4px;line-height:1.1}
@@ -862,6 +864,8 @@ function goAdmHome(){
   document.querySelectorAll('.adm-section').forEach(function(s){ s.classList.remove('active'); });
   var home = document.getElementById('admHomeMenu');
   if(home) home.classList.add('visible');
+  var content = document.querySelector('.adm-content');
+  if(content) content.classList.remove('active-content');
   var back = document.getElementById('admBackBar');
   if(back) back.classList.remove('visible');
   var homeBtn = document.getElementById('admHomeBtn');
@@ -871,7 +875,6 @@ function goAdmHome(){
   var stats = document.getElementById('admStats');
   if(stats) stats.style.display = '';
   _updateAdmHomeStats();
-  window.scrollTo({top:0});
 }
 window.goAdmHome = goAdmHome;
 
@@ -892,9 +895,11 @@ function _updateAdmHomeStats(){
 // ── Section switcher ──
 function switchAdmSection(sec) {
   if(sec === 'visual'){ window.location.href = 'index.html?admin=visual'; return; }
-  // Hide home, show back bar
+  // Hide home, show content + back bar
   var home = document.getElementById('admHomeMenu');
   if(home) home.classList.remove('visible');
+  var content = document.querySelector('.adm-content');
+  if(content) content.classList.add('active-content');
   var back = document.getElementById('admBackBar');
   if(back) back.classList.add('visible');
   var homeBtn = document.getElementById('admHomeBtn');
@@ -927,7 +932,9 @@ function switchAdmSection(sec) {
   if(sec === 'photos'){ setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads')||'[]'); renderGalleryList(); }, 100); }
   if(sec === 'pagebuilder') loadPagesList();
   if(sec === 'dashboard') loadDashboard();
-  window.scrollTo({top:0});
+  // scroll the inner content area, not the window
+  var content = document.querySelector('.adm-content');
+  if(content) content.scrollTop = 0;
 }
 
 async function loadDashboard() {
