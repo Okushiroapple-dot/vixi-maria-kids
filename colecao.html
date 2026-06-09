@@ -156,7 +156,10 @@
       </label>
     </div>
 
-    <!-- Produtos -->
+    <!-- Vista agrupada por subcoleção (quando Todas selecionado) -->
+    <div id="colGroupedView" style="display:none"></div>
+
+    <!-- Vista filtrada (quando subcoleção específica selecionada) -->
     <div class="prod-grid" id="prodGrid"></div>
 
     <!-- Ver mais -->
@@ -486,13 +489,18 @@ function renderColProds(){
   var allCols = typeof getColecoes==='function' ? getColecoes() : [];
 
   // ── Vista agrupada por subcoleção (quando "Todas" selecionado) ──
+  var grouped = document.getElementById('colGroupedView');
   if(!_activeSubcat){
+    // Esconde grid individual, mostra container agrupado
+    if(grid) grid.style.display='none';
+    if(grouped) grouped.style.display='';
+
     var allList = PRODS.filter(function(p){ return p.cat==='colecao'||!!p.colecao; });
     var countEl = document.getElementById('prodCount');
     if(countEl) countEl.textContent = allList.length+' produto'+(allList.length!==1?'s':'');
 
     if(!allList.length){
-      grid.innerHTML='';
+      if(grouped) grouped.innerHTML='';
       if(emptyBox) emptyBox.style.display='';
       if(moreBtn) moreBtn.style.display='none';
       return;
@@ -500,7 +508,7 @@ function renderColProds(){
     if(emptyBox) emptyBox.style.display='none';
     if(moreBtn) moreBtn.style.display='none';
 
-    // Grupos por subcoleção
+    // Grupos por subcoleção (na ordem de getColecoes)
     var groups = [];
     allCols.forEach(function(c){
       var prods = PRODS.filter(function(p){ return p.colecao===c.id; });
@@ -508,21 +516,21 @@ function renderColProds(){
     });
     // Produtos sem subcoleção mas com cat=colecao
     var noSubcat = PRODS.filter(function(p){ return p.cat==='colecao'&&!p.colecao; });
-    if(noSubcat.length) groups.push({col:{id:'_other',name:'Sem coleção',icon:'🌟'}, prods:noSubcat});
+    if(noSubcat.length) groups.push({col:{id:'_other',name:'Outros',icon:'🌟'}, prods:noSubcat});
 
-    if(!groups.length){
-      // Fallback flat
-      grid.innerHTML = allList.slice(0,12).map(_colProdCard).join('');
+    if(!groups.length && grouped){
+      grouped.innerHTML = allList.slice(0,12).map(_colProdCard).join('');
       return;
     }
 
-    grid.innerHTML = groups.map(function(g){
+    if(grouped) grouped.innerHTML = groups.map(function(g){
       var total = g.prods.length;
       var show4 = g.prods.slice(0,4);
       var isReal = g.col.id !== '_other';
       return '<div class="cat-group-sec">'
         +'<div class="cat-group-hdr">'
-          +'<div class="cat-group-title">'+(g.col.icon||'🌟')+' '+escapeHtml(g.col.name)+' <span style="font-size:15px;color:var(--gray);font-weight:600;font-family:var(--font-b)">('+total+')</span></div>'
+          +'<div class="cat-group-title">'+(g.col.icon||'🌟')+' '+escapeHtml(g.col.name)
+            +' <span style="font-size:15px;color:var(--gray);font-weight:600;font-family:var(--font-b)">('+total+')</span></div>'
           +(total>4&&isReal?'<a href="colecao.html?subcat='+escapeHtml(g.col.id)+'" class="cat-group-more">Ver coleção ('+total+') →</a>':'')
         +'</div>'
         +'<div class="prod-grid">'+show4.map(_colProdCard).join('')+'</div>'
@@ -530,6 +538,10 @@ function renderColProds(){
     }).join('');
     return;
   }
+
+  // Esconde grouped, mostra grid
+  if(grouped) grouped.style.display='none';
+  if(grid) grid.style.display='';
 
   // ── Vista filtrada por subcoleção específica ──
   var list = PRODS.filter(function(p){ return p.colecao===_activeSubcat; });

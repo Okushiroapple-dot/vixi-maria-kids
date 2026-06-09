@@ -894,11 +894,7 @@ body.vixi-editing .vixi-add-section-row{display:block}
 .cart-empty-state h2{font-family:var(--font-d);font-size:28px;font-weight:700;color:var(--ink-mid);margin:16px 0 12px}
 @media(max-width:600px){.cart-page-row{grid-template-columns:70px 1fr}.cart-page-row img{width:70px;height:70px}}
 
-/* ──── CLOTHES PAGE ──── */
-.clothes-hero{background:var(--pink-pale);padding:48px 28px 32px;border-bottom:2px solid var(--line)}
-.clothes-hero-inner{max-width:1360px;margin:0 auto}
-.clothes-hero h1{font-family:var(--font-d);font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--ink);margin-bottom:8px}
-.clothes-hero p{color:var(--gray);font-size:16px;font-weight:500}
+/* ──── CLOTHES PAGE (duplicate removed — styles now at line ~676) ──── */
 
 /* ──── BREADCRUMB ──── */
 .breadcrumb{max-width:1360px;margin:0 auto;padding:16px 28px;font-size:13px;color:var(--gray);font-weight:600}
