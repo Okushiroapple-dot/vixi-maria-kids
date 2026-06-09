@@ -120,6 +120,22 @@ body{background:#f5eff3;min-height:100vh}
 .news-prod-chip .npc-remove{position:absolute;top:3px;right:3px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:900}
 .news-prod-chip.selected .npc-remove{display:flex}
 @media(max-width:680px){#emailSendGrid{grid-template-columns:1fr!important}}
+.email-tmpl-card{border:2px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .18s;background:#fff}
+.email-tmpl-card:hover{border-color:var(--pink);background:var(--pink-pale)}
+.email-tmpl-card.on{border-color:var(--pink);background:#fff3f8}
+.etmpl-icon{font-size:24px;margin-bottom:4px}
+.etmpl-name{font-size:12px;font-weight:900;color:var(--ink)}
+.etmpl-desc{font-size:10px;font-weight:600;color:var(--gray)}
+.ehs-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:16px 20px}
+.ehs-num{font-family:var(--font-d);font-size:28px;font-weight:700;color:var(--pink);line-height:1}
+.ehs-label{font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.ehi-row{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px}
+.ehi-row:last-child{border-bottom:none}
+.ehi-badge{font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px}
+.ehi-news{background:#dbeafe;color:#1e40af}
+.ehi-promo{background:#fef3c7;color:#92400e}
+.ehi-custom{background:#f3f4f6;color:#374151}
+@media(max-width:680px){.email-grid-2col{grid-template-columns:1fr!important}}
 </style>
 </head>
 <body>
@@ -555,6 +571,8 @@ body{background:#f5eff3;min-height:100vh}
         <button class="email-tab" data-etab="news" onclick="switchEmailTab('news')">📰 Novidades</button>
         <button class="email-tab" data-etab="promos" onclick="switchEmailTab('promos')">📣 Promoções</button>
         <button class="email-tab" data-etab="send" onclick="switchEmailTab('send')">✉️ Enviar</button>
+        <button class="email-tab" data-etab="schedule" onclick="switchEmailTab('schedule')">📅 Agendar</button>
+        <button class="email-tab" data-etab="history" onclick="switchEmailTab('history')">📊 Histórico</button>
       </div>
       <!-- Config -->
       <div class="email-tab-panel active" id="etabConfig">
@@ -658,10 +676,33 @@ body{background:#f5eff3;min-height:100vh}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px" id="emailSendGrid">
           <div class="adm-card" style="display:grid;gap:16px">
             <div style="font-weight:900;font-size:15px;color:var(--ink)">✉️ Compor email</div>
-            <div><label class="adm-label" style="font-size:11px">Enviar para</label>
-              <div style="display:flex;gap:8px">
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:700"><input type="radio" name="sendTarget" value="all" checked onchange="updateSendRecipientCount()"> Todos os assinantes</label>
+            <div>
+              <label class="adm-label" style="font-size:11px">Template visual</label>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="templatePicker">
+                <div class="email-tmpl-card on" data-tmpl="news" onclick="selectEmailTemplate('news')">
+                  <div class="etmpl-icon">📰</div>
+                  <div class="etmpl-name">Novidades</div>
+                  <div class="etmpl-desc">Grid de produtos</div>
+                </div>
+                <div class="email-tmpl-card" data-tmpl="promo" onclick="selectEmailTemplate('promo')">
+                  <div class="etmpl-icon">🔥</div>
+                  <div class="etmpl-name">Promoção</div>
+                  <div class="etmpl-desc">Banner + cupom</div>
+                </div>
+                <div class="email-tmpl-card" data-tmpl="custom" onclick="selectEmailTemplate('custom')">
+                  <div class="etmpl-icon">✏️</div>
+                  <div class="etmpl-name">Livre</div>
+                  <div class="etmpl-desc">Texto livre</div>
+                </div>
               </div>
+            </div>
+            <div>
+              <label class="adm-label" style="font-size:11px">Enviar para</label>
+              <select class="adm-input" id="sendSegment" onchange="updateSendRecipientCount()" style="width:100%;box-sizing:border-box">
+                <option value="all">👥 Todos os assinantes</option>
+                <option value="clients">🛍️ Clientes com email</option>
+                <option value="new30d">🆕 Novos assinantes (30 dias)</option>
+              </select>
             </div>
             <div><label class="adm-label" style="font-size:11px">Tipo</label><select class="adm-input" id="sendEmailType" onchange="updateEmailPreview()" style="width:100%;box-sizing:border-box"><option value="news">📰 Novidades da semana</option><option value="promo">📣 Promoção</option><option value="custom">✏️ Personalizado</option></select></div>
             <div><label class="adm-label" style="font-size:11px">Assunto</label><input class="adm-input" id="sendEmailSubject" oninput="updateEmailPreview()" style="width:100%;box-sizing:border-box" placeholder="Assunto do email..."></div>
@@ -678,8 +719,74 @@ body{background:#f5eff3;min-height:100vh}
             </div>
           </div>
           <div class="adm-card" style="padding:0;overflow:hidden">
-            <div style="background:var(--pink);color:#fff;padding:12px 16px;font-weight:900;font-size:13px">👁 Preview do email</div>
-            <div id="emailPreviewFrame" style="padding:16px;font-size:13px;line-height:1.6;max-height:460px;overflow-y:auto"></div>
+            <div style="background:var(--pink);color:#fff;padding:12px 16px;font-weight:900;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+              <span>👁 Preview do email</span>
+              <button onclick="refreshEmailPreview()" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">🔄</button>
+            </div>
+            <iframe id="emailPreviewIframe" style="width:100%;height:480px;border:none;display:block" sandbox="allow-same-origin"></iframe>
+          </div>
+        </div>
+      </div>
+      <!-- Agendar -->
+      <div class="email-tab-panel" id="etabSchedule">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px" class="email-grid-2col">
+          <!-- Form de agendamento -->
+          <div class="adm-card" style="display:grid;gap:16px">
+            <div style="font-weight:900;font-size:15px;color:var(--ink)">📅 Agendar envio</div>
+            <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:#0369a1">
+              ℹ️ O email será enviado quando você abrir o painel admin após o horário agendado.
+            </div>
+            <div>
+              <label class="adm-label" style="font-size:11px">Tipo de email</label>
+              <select class="adm-input" id="schedEmailType" style="width:100%;box-sizing:border-box">
+                <option value="news">📰 Novidades da semana</option>
+                <option value="promo">📣 Promoção</option>
+                <option value="custom">✏️ Personalizado</option>
+              </select>
+            </div>
+            <div>
+              <label class="adm-label" style="font-size:11px">Assunto</label>
+              <input class="adm-input" id="schedEmailSubject" placeholder="Assunto do email..." style="width:100%;box-sizing:border-box">
+            </div>
+            <div>
+              <label class="adm-label" style="font-size:11px">Segmento</label>
+              <select class="adm-input" id="schedEmailSegment" style="width:100%;box-sizing:border-box">
+                <option value="all">👥 Todos os assinantes</option>
+                <option value="clients">🛍️ Clientes com email</option>
+                <option value="new30d">🆕 Novos assinantes (últimos 30 dias)</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <label class="adm-label" style="font-size:11px">Data</label>
+                <input class="adm-input" id="schedEmailDate" type="date" style="width:100%;box-sizing:border-box">
+              </div>
+              <div>
+                <label class="adm-label" style="font-size:11px">Hora</label>
+                <input class="adm-input" id="schedEmailTime" type="time" value="09:00" style="width:100%;box-sizing:border-box">
+              </div>
+            </div>
+            <button class="mini-btn primary" onclick="addScheduledEmail()">📅 Agendar envio</button>
+          </div>
+          <!-- Lista de agendados -->
+          <div class="adm-card">
+            <div style="font-weight:900;font-size:15px;color:var(--ink);margin-bottom:14px">📋 Emails agendados</div>
+            <div id="scheduledList" style="display:grid;gap:8px"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Histórico -->
+      <div class="email-tab-panel" id="etabHistory">
+        <div style="max-width:900px">
+          <!-- Stats cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px" id="emailHistoryStats"></div>
+          <!-- Tabela de histórico -->
+          <div class="adm-card" style="padding:0;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1.5px solid var(--line)">
+              <div style="font-weight:900;font-size:15px;color:var(--ink)">📋 Histórico de envios</div>
+              <button class="mini-btn soft" onclick="clearEmailHistory()" style="font-size:11px">🗑️ Limpar</button>
+            </div>
+            <div id="emailHistoryTable" style="overflow-x:auto"></div>
           </div>
         </div>
       </div>
@@ -1453,6 +1560,7 @@ window.openAdmin = function() {
     setTimeout(goAdmHome, 100);
   }
   setTimeout(refreshBadgeBtns, 500);
+  setTimeout(checkScheduledEmails, 1000);
 };
 
 window.closeAdmin = function() {
@@ -1664,6 +1772,7 @@ function loadEmailAdmin(){
   var et=document.getElementById('ejsTemplateId');if(et)et.value=ejs.templateId||'';
   var ek=document.getElementById('ejsPublicKey');if(ek)ek.value=ejs.publicKey||'';
   switchEmailTab('config');
+  checkScheduledEmails();
 }
 window.loadEmailAdmin=loadEmailAdmin;
 
@@ -1752,66 +1861,6 @@ async function removeSubscriber(email,idx){
 }
 window.removeSubscriber=removeSubscriber;
 
-// ── Envio real ──
-async function sendEmailsNow(){
-  var ejs=readEjsConfig();
-  if(!ejs.serviceId||!ejs.templateId||!ejs.publicKey){
-    showToast('Configure o EmailJS antes de enviar');switchEmailTab('send');
-    document.getElementById('ejsServiceId')?.focus();return;
-  }
-  if(!_subscribers.length){
-    showToast('Carregando assinantes...');await loadSubscribersList();
-    if(!_subscribers.length){showToast('Nenhum assinante para enviar');return;}
-  }
-  var subject=document.getElementById('sendEmailSubject')?.value||readEmailConfig().defaultSubject||'🌸 Novidades da Vixi Maria Kids!';
-  var cfg=readEmailConfig();
-  var previewEl=document.getElementById('emailPreviewFrame');
-  var bodyHtml=previewEl?previewEl.innerHTML:'';
-
-  if(!confirm('Enviar email para '+_subscribers.length+' assinante(s)?\nAssunto: '+subject)){return;}
-
-  var btn=document.getElementById('sendNowBtn');
-  var prog=document.getElementById('sendProgress');
-  var progBar=document.getElementById('sendProgressBar');
-  var progText=document.getElementById('sendProgressText');
-  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
-  if(prog) prog.style.display='';
-
-  _loadEjsSDK(async function(){
-    var ok=0,fail=0;
-    for(var i=0;i<_subscribers.length;i++){
-      var sub=_subscribers[i];
-      var pct=Math.round((i+1)/_subscribers.length*100);
-      if(progBar) progBar.style.width=pct+'%';
-      if(progText) progText.textContent='Enviando '+(i+1)+' de '+_subscribers.length+'... ('+ok+' ok, '+fail+' falhas)';
-      try{
-        await window.emailjs.send(ejs.serviceId,ejs.templateId,{
-          to_email:sub.email||sub.id,
-          subject:subject,
-          body_html:bodyHtml,
-          sender_name:cfg.senderName||'Vixi Maria Kids'
-        },ejs.publicKey);
-        ok++;
-      }catch(e){ fail++; console.warn('Falha ao enviar para '+(sub.email||sub.id),e); }
-      // delay leve para não ser bloqueado
-      await new Promise(function(r){setTimeout(r,300);});
-    }
-    if(btn){btn.disabled=false;btn.textContent='📤 Enviar Agora';}
-    if(progText) progText.textContent='✅ Concluído: '+ok+' enviados, '+fail+' falhas.';
-    showToast('📧 '+(ok)+' emails enviados com sucesso!');
-    // registra histórico
-    var type=document.getElementById('sendEmailType')?.value||'news';
-    if(type==='news'){
-      var nd=readEmailNews();
-      nd.sentHistory=(nd.sentHistory||[]);
-      nd.sentHistory.push((nd.products||[]).slice());
-      nd.products=[];
-      saveEmailNews(nd);_newsSelected=[];
-    }
-  });
-}
-window.sendEmailsNow=sendEmailsNow;
-
 function switchEmailTab(tab){
   document.querySelectorAll('.email-tab').forEach(function(b){b.classList.toggle('on',b.dataset.etab===tab);});
   document.querySelectorAll('.email-tab-panel').forEach(function(p){p.classList.remove('active');});
@@ -1821,6 +1870,8 @@ function switchEmailTab(tab){
   if(tab==='coupons')renderCouponsList();
   if(tab==='promos')renderPromosList();
   if(tab==='send'){updateEmailPreview();loadSubscribersList();}
+  if(tab==='history') renderEmailHistory();
+  if(tab==='schedule') renderScheduledList();
 }
 window.switchEmailTab=switchEmailTab;
 
@@ -1968,11 +2019,6 @@ function updateEmailPreview(){
 }
 window.updateEmailPreview=updateEmailPreview;
 
-function updateSendRecipientCount(){
-  var el=document.getElementById('sendRecipientCount');if(!el)return;
-  try{var cl=JSON.parse(localStorage.getItem('vixiClientes')||'[]');var n=cl.filter(function(c){return c.email;}).length;el.innerHTML='<span style="font-size:20px;font-weight:900;color:var(--pink)">'+n+'</span> <span style="color:var(--gray)">cliente'+(n!==1?'s':'')+' com email</span>';}catch(e){el.textContent='—';}
-}
-
 function openManualSendModal(){
   var type=document.getElementById('sendEmailType')?.value||'news';
   var subject=document.getElementById('sendEmailSubject')?.value||readEmailConfig().defaultSubject||'🌸 Novidades';
@@ -1987,6 +2033,398 @@ function openManualSendModal(){
   }
 }
 window.openManualSendModal=openManualSendModal;
+
+// ══════════════════════════════════════════
+// EMAIL MARKETING — MELHORIAS
+// ══════════════════════════════════════════
+var EMAIL_HISTORY_KEY = 'vixiEmailHistory';
+var EMAIL_QUEUE_KEY   = 'vixiEmailQueue';
+
+function readEmailHistory(){ try{ return JSON.parse(localStorage.getItem(EMAIL_HISTORY_KEY)||'[]'); }catch(e){ return []; } }
+function saveEmailHistory(d){ localStorage.setItem(EMAIL_HISTORY_KEY, JSON.stringify(d)); }
+function readEmailQueue(){ try{ return JSON.parse(localStorage.getItem(EMAIL_QUEUE_KEY)||'[]'); }catch(e){ return []; } }
+function saveEmailQueue(d){ localStorage.setItem(EMAIL_QUEUE_KEY, JSON.stringify(d)); }
+
+// ── Template selector ──────────────────────
+var _activeTemplate = 'news';
+function selectEmailTemplate(tmpl){
+  _activeTemplate = tmpl;
+  document.querySelectorAll('.email-tmpl-card').forEach(function(c){ c.classList.toggle('on', c.dataset.tmpl===tmpl); });
+  // Sync tipo no select
+  var sel = document.getElementById('sendEmailType');
+  if(sel) sel.value = tmpl;
+  // Mostrar campo corpo se custom
+  var cb = document.getElementById('sendCustomBody');
+  if(cb) cb.style.display = tmpl==='custom' ? '' : 'none';
+  refreshEmailPreview();
+}
+window.selectEmailTemplate = selectEmailTemplate;
+
+// ── Gerador de HTML de email bonito ──────────
+function generateEmailHtml(type, opts){
+  opts = opts || {};
+  var cfg    = readEmailConfig();
+  var sender = cfg.senderName || 'Vixi Maria Kids';
+  var prods  = opts.products  || [];
+  var promos = opts.promos    || [];
+  var body   = opts.customBody || '';
+  var subj   = opts.subject   || cfg.defaultSubject || '🌸 Novidades da Vixi Maria Kids!';
+
+  var prodsHtml = '';
+  if((type==='news'||type==='custom') && prods.length){
+    prodsHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0"><tr>';
+    var cols = prods.slice(0,4);
+    cols.forEach(function(p, i){
+      if(i===2) prodsHtml += '</tr><tr style="height:8px"><td colspan="2"></td></tr><tr>';
+      prodsHtml += '<td width="50%" style="padding:0 6px 12px;vertical-align:top">'
+        +'<div style="border:1px solid #f0e0e8;border-radius:12px;overflow:hidden;background:#fff">'
+          +(p.img ? '<img src="'+p.img+'" width="100%" style="display:block;aspect-ratio:1;object-fit:cover" alt="'+escapeHtml(p.name||'')+'">':'<div style="width:100%;aspect-ratio:1;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:32px">🌸</div>')
+          +'<div style="padding:10px">'
+            +'<div style="font-weight:800;font-size:13px;color:#1a0010;margin-bottom:4px">'+escapeHtml(p.name||'')+'</div>'
+            +'<div style="color:#e91e63;font-weight:900;font-size:16px">'+(typeof money==='function'?money(p.price):'R$ '+p.price)+'</div>'
+          +'</div>'
+        +'</div>'
+        +'</td>';
+    });
+    prodsHtml += '</tr></table>';
+  }
+
+  var promosHtml = '';
+  if((type==='promo'||type==='custom') && promos.length){
+    promosHtml = promos.map(function(pr){
+      return '<div style="background:#fff3f8;border-left:4px solid #e91e63;padding:14px 18px;border-radius:0 12px 12px 0;margin:12px 0">'
+        +'<div style="font-weight:900;font-size:16px;color:#c2185b">'+escapeHtml(pr.title||'')+'</div>'
+        +(pr.body?'<div style="font-size:13px;color:#666;margin-top:5px">'+escapeHtml(pr.body)+'</div>':'')
+        +(pr.coupon?'<div style="margin-top:10px;display:inline-block;background:#fff;border:2px dashed #e91e63;border-radius:8px;padding:6px 14px;font-family:monospace;font-size:14px;font-weight:900;color:#e91e63;letter-spacing:1px">🎫 '+escapeHtml(pr.coupon)+'</div>':'')
+        +'</div>';
+    }).join('');
+  }
+
+  var customHtml = '';
+  if(type==='custom' && body){
+    customHtml = '<div style="font-size:14px;color:#333;line-height:1.7;margin:14px 0">'+body.replace(/\n/g,'<br>')+'</div>';
+  }
+
+  var greetingMap = {
+    news: '<p style="font-size:15px;color:#555;margin:0 0 6px">Olá! Confira as novidades desta semana ✨</p>',
+    promo:'<p style="font-size:15px;color:#555;margin:0 0 6px">Temos uma oferta especial para você! 🎉</p>',
+    custom:''
+  };
+
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHtml(subj)+'</title></head>'
+    +'<body style="margin:0;padding:0;background:#f5eff3;font-family:Nunito,Arial,sans-serif">'
+    +'<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">'
+    +'<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">'
+      // Header
+      +'<tr><td style="background:linear-gradient(135deg,#e91e63,#c2185b);padding:32px 28px;text-align:center">'
+        +'<div style="font-size:36px;margin-bottom:6px">🌸</div>'
+        +'<div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:4px">'+escapeHtml(sender)+'</div>'
+        +'<div style="font-size:14px;color:rgba(255,255,255,.85)">'+escapeHtml(subj)+'</div>'
+      +'</td></tr>'
+      // Body
+      +'<tr><td style="padding:28px">'
+        + (greetingMap[type]||'')
+        + prodsHtml + promosHtml + customHtml
+        +'<div style="text-align:center;margin-top:24px">'
+          +'<a href="https://vixi-maria-kids-8c494.web.app" style="display:inline-block;background:#e91e63;color:#fff;padding:14px 36px;border-radius:99px;text-decoration:none;font-weight:900;font-size:15px;font-family:Nunito,Arial,sans-serif">Ver todos os produtos →</a>'
+        +'</div>'
+      +'</td></tr>'
+      // Footer
+      +'<tr><td style="background:#f8f0f4;padding:18px 28px;text-align:center;font-size:11px;color:#aaa;line-height:1.8">'
+        +'<strong style="color:#e91e63">'+escapeHtml(sender)+'</strong><br>'
+        +'Rua Orlândia, 1193 · Ribeirão Preto · SP<br>'
+        +'<a href="#" style="color:#ccc;text-decoration:none;font-size:10px">Cancelar inscrição</a>'
+      +'</td></tr>'
+    +'</table>'
+    +'</td></tr></table>'
+    +'</body></html>';
+}
+window.generateEmailHtml = generateEmailHtml;
+
+// ── Preview com iframe ──────────────────────
+function refreshEmailPreview(){
+  var iframe = document.getElementById('emailPreviewIframe');
+  if(!iframe) return;
+  var type    = _activeTemplate || document.getElementById('sendEmailType')?.value || 'news';
+  var subject = document.getElementById('sendEmailSubject')?.value || '';
+  var prods   = _getAdminProds().filter(function(p){ return (_newsSelected||[]).includes(p.id); });
+  var promos  = readEmailPromos().filter(function(pr){ return pr.active; });
+  var body    = document.getElementById('sendEmailBody')?.value || '';
+  var html    = generateEmailHtml(type, { products:prods, promos:promos, customBody:body, subject:subject });
+  try{ iframe.srcdoc = html; }catch(e){ iframe.src = 'data:text/html;charset=utf-8,'+encodeURIComponent(html); }
+}
+window.refreshEmailPreview = refreshEmailPreview;
+
+// Compatibilidade: updateEmailPreview chama refreshEmailPreview também
+var _origUpdatePreview = window.updateEmailPreview;
+window.updateEmailPreview = function(){
+  if(_origUpdatePreview) _origUpdatePreview();
+  refreshEmailPreview();
+};
+
+// ── Segmentação ─────────────────────────────
+async function getSegmentedRecipients(segment){
+  var all = [];
+  if(segment === 'all' || segment === 'new30d'){
+    if(typeof window.vixiGetSubscribers === 'function'){
+      try{
+        var subs = await window.vixiGetSubscribers();
+        if(segment === 'new30d'){
+          var cutoff = Date.now() - 30*24*60*60*1000;
+          subs = subs.filter(function(s){
+            if(!s.subscribedAt) return true;
+            var ts = s.subscribedAt.toDate ? s.subscribedAt.toDate().getTime() : new Date(s.subscribedAt).getTime();
+            return ts >= cutoff;
+          });
+        }
+        subs.forEach(function(s){ if(s.email) all.push({email:s.email, name:''}); });
+      }catch(e){ console.warn('getSubscribers error',e); }
+    }
+  }
+  if(segment === 'clients'){
+    try{
+      var clientes = JSON.parse(localStorage.getItem('vixiClientes')||'[]');
+      clientes.forEach(function(c){ if(c.email) all.push({email:c.email, name:c.name||''}); });
+    }catch(e){}
+  }
+  // deduplica
+  var seen = {};
+  return all.filter(function(r){ if(seen[r.email]) return false; seen[r.email]=true; return true; });
+}
+
+function updateSendRecipientCount(){
+  var sel = document.getElementById('sendSegment');
+  var el  = document.getElementById('sendRecipientCount');
+  if(!el) return;
+  el.innerHTML = '⏳ Calculando...';
+  var segment = sel ? sel.value : 'all';
+  getSegmentedRecipients(segment).then(function(list){
+    el.innerHTML = '📨 <strong>'+list.length+'</strong> destinatário'+(list.length!==1?'s':'')+' no segmento selecionado';
+  }).catch(function(){ el.innerHTML = '—'; });
+}
+window.updateSendRecipientCount = updateSendRecipientCount;
+
+// ── Envio real atualizado com segmento ──────
+async function sendEmailsNow(){
+  var ejs = readEjsConfig();
+  if(!ejs.serviceId||!ejs.templateId||!ejs.publicKey){
+    showToast('Configure o EmailJS antes de enviar');
+    switchEmailTab('send');
+    document.getElementById('ejsServiceId')?.focus();
+    return;
+  }
+  var segment  = document.getElementById('sendSegment')?.value || 'all';
+  var subject  = document.getElementById('sendEmailSubject')?.value || readEmailConfig().defaultSubject || '🌸 Novidades da Vixi Maria Kids!';
+  var type     = _activeTemplate || document.getElementById('sendEmailType')?.value || 'news';
+  var prods    = _getAdminProds().filter(function(p){ return (_newsSelected||[]).includes(p.id); });
+  var promos   = readEmailPromos().filter(function(pr){ return pr.active; });
+  var body     = document.getElementById('sendEmailBody')?.value || '';
+  var bodyHtml = generateEmailHtml(type, { products:prods, promos:promos, customBody:body, subject:subject });
+  var cfg      = readEmailConfig();
+
+  var recipients = await getSegmentedRecipients(segment);
+  if(!recipients.length){
+    showToast('Nenhum destinatário encontrado neste segmento');
+    return;
+  }
+  if(!confirm('📧 Enviar email para '+recipients.length+' destinatário(s)?\nAssunto: '+subject+'\nSegmento: '+({all:'Todos',clients:'Clientes',new30d:'Novos 30d'}[segment]||segment))){
+    return;
+  }
+
+  var btn = document.getElementById('sendNowBtn');
+  var prog = document.getElementById('sendProgress');
+  var progBar = document.getElementById('sendProgressBar');
+  var progText = document.getElementById('sendProgressText');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando...'; }
+  if(prog) prog.style.display = '';
+
+  _loadEjsSDK(async function(){
+    var ok=0, fail=0;
+    for(var i=0; i<recipients.length; i++){
+      var r = recipients[i];
+      var pct = Math.round((i+1)/recipients.length*100);
+      if(progBar) progBar.style.width = pct+'%';
+      if(progText) progText.textContent = 'Enviando '+(i+1)+' de '+recipients.length+'... (✅ '+ok+' / ❌ '+fail+')';
+      try{
+        await window.emailjs.send(ejs.serviceId, ejs.templateId, {
+          to_email:   r.email,
+          to_name:    r.name || '',
+          subject:    subject,
+          body_html:  bodyHtml,
+          sender_name:cfg.senderName || 'Vixi Maria Kids'
+        }, ejs.publicKey);
+        ok++;
+      }catch(e){ fail++; console.warn('Falha:', r.email, e); }
+      await new Promise(function(res){ setTimeout(res, 320); });
+    }
+    if(btn){ btn.disabled=false; btn.textContent='📤 Enviar Agora'; }
+    if(progText) progText.textContent = '✅ Concluído: '+ok+' enviados, '+fail+' falhas.';
+    // Salva no histórico
+    _saveToHistory({ type:type, subject:subject, segment:segment, recipientCount:recipients.length, sentCount:ok, failCount:fail });
+    showToast('📧 '+ok+' emails enviados!');
+    // Registra novidades no histórico de produtos
+    if(type==='news' && _newsSelected && _newsSelected.length){
+      var nd = readEmailNews();
+      nd.sentHistory = (nd.sentHistory||[]);
+      nd.sentHistory.push(_newsSelected.slice());
+      nd.products = [];
+      saveEmailNews(nd);
+      _newsSelected = [];
+    }
+  });
+}
+window.sendEmailsNow = sendEmailsNow;
+
+// ── Histórico ───────────────────────────────
+function _saveToHistory(entry){
+  var h = readEmailHistory();
+  h.unshift(Object.assign({ id:'eh_'+Date.now(), date: new Date().toISOString() }, entry));
+  if(h.length > 200) h = h.slice(0, 200);
+  saveEmailHistory(h);
+}
+
+function renderEmailHistory(){
+  var history = readEmailHistory();
+  var statsEl = document.getElementById('emailHistoryStats');
+  var tableEl = document.getElementById('emailHistoryTable');
+  if(!statsEl || !tableEl) return;
+
+  // Stats
+  var total = history.reduce(function(s,h){ return s+(h.sentCount||0); }, 0);
+  var now = Date.now();
+  var month = history.filter(function(h){ return new Date(h.date).getTime() > now-30*24*60*60*1000; });
+  var week  = history.filter(function(h){ return new Date(h.date).getTime() > now-7*24*60*60*1000; });
+  var monthTotal = month.reduce(function(s,h){ return s+(h.sentCount||0); }, 0);
+  var weekTotal  = week.reduce(function(s,h){ return s+(h.sentCount||0); }, 0);
+
+  statsEl.innerHTML = [
+    ['📧','Total enviados',total],
+    ['📅','Este mês',monthTotal],
+    ['📆','Esta semana',weekTotal],
+    ['📨','Envios realizados',history.length]
+  ].map(function(s){
+    return '<div class="ehs-card"><div style="font-size:22px">'+s[0]+'</div><div class="ehs-num">'+s[2]+'</div><div class="ehs-label">'+s[1]+'</div></div>';
+  }).join('');
+
+  // Tabela
+  if(!history.length){
+    tableEl.innerHTML = '<p style="text-align:center;color:var(--gray);font-size:13px;padding:32px">Nenhum envio registrado ainda.</p>';
+    return;
+  }
+  var SEGMAP = {all:'Todos',clients:'Clientes',new30d:'Novos 30d'};
+  var TYPMAP = {news:'Novidades',promo:'Promoção',custom:'Personalizado'};
+  var TYPCLS = {news:'ehi-news',promo:'ehi-promo',custom:'ehi-custom'};
+  var header = '<div style="display:grid;grid-template-columns:140px 1fr 80px 80px 90px;gap:8px;align-items:center;padding:10px 16px;background:var(--pink-pale);font-size:11px;font-weight:900;color:var(--gray);text-transform:uppercase;letter-spacing:.5px">'
+    +'<div>Data</div><div>Assunto</div><div>Tipo</div><div>Enviados</div><div>Segmento</div></div>';
+  var rows = history.slice(0,50).map(function(h){
+    var d = new Date(h.date);
+    var dateStr = d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return '<div style="display:grid;grid-template-columns:140px 1fr 80px 80px 90px;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);font-size:13px">'
+      +'<div style="font-size:12px;color:var(--gray)">'+dateStr+'</div>'
+      +'<div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+escapeHtml(h.subject||'')+'">'+escapeHtml(h.subject||'—')+'</div>'
+      +'<div><span class="ehi-badge '+(TYPCLS[h.type]||'ehi-custom')+'">'+escapeHtml(TYPMAP[h.type]||h.type||'—')+'</span></div>'
+      +'<div style="font-weight:900;color:var(--pink)">'+escapeHtml(String(h.sentCount||0))+' <span style="font-size:11px;color:var(--gray);font-weight:600">/ '+(h.recipientCount||0)+'</span></div>'
+      +'<div style="font-size:12px;color:var(--gray)">'+escapeHtml(SEGMAP[h.segment]||h.segment||'—')+'</div>'
+      +'</div>';
+  }).join('');
+  tableEl.innerHTML = header + rows;
+}
+window.renderEmailHistory = renderEmailHistory;
+
+function clearEmailHistory(){
+  if(!confirm('Limpar todo o histórico de envios?')) return;
+  saveEmailHistory([]);
+  renderEmailHistory();
+  showToast('Histórico limpo');
+}
+window.clearEmailHistory = clearEmailHistory;
+
+// ── Agendamento ─────────────────────────────
+function renderScheduledList(){
+  var box  = document.getElementById('scheduledList');
+  var queue = readEmailQueue();
+  if(!box) return;
+  if(!queue.length){
+    box.innerHTML = '<p style="color:var(--gray);font-size:13px;font-weight:600;text-align:center;padding:12px 0">Nenhum email agendado.</p>';
+    return;
+  }
+  var TYPMAP = {news:'📰 Novidades',promo:'📣 Promoção',custom:'✏️ Personalizado'};
+  var SEGMAP = {all:'Todos',clients:'Clientes',new30d:'Novos 30d'};
+  box.innerHTML = queue.map(function(q,i){
+    var d = new Date(q.scheduledFor);
+    var dateStr = d.toLocaleDateString('pt-BR')+' às '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    var isPast = Date.now() > d.getTime();
+    return '<div style="background:'+(isPast?'#fff3f8':'var(--pink-pale)')+';border:1.5px solid '+(isPast?'var(--pink)':'var(--line)')+';border-radius:12px;padding:12px 14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+        +'<div style="flex:1">'
+          +'<div style="font-weight:900;font-size:13px;color:var(--ink)">'+escapeHtml(TYPMAP[q.type]||q.type||'')+'</div>'
+          +'<div style="font-size:12px;color:var(--gray);margin-top:2px">'+escapeHtml(q.subject||'')+'</div>'
+          +'<div style="font-size:11px;font-weight:700;margin-top:4px;color:'+(isPast?'var(--pink)':'var(--gray)')+'">📅 '+dateStr+(isPast?' · <span style="color:var(--pink)">⚡ Pronto para enviar</span>':'')+'</div>'
+          +'<div style="font-size:11px;color:var(--gray)">👥 '+escapeHtml(SEGMAP[q.segment]||q.segment||'')+'</div>'
+        +'</div>'
+        +'<div style="display:flex;flex-direction:column;gap:6px">'
+          +(isPast?'<button class="mini-btn primary" style="font-size:11px;padding:5px 10px" onclick="sendScheduledNow('+i+')">📤 Enviar</button>':'')
+          +'<button style="border:none;background:#fff0f3;color:#ef4444;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:900" onclick="removeScheduled('+i+')">✕</button>'
+        +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+window.renderScheduledList = renderScheduledList;
+
+function addScheduledEmail(){
+  var type    = document.getElementById('schedEmailType')?.value || 'news';
+  var subject = (document.getElementById('schedEmailSubject')?.value||'').trim();
+  var segment = document.getElementById('schedEmailSegment')?.value || 'all';
+  var date    = document.getElementById('schedEmailDate')?.value || '';
+  var time    = document.getElementById('schedEmailTime')?.value || '09:00';
+  if(!subject){ showToast('Digite o assunto do email'); return; }
+  if(!date){ showToast('Selecione a data'); return; }
+  var dt = new Date(date+'T'+time+':00');
+  if(isNaN(dt.getTime())){ showToast('Data inválida'); return; }
+  var queue = readEmailQueue();
+  queue.push({ id:'sq_'+Date.now(), type:type, subject:subject, segment:segment, scheduledFor:dt.toISOString(), createdAt:new Date().toISOString() });
+  queue.sort(function(a,b){ return new Date(a.scheduledFor)-new Date(b.scheduledFor); });
+  saveEmailQueue(queue);
+  renderScheduledList();
+  // Reset form
+  if(document.getElementById('schedEmailSubject')) document.getElementById('schedEmailSubject').value='';
+  if(document.getElementById('schedEmailDate')) document.getElementById('schedEmailDate').value='';
+  showToast('📅 Email agendado para '+dt.toLocaleDateString('pt-BR')+' às '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+}
+window.addScheduledEmail = addScheduledEmail;
+
+function removeScheduled(i){
+  var queue = readEmailQueue(); queue.splice(i,1); saveEmailQueue(queue); renderScheduledList();
+}
+window.removeScheduled = removeScheduled;
+
+async function sendScheduledNow(i){
+  var queue = readEmailQueue();
+  var q = queue[i];
+  if(!q){ return; }
+  var typeEl = document.getElementById('sendEmailType');
+  var subEl  = document.getElementById('sendEmailSubject');
+  var segEl  = document.getElementById('sendSegment');
+  if(typeEl) typeEl.value = q.type;
+  if(subEl) subEl.value = q.subject;
+  if(segEl) segEl.value = q.segment;
+  _activeTemplate = q.type;
+  switchEmailTab('send');
+  queue.splice(i,1); saveEmailQueue(queue);
+  await sendEmailsNow();
+}
+window.sendScheduledNow = sendScheduledNow;
+
+// Verifica agendados ao abrir admin
+function checkScheduledEmails(){
+  var queue = readEmailQueue();
+  var due = queue.filter(function(q){ return new Date(q.scheduledFor).getTime() <= Date.now(); });
+  if(due.length){
+    showToast('📅 '+due.length+' email(s) agendado(s) pronto(s) — vá em Email Marketing → Agendar');
+  }
+}
+window.checkScheduledEmails = checkScheduledEmails;
 
 window.addColecaoItem=addColecaoItem;
 window.removeColecaoItem=removeColecaoItem;
