@@ -87,6 +87,20 @@ body{background:#f5eff3;min-height:100vh}
 .dash-shortcut:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-pale);transform:translateY(-2px);box-shadow:0 4px 16px rgba(242,39,110,.15)}
 .dash-order-row{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:12px;background:#fafafa;margin-bottom:8px;font-size:13px;cursor:pointer;transition:background .15s}
 .dash-order-row:hover{background:var(--pink-pale)}
+.email-tab{border:2px solid var(--line);background:#fff;border-radius:99px;padding:8px 18px;font:inherit;font-size:13px;font-weight:800;color:var(--ink-mid);cursor:pointer;transition:.15s}
+.email-tab:hover{border-color:var(--pink);color:var(--pink)}
+.email-tab.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.email-tab-panel{display:none}.email-tab-panel.active{display:block}
+.cpn-row{display:flex;align-items:center;gap:8px;background:var(--pink-pale);border-radius:12px;padding:10px 14px;border:1.5px solid var(--line)}
+.cpn-badge{font-size:11px;font-weight:900;padding:3px 10px;border-radius:99px}
+.cpn-badge.active{background:#d1fae5;color:#065f46}.cpn-badge.inactive{background:#fee2e2;color:#991b1b}
+.news-prod-chip{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid transparent;background:#fff}
+.news-prod-chip img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.news-prod-chip .npc-name{font-size:10px;font-weight:900;color:var(--ink);padding:3px 5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.news-prod-chip.selected{border-color:var(--pink)}
+.news-prod-chip .npc-remove{position:absolute;top:3px;right:3px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:900}
+.news-prod-chip.selected .npc-remove{display:flex}
+@media(max-width:680px){#emailSendGrid{grid-template-columns:1fr!important}}
 </style>
 </head>
 <body>
@@ -130,6 +144,7 @@ body{background:#f5eff3;min-height:100vh}
           <button class="adm-menu-item" data-sec="clientes" onclick="switchAdmSection('clientes')"><span class="mi">👥</span> Clientes</button>
           <button class="adm-menu-item" data-sec="config" onclick="switchAdmSection('config')"><span class="mi">⚙️</span> Configurações</button>
           <button class="adm-menu-item" data-sec="backup" onclick="switchAdmSection('backup')"><span class="mi">💾</span> Backups</button>
+          <button class="adm-menu-item" data-sec="email" onclick="switchAdmSection('email')"><span class="mi">📧</span> Email Marketing</button>
           <div class="adm-menu-sep"></div>
           <div class="adm-menu-label">Páginas</div>
           <button class="adm-menu-item" data-sec="pagebuilder" onclick="switchAdmSection('pagebuilder')"><span class="mi">📄</span> Criar Página Web</button>
@@ -425,6 +440,101 @@ body{background:#f5eff3;min-height:100vh}
       </div>
     </div>
 
+    <!-- ── EMAIL MARKETING ── -->
+    <div class="adm-section" id="admSecEmail">
+      <div class="adm-sec-hdr">
+        <div class="adm-sec-title">📧 Email Marketing</div>
+        <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:900;padding:4px 12px;border-radius:99px;border:1px solid #ffe08a">⚡ Envio será integrado em breve</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px" id="emailTabBar">
+        <button class="email-tab on" data-etab="config" onclick="switchEmailTab('config')">⚙️ Configurações</button>
+        <button class="email-tab" data-etab="coupons" onclick="switchEmailTab('coupons')">🎫 Cupons</button>
+        <button class="email-tab" data-etab="news" onclick="switchEmailTab('news')">📰 Novidades</button>
+        <button class="email-tab" data-etab="promos" onclick="switchEmailTab('promos')">📣 Promoções</button>
+        <button class="email-tab" data-etab="send" onclick="switchEmailTab('send')">✉️ Enviar</button>
+      </div>
+      <!-- Config -->
+      <div class="email-tab-panel active" id="etabConfig">
+        <div class="adm-card" style="max-width:520px;display:grid;gap:18px">
+          <div><label class="adm-label">📬 Nome do remetente</label><input class="adm-input" id="emailSenderName" placeholder="Ex: Débora — Vixi Maria Kids" style="width:100%;box-sizing:border-box"></div>
+          <div><label class="adm-label">📮 Email do remetente</label><input class="adm-input" id="emailSenderAddr" type="email" placeholder="loja@viximariakids.com.br" style="width:100%;box-sizing:border-box"></div>
+          <div>
+            <label class="adm-label">📅 Frequência de envio</label>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <input class="adm-input" id="emailFreqTimes" type="number" min="1" max="7" value="1" style="width:64px">
+              <span style="font-weight:700;color:var(--gray)">vez(es) por</span>
+              <select class="adm-input" id="emailFreqPeriod" style="width:auto"><option value="week">Semana</option><option value="month">Mês</option></select>
+            </div>
+          </div>
+          <div><label class="adm-label">📝 Assunto padrão</label><input class="adm-input" id="emailDefaultSubject" placeholder="Ex: 🌸 Novidades da Vixi Maria Kids!" style="width:100%;box-sizing:border-box"></div>
+          <button class="mini-btn primary" onclick="saveEmailConfig()">💾 Salvar configurações</button>
+        </div>
+      </div>
+      <!-- Cupons -->
+      <div class="email-tab-panel" id="etabCoupons">
+        <div class="adm-card" style="max-width:660px">
+          <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 16px">Cupons são aplicáveis no carrinho. Crie um código, defina o desconto e ative/desative quando quiser.</p>
+          <div id="couponsList" style="display:grid;gap:10px;margin-bottom:20px"></div>
+          <div style="border-top:1.5px solid var(--line);padding-top:16px;display:grid;gap:10px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+              <div style="flex:1;min-width:130px"><label class="adm-label" style="font-size:11px">Código</label><input class="adm-input" id="cpnNewCode" placeholder="Ex: VERAO10" style="width:100%;box-sizing:border-box;text-transform:uppercase" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"></div>
+              <div style="width:90px"><label class="adm-label" style="font-size:11px">Desconto</label><input class="adm-input" id="cpnNewDiscount" type="number" min="1" max="100" placeholder="10" style="width:100%;box-sizing:border-box"></div>
+              <div style="width:110px"><label class="adm-label" style="font-size:11px">Tipo</label><select class="adm-input" id="cpnNewType" style="width:100%;box-sizing:border-box"><option value="percent">% desconto</option><option value="fixed">R$ fixo</option></select></div>
+              <div style="width:80px"><label class="adm-label" style="font-size:11px">Máx. usos</label><input class="adm-input" id="cpnNewMaxUses" type="number" min="0" placeholder="0=∞" style="width:100%;box-sizing:border-box"></div>
+              <button class="mini-btn primary" onclick="addCoupon()" style="align-self:flex-end;white-space:nowrap">+ Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Novidades -->
+      <div class="email-tab-panel" id="etabNews">
+        <div class="adm-card" style="max-width:720px;display:grid;gap:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div><div style="font-weight:900;font-size:15px;color:var(--ink)">Produtos para o próximo email</div><div style="font-size:12px;color:var(--gray);font-weight:600;margin-top:2px">Escolha manualmente ou aleatoriamente. Produtos já enviados não se repetem.</div></div>
+            <div style="display:flex;gap:8px"><button class="mini-btn soft" onclick="pickRandomNewsProducts()">🎲 Aleatório</button><button class="mini-btn soft" onclick="clearNewsProducts()">🗑️ Limpar</button></div>
+          </div>
+          <div id="newsProductsSelected" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;min-height:80px;border:2px dashed var(--line);border-radius:12px;padding:12px"></div>
+          <div>
+            <div style="font-weight:900;font-size:13px;color:var(--ink-mid);margin-bottom:10px">Adicionar produto:</div>
+            <input class="adm-input" id="newsSearchInput" placeholder="🔍 Buscar produto..." oninput="filterNewsProds(this.value)" style="width:100%;box-sizing:border-box;margin-bottom:10px">
+            <div id="newsProductsPicker" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:280px;overflow-y:auto"></div>
+          </div>
+          <details style="cursor:pointer"><summary style="font-weight:900;font-size:13px;color:var(--gray)">📋 Histórico de emails enviados</summary><div id="newsHistory" style="margin-top:10px;display:grid;gap:8px"></div></details>
+        </div>
+      </div>
+      <!-- Promoções -->
+      <div class="email-tab-panel" id="etabPromos">
+        <div class="adm-card" style="max-width:640px">
+          <p style="font-size:13px;color:var(--gray);font-weight:600;margin:0 0 16px">Crie blocos de promoção para incluir nos emails. Ative os que quer enviar.</p>
+          <div id="promosList" style="display:grid;gap:12px;margin-bottom:20px"></div>
+          <div style="border-top:1.5px solid var(--line);padding-top:16px;display:grid;gap:10px">
+            <div><label class="adm-label" style="font-size:11px">Título da promoção</label><input class="adm-input" id="promoNewTitle" placeholder="Ex: 🔥 Até 40% OFF esta semana!" style="width:100%;box-sizing:border-box"></div>
+            <div><label class="adm-label" style="font-size:11px">Texto / detalhe</label><textarea class="adm-input" id="promoNewBody" rows="3" placeholder="Descrição, condições, validade..." style="width:100%;box-sizing:border-box;resize:vertical"></textarea></div>
+            <div><label class="adm-label" style="font-size:11px">Cupom vinculado (opcional)</label><select class="adm-input" id="promoNewCoupon" style="width:100%;box-sizing:border-box"><option value="">Nenhum</option></select></div>
+            <button class="mini-btn primary" onclick="addPromo()">+ Adicionar promoção</button>
+          </div>
+        </div>
+      </div>
+      <!-- Enviar -->
+      <div class="email-tab-panel" id="etabSend">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px" id="emailSendGrid">
+          <div class="adm-card" style="display:grid;gap:16px">
+            <div style="font-weight:900;font-size:15px;color:var(--ink)">✉️ Compor email</div>
+            <div><label class="adm-label" style="font-size:11px">Tipo</label><select class="adm-input" id="sendEmailType" onchange="updateEmailPreview()" style="width:100%;box-sizing:border-box"><option value="news">📰 Novidades da semana</option><option value="promo">📣 Promoção</option><option value="custom">✏️ Personalizado</option></select></div>
+            <div><label class="adm-label" style="font-size:11px">Assunto</label><input class="adm-input" id="sendEmailSubject" oninput="updateEmailPreview()" style="width:100%;box-sizing:border-box" placeholder="Assunto do email..."></div>
+            <div id="sendCustomBody" style="display:none"><label class="adm-label" style="font-size:11px">Corpo (personalizado)</label><textarea class="adm-input" id="sendEmailBody" rows="5" oninput="updateEmailPreview()" style="width:100%;box-sizing:border-box;resize:vertical" placeholder="Escreva o texto..."></textarea></div>
+            <div><label class="adm-label" style="font-size:11px">Destinatários</label><div style="font-size:14px;font-weight:900;color:var(--ink-mid)" id="sendRecipientCount">—</div></div>
+            <button class="btn-main" onclick="openManualSendModal()" style="justify-content:center;padding:14px">📤 Preparar e enviar</button>
+            <p style="font-size:11px;color:var(--gray);font-weight:600;text-align:center;margin:0">⚡ Integração com serviço de email em breve</p>
+          </div>
+          <div class="adm-card" style="padding:0;overflow:hidden">
+            <div style="background:var(--pink);color:#fff;padding:12px 16px;font-weight:900;font-size:13px">👁 Preview</div>
+            <div id="emailPreviewFrame" style="padding:16px;font-size:13px;line-height:1.6;max-height:500px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── PÁGINA WEB (PAGE BUILDER) ── -->
     <div class="adm-section" id="admSecPagebuilder">
       <div class="adm-sec-hdr">
@@ -613,6 +723,7 @@ function switchAdmSection(sec) {
   if (sec === 'add') setTimeout(function(){ if(typeof populateColecaoSelects==='function') populateColecaoSelects(''); }, 150);
   if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
   if (sec === 'backup') viewBackups();
+  if (sec === 'email') loadEmailAdmin();
   if (sec === 'categories') renderCatEditor();
   if (sec === 'add') initAddNew();
   if (sec === 'badges') refreshBadgeBtns();
@@ -1323,6 +1434,206 @@ function populateColecaoSelects(currentColecao){
   });
 }
 window.populateColecaoSelects=populateColecaoSelects;
+
+// ══════════════════════════════════════════
+// EMAIL MARKETING
+// ══════════════════════════════════════════
+var EMAIL_CONFIG_KEY='vixiEmailConfig',COUPONS_KEY='vixiCoupons',EMAIL_NEWS_KEY='vixiEmailNews',EMAIL_PROMOS_KEY='vixiEmailPromos';
+function readEmailConfig(){try{return JSON.parse(localStorage.getItem(EMAIL_CONFIG_KEY)||'{}');}catch(e){return {};}}
+function saveEmailConfigData(d){localStorage.setItem(EMAIL_CONFIG_KEY,JSON.stringify(d));if(window.vixiSaveCloud)window.vixiSaveCloud(EMAIL_CONFIG_KEY,d);}
+function readCoupons(){try{return JSON.parse(localStorage.getItem(COUPONS_KEY)||'[]');}catch(e){return [];}}
+function saveCouponsData(d){localStorage.setItem(COUPONS_KEY,JSON.stringify(d));if(window.vixiSaveCloud)window.vixiSaveCloud(COUPONS_KEY,d);}
+function readEmailNews(){try{return JSON.parse(localStorage.getItem(EMAIL_NEWS_KEY)||'{"products":[],"sentHistory":[]}');}catch(e){return {products:[],sentHistory:[]};}}
+function saveEmailNews(d){localStorage.setItem(EMAIL_NEWS_KEY,JSON.stringify(d));if(window.vixiSaveCloud)window.vixiSaveCloud(EMAIL_NEWS_KEY,d);}
+function readEmailPromos(){try{return JSON.parse(localStorage.getItem(EMAIL_PROMOS_KEY)||'[]');}catch(e){return [];}}
+function saveEmailPromos(d){localStorage.setItem(EMAIL_PROMOS_KEY,JSON.stringify(d));if(window.vixiSaveCloud)window.vixiSaveCloud(EMAIL_PROMOS_KEY,d);}
+
+function loadEmailAdmin(){
+  var cfg=readEmailConfig();
+  var fn=document.getElementById('emailSenderName');if(fn)fn.value=cfg.senderName||'';
+  var fa=document.getElementById('emailSenderAddr');if(fa)fa.value=cfg.senderEmail||'';
+  var ft=document.getElementById('emailFreqTimes');if(ft)ft.value=cfg.freqTimes||1;
+  var fp=document.getElementById('emailFreqPeriod');if(fp)fp.value=cfg.freqPeriod||'week';
+  var fd=document.getElementById('emailDefaultSubject');if(fd)fd.value=cfg.defaultSubject||'🌸 Novidades da Vixi Maria Kids!';
+  switchEmailTab('config');
+}
+window.loadEmailAdmin=loadEmailAdmin;
+
+function switchEmailTab(tab){
+  document.querySelectorAll('.email-tab').forEach(function(b){b.classList.toggle('on',b.dataset.etab===tab);});
+  document.querySelectorAll('.email-tab-panel').forEach(function(p){p.classList.remove('active');});
+  var key=tab.charAt(0).toUpperCase()+tab.slice(1);
+  var panel=document.getElementById('etab'+key);if(panel)panel.classList.add('active');
+  if(tab==='news')renderNewsTab();
+  if(tab==='coupons')renderCouponsList();
+  if(tab==='promos')renderPromosList();
+  if(tab==='send'){updateEmailPreview();updateSendRecipientCount();}
+}
+window.switchEmailTab=switchEmailTab;
+
+function saveEmailConfig(){
+  saveEmailConfigData({senderName:document.getElementById('emailSenderName')?.value.trim()||'',senderEmail:document.getElementById('emailSenderAddr')?.value.trim()||'',freqTimes:parseInt(document.getElementById('emailFreqTimes')?.value)||1,freqPeriod:document.getElementById('emailFreqPeriod')?.value||'week',defaultSubject:document.getElementById('emailDefaultSubject')?.value.trim()||''});
+  showToast('Configurações de email salvas ✅');
+}
+window.saveEmailConfig=saveEmailConfig;
+
+function _cpnRefreshPromoSelect(){
+  var coupons=readCoupons();
+  var sel=document.getElementById('promoNewCoupon');
+  if(sel){sel.innerHTML='<option value="">Nenhum</option>'+coupons.filter(function(c){return c.active;}).map(function(c){return '<option value="'+escapeHtml(c.code)+'">'+escapeHtml(c.code)+' ('+c.discount+(c.type==='percent'?'%':'R$')+')</option>';}).join('');}
+}
+
+function renderCouponsList(){
+  var box=document.getElementById('couponsList');var coupons=readCoupons();
+  if(!box)return;
+  if(!coupons.length){box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:8px 0">Nenhum cupom cadastrado.</p>';_cpnRefreshPromoSelect();return;}
+  box.innerHTML=coupons.map(function(c,i){
+    var label=c.type==='percent'?c.discount+'% OFF':'R$ '+c.discount+' OFF';
+    var usesLabel=c.maxUses?(c.uses||0)+'/'+c.maxUses+' usos':(c.uses||0)+' usos';
+    return '<div class="cpn-row"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-family:monospace;font-size:14px;font-weight:900;letter-spacing:1px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:3px 10px">'+escapeHtml(c.code)+'</span><span style="font-weight:900;font-size:14px;color:var(--pink)">'+label+'</span><span class="cpn-badge '+(c.active?'active':'inactive')+'">'+(c.active?'Ativo':'Inativo')+'</span><span style="font-size:12px;color:var(--gray);font-weight:700">'+usesLabel+'</span></div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="mini-btn soft" style="padding:6px 12px;font-size:12px" onclick="toggleCoupon('+i+')">'+(c.active?'Desativar':'Ativar')+'</button><button style="border:none;background:#fff0f3;color:#ef4444;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px;font-weight:900" onclick="deleteCoupon('+i+')">✕</button></div></div>';
+  }).join('');
+  _cpnRefreshPromoSelect();
+}
+window.renderCouponsList=renderCouponsList;
+
+function addCoupon(){
+  var code=(document.getElementById('cpnNewCode')?.value||'').trim().toUpperCase();
+  var discount=parseFloat(document.getElementById('cpnNewDiscount')?.value)||0;
+  var type=document.getElementById('cpnNewType')?.value||'percent';
+  var maxUses=parseInt(document.getElementById('cpnNewMaxUses')?.value)||0;
+  if(!code){showToast('Digite o código do cupom');return;}
+  if(!discount||discount<=0){showToast('Digite o valor do desconto');return;}
+  var coupons=readCoupons();
+  if(coupons.find(function(c){return c.code===code;})){showToast('Código já existe');return;}
+  coupons.push({id:'cpn_'+Date.now(),code:code,discount:discount,type:type,maxUses:maxUses,uses:0,active:true,createdAt:new Date().toISOString()});
+  saveCouponsData(coupons);
+  document.getElementById('cpnNewCode').value='';document.getElementById('cpnNewDiscount').value='';document.getElementById('cpnNewMaxUses').value='';
+  renderCouponsList();showToast('Cupom '+code+' criado ✅');
+}
+window.addCoupon=addCoupon;
+
+function toggleCoupon(i){var c=readCoupons();if(!c[i])return;c[i].active=!c[i].active;saveCouponsData(c);renderCouponsList();}
+window.toggleCoupon=toggleCoupon;
+function deleteCoupon(i){var c=readCoupons();c.splice(i,1);saveCouponsData(c);renderCouponsList();showToast('Cupom removido');}
+window.deleteCoupon=deleteCoupon;
+
+var _newsSelected=[];
+function renderNewsTab(){
+  var nd=readEmailNews();_newsSelected=(nd.products||[]).slice();
+  renderNewsSelected();renderNewsPicker('');renderNewsHistory(nd.sentHistory||[]);
+}
+function _getAdminProds(){return typeof liveProducts!=='undefined'&&liveProducts?liveProducts:(typeof PRODS!=='undefined'?PRODS:[]);}
+function renderNewsSelected(){
+  var box=document.getElementById('newsProductsSelected');if(!box)return;
+  if(!_newsSelected.length){box.innerHTML='<p style="color:var(--gray);font-size:13px;font-weight:600;grid-column:1/-1;text-align:center;padding:12px 0">Nenhum produto selecionado.</p>';return;}
+  var prods=_getAdminProds();
+  box.innerHTML=_newsSelected.map(function(id){var p=prods.find(function(x){return x.id===id;});if(!p)return '';return '<div class="news-prod-chip selected">'+(p.img?'<img src="'+escapeHtml(p.img)+'" alt="">':'<div style="width:100%;aspect-ratio:1;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:28px">🌸</div>')+'<div class="npc-name">'+escapeHtml(p.name||'')+'</div><button class="npc-remove" onclick="removeNewsProduct(\''+id+'\')">✕</button></div>';}).filter(Boolean).join('');
+}
+function renderNewsPicker(q){
+  var box=document.getElementById('newsProductsPicker');if(!box)return;
+  var prods=_getAdminProds();
+  var sentFlat=(readEmailNews().sentHistory||[]).flat();
+  var list=prods.filter(function(p){if(_newsSelected.includes(p.id))return false;if(q&&!p.name.toLowerCase().includes(q.toLowerCase()))return false;return true;}).slice(0,48);
+  if(!list.length){box.innerHTML='<p style="color:var(--gray);font-size:13px;grid-column:1/-1;text-align:center">Nenhum produto encontrado.</p>';return;}
+  box.innerHTML=list.map(function(p){var sent=sentFlat.includes(p.id);return '<div class="news-prod-chip" onclick="addNewsProduct(\''+p.id+'\')" title="'+(sent?'Já enviado · ':'')+escapeHtml(p.name||'')+'">'+(p.img?'<img src="'+escapeHtml(p.img)+'" alt="">':'<div style="width:100%;aspect-ratio:1;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:28px">🌸</div>')+'<div class="npc-name">'+(sent?'⚡ ':'')+escapeHtml(p.name||'')+'</div></div>';}).join('');
+}
+function filterNewsProds(q){renderNewsPicker(q);}
+window.filterNewsProds=filterNewsProds;
+function addNewsProduct(id){if(_newsSelected.includes(id))return;_newsSelected.push(id);saveEmailNews(Object.assign(readEmailNews(),{products:_newsSelected}));renderNewsSelected();renderNewsPicker(document.getElementById('newsSearchInput')?.value||'');showToast('Produto adicionado 📰');}
+window.addNewsProduct=addNewsProduct;
+function removeNewsProduct(id){_newsSelected=_newsSelected.filter(function(x){return x!==id;});saveEmailNews(Object.assign(readEmailNews(),{products:_newsSelected}));renderNewsSelected();renderNewsPicker(document.getElementById('newsSearchInput')?.value||'');}
+window.removeNewsProduct=removeNewsProduct;
+function pickRandomNewsProducts(){
+  var nd=readEmailNews();var sentFlat=(nd.sentHistory||[]).flat();
+  var prods=_getAdminProds().filter(function(p){return p.img;});
+  var fresh=prods.filter(function(p){return !sentFlat.includes(p.id);});
+  if(fresh.length<4)fresh=prods;
+  var shuffled=fresh.slice().sort(function(){return Math.random()-0.5;});
+  _newsSelected=shuffled.slice(0,Math.min(6,shuffled.length)).map(function(p){return p.id;});
+  saveEmailNews(Object.assign(nd,{products:_newsSelected}));renderNewsSelected();renderNewsPicker('');showToast('Produtos aleatórios selecionados 🎲');
+}
+window.pickRandomNewsProducts=pickRandomNewsProducts;
+function clearNewsProducts(){_newsSelected=[];saveEmailNews(Object.assign(readEmailNews(),{products:[]}));renderNewsSelected();renderNewsPicker('');}
+window.clearNewsProducts=clearNewsProducts;
+function renderNewsHistory(history){
+  var box=document.getElementById('newsHistory');if(!box)return;
+  if(!history.length){box.innerHTML='<p style="color:var(--gray);font-size:12px;font-weight:600">Nenhum email enviado ainda.</p>';return;}
+  var prods=_getAdminProds();
+  box.innerHTML=history.slice().reverse().map(function(batch,ri){
+    var names=batch.map(function(id){var p=prods.find(function(x){return x.id===id;});return p?escapeHtml(p.name):id;}).join(', ');
+    return '<div style="font-size:12px;color:var(--gray);font-weight:600;padding:6px 10px;background:var(--pink-pale);border-radius:8px"><span style="font-weight:900;color:var(--ink)">Envio '+(history.length-ri)+':</span> '+names+'</div>';
+  }).join('');
+}
+
+function renderPromosList(){
+  var box=document.getElementById('promosList');var promos=readEmailPromos();
+  if(!box)return;
+  if(!promos.length){box.innerHTML='<p style="color:var(--gray);font-size:13px;text-align:center;padding:8px 0">Nenhuma promoção cadastrada.</p>';}
+  else{box.innerHTML=promos.map(function(pr,i){return '<div style="background:var(--pink-pale);border-radius:12px;padding:14px 16px;border:1.5px solid '+(pr.active?'var(--pink)':'var(--line')+')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="flex:1"><div style="font-weight:900;font-size:14px;color:var(--ink)">'+escapeHtml(pr.title||'')+'</div>'+(pr.body?'<div style="font-size:12px;color:var(--gray);margin-top:4px">'+escapeHtml(pr.body).substring(0,80)+(pr.body.length>80?'…':'')+'</div>':'')+(pr.coupon?'<div style="margin-top:6px"><span style="font-family:monospace;font-size:11px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-weight:900">🎫 '+escapeHtml(pr.coupon)+'</span></div>':'')+'</div><div style="display:flex;gap:6px;flex-shrink:0"><button class="mini-btn soft" style="padding:5px 10px;font-size:12px" onclick="togglePromo('+i+')">'+(pr.active?'Desativar':'Ativar')+'</button><button style="border:none;background:#fff0f3;color:#ef4444;border-radius:8px;width:26px;height:26px;cursor:pointer;font-size:12px;font-weight:900" onclick="deletePromo('+i+')">✕</button></div></div></div>';}).join('');}
+  _cpnRefreshPromoSelect();
+}
+function addPromo(){
+  var title=document.getElementById('promoNewTitle')?.value.trim()||'';
+  var body=document.getElementById('promoNewBody')?.value.trim()||'';
+  var coupon=document.getElementById('promoNewCoupon')?.value||'';
+  if(!title){showToast('Digite o título da promoção');return;}
+  var promos=readEmailPromos();
+  promos.push({id:'promo_'+Date.now(),title:title,body:body,coupon:coupon,active:true,createdAt:new Date().toISOString()});
+  saveEmailPromos(promos);
+  document.getElementById('promoNewTitle').value='';document.getElementById('promoNewBody').value='';if(document.getElementById('promoNewCoupon'))document.getElementById('promoNewCoupon').value='';
+  renderPromosList();showToast('Promoção adicionada ✅');
+}
+window.addPromo=addPromo;
+function togglePromo(i){var p=readEmailPromos();if(!p[i])return;p[i].active=!p[i].active;saveEmailPromos(p);renderPromosList();}
+window.togglePromo=togglePromo;
+function deletePromo(i){var p=readEmailPromos();p.splice(i,1);saveEmailPromos(p);renderPromosList();showToast('Promoção removida');}
+window.deletePromo=deletePromo;
+
+function updateEmailPreview(){
+  var frame=document.getElementById('emailPreviewFrame');if(!frame)return;
+  var type=document.getElementById('sendEmailType')?.value||'news';
+  var subject=document.getElementById('sendEmailSubject')?.value||'';
+  var cfg=readEmailConfig();
+  var prods=_getAdminProds();
+  var cp=document.getElementById('sendCustomBody');if(cp)cp.style.display=type==='custom'?'':'none';
+  var prodsHtml='';
+  if(type==='news'||type==='custom'){
+    var news=readEmailNews();
+    var sel=(news.products||[]).map(function(id){return prods.find(function(p){return p.id===id;});}).filter(Boolean);
+    if(sel.length){prodsHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0">'+sel.map(function(p){return '<div style="border:1px solid #eee;border-radius:10px;overflow:hidden">'+(p.img?'<img src="'+escapeHtml(p.img)+'" style="width:100%;aspect-ratio:1;object-fit:cover" alt="">':'<div style="width:100%;aspect-ratio:1;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:24px">🌸</div>')+'<div style="padding:8px;font-size:12px"><div style="font-weight:900">'+escapeHtml(p.name||'')+'</div><div style="color:#e91e63;font-weight:900;margin-top:2px">'+(typeof money==='function'?money(p.price):'R$'+p.price)+'</div></div></div>';}).join('')+'</div>';}
+  }
+  var promosHtml='';
+  if(type==='promo'||type==='custom'){
+    var activeP=readEmailPromos().filter(function(pr){return pr.active;});
+    promosHtml=activeP.map(function(pr){return '<div style="background:#fff3f8;border-left:4px solid #e91e63;padding:10px 14px;border-radius:0 10px 10px 0;margin:10px 0"><div style="font-weight:900;color:#c2185b">'+escapeHtml(pr.title)+'</div>'+(pr.body?'<div style="font-size:12px;color:#666;margin-top:3px">'+escapeHtml(pr.body)+'</div>':'')+(pr.coupon?'<div style="margin-top:7px;font-family:monospace;font-size:12px;font-weight:900;background:#fff;border:2px dashed #e91e63;border-radius:8px;padding:5px 10px;display:inline-block">🎫 '+escapeHtml(pr.coupon)+'</div>':'')+'</div>';}).join('');
+  }
+  var customHtml='';
+  if(type==='custom'){var cb=(document.getElementById('sendEmailBody')?.value||'').replace(/\n/g,'<br>');if(cb)customHtml='<div style="margin:12px 0;font-size:13px;color:#333">'+cb+'</div>';}
+  var subj=subject||cfg.defaultSubject||'🌸 Novidades da Vixi Maria Kids!';
+  var sender=cfg.senderName||'Vixi Maria Kids';
+  frame.innerHTML='<div style="font-family:sans-serif"><div style="background:linear-gradient(135deg,#e91e63,#c2185b);color:#fff;padding:20px;border-radius:10px 10px 0 0;text-align:center"><div style="font-size:22px;margin-bottom:4px">🌸</div><div style="font-weight:900;font-size:15px">'+escapeHtml(sender)+'</div></div><div style="padding:16px;background:#fff;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px"><div style="font-weight:900;font-size:14px;color:#111;margin-bottom:12px;border-bottom:1px solid #f0f0f0;padding-bottom:10px">'+escapeHtml(subj)+'</div>'+(type==='news'?'<p style="font-size:13px;color:#555;margin:0 0 8px">Olá! Confira as novidades desta semana:</p>':'')+prodsHtml+customHtml+promosHtml+'<div style="margin-top:14px;text-align:center"><a href="https://vixi-maria-kids-8c494.web.app" style="background:#e91e63;color:#fff;padding:9px 20px;border-radius:99px;text-decoration:none;font-weight:900;font-size:12px">Ver todos os produtos →</a></div><div style="margin-top:14px;font-size:10px;color:#aaa;text-align:center">Vixi Maria Kids · Rua Orlândia, 1193 · Ribeirão Preto</div></div></div>';
+}
+window.updateEmailPreview=updateEmailPreview;
+
+function updateSendRecipientCount(){
+  var el=document.getElementById('sendRecipientCount');if(!el)return;
+  try{var cl=JSON.parse(localStorage.getItem('vixiClientes')||'[]');var n=cl.filter(function(c){return c.email;}).length;el.innerHTML='<span style="font-size:20px;font-weight:900;color:var(--pink)">'+n+'</span> <span style="color:var(--gray)">cliente'+(n!==1?'s':'')+' com email</span>';}catch(e){el.textContent='—';}
+}
+
+function openManualSendModal(){
+  var type=document.getElementById('sendEmailType')?.value||'news';
+  var subject=document.getElementById('sendEmailSubject')?.value||readEmailConfig().defaultSubject||'🌸 Novidades';
+  var news=readEmailNews();
+  var selCnt=(news.products||[]).length;
+  var promCnt=readEmailPromos().filter(function(p){return p.active;}).length;
+  var recip=[];try{recip=JSON.parse(localStorage.getItem('vixiClientes')||'[]').filter(function(c){return c.email;});}catch(e){}
+  var msg='📧 RESUMO DO ENVIO\n\nAssunto: '+subject+'\nTipo: '+(type==='news'?'Novidades':type==='promo'?'Promoção':'Personalizado')+'\n'+(type!=='promo'&&selCnt?'Produtos: '+selCnt+'\n':'')+(type!=='news'&&promCnt?'Promoções ativas: '+promCnt+'\n':'')+'Destinatários: '+recip.length+' cliente(s)\n\n⚡ Integração com serviço de email será configurada em breve.\n\nDeseja registrar este envio no histórico?';
+  if(confirm(msg)){
+    if(type==='news'&&news.products&&news.products.length){var upd=readEmailNews();upd.sentHistory=(upd.sentHistory||[]);upd.sentHistory.push(news.products.slice());upd.products=[];saveEmailNews(upd);_newsSelected=[];}
+    showToast('Envio registrado no histórico ✅');renderNewsTab();updateEmailPreview();
+  }
+}
+window.openManualSendModal=openManualSendModal;
 
 window.addColecaoItem=addColecaoItem;
 window.removeColecaoItem=removeColecaoItem;

@@ -238,6 +238,7 @@ function renderCartPage() {
     return;
   }
 
+  _couponAppliedTotal = null;
   var total = 0;
   var rows = cartData.map(function(item) {
     var p = getProduct(item.id);
@@ -264,6 +265,11 @@ function renderCartPage() {
       + '</div>';
   }).join('');
 
+  if(_appliedCoupon){
+    if(_appliedCoupon.type==='percent') _couponAppliedTotal = total * (1 - _appliedCoupon.discount/100);
+    else _couponAppliedTotal = Math.max(0, total - _appliedCoupon.discount);
+  }
+
   var pixDisc = (typeof getPixDiscount==='function') ? getPixDiscount() : 10;
   var pix = total * (100-pixDisc)/100;
   var FREE_SHIP = 250;
@@ -275,7 +281,15 @@ function renderCartPage() {
   el.innerHTML = '<div class="cart-page-list">' + rows + '</div>'
     + '<div class="cart-page-summary">'
       + shipHtml
-      + '<div class="cart-page-total">Total: <span>' + money(total) + '</span></div>'
+      + '<div id="couponSection" style="margin-bottom:14px">'
+        + '<div style="display:flex;gap:8px">'
+          + '<input id="couponInput" placeholder="🎫 Código de cupom" style="flex:1;font-size:14px;padding:10px 14px;border-radius:99px;border:2px solid var(--line);outline:none;box-sizing:border-box;font-family:inherit;font-weight:700" oninput="this.value=this.value.toUpperCase()">'
+          + '<button onclick="applyCouponCart()" style="border:none;background:var(--pink);color:#fff;border-radius:99px;padding:10px 18px;font-weight:900;font-size:14px;cursor:pointer;white-space:nowrap;font-family:inherit">Aplicar</button>'
+        + '</div>'
+        + '<div id="couponMsg" style="margin-top:6px;font-size:12px;font-weight:700;min-height:18px"></div>'
+      + '</div>'
+      + '<div class="cart-page-total">Total: <span id="cartTotalAmt">' + money(_couponAppliedTotal !== null ? _couponAppliedTotal : total) + '</span></div>'
+      + (_couponAppliedTotal !== null ? '<div style="font-size:12px;font-weight:700;color:#16a34a;margin:-10px 0 10px">✅ Desconto aplicado: economizou ' + money(total - _couponAppliedTotal) + '</div>' : '')
       + '<div style="background:#e8fff3;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px;font-weight:700;color:#128c4a">💚 No PIX: <strong style="font-size:16px">' + money(pix) + '</strong> <span style="font-size:12px;font-weight:600;color:#2d8a52">('+pixDisc+'% off)</span></div>'
       + '<div style="display:flex;flex-direction:column;gap:12px">'
         + '<button class="btn-main" onclick="openMpCheckoutModal()" style="justify-content:center;font-size:17px;padding:16px 28px;background:var(--pink)">💳 Pagar Online (PIX / Cartão)</button>'
@@ -299,6 +313,30 @@ document.addEventListener('DOMContentLoaded', function() {
   syncCategoriesUI();
   renderCartPage();
 });
+
+var _appliedCoupon = null;
+var _couponAppliedTotal = null;
+
+function applyCouponCart(){
+  var code = (document.getElementById('couponInput')?.value||'').trim().toUpperCase();
+  var msg  = document.getElementById('couponMsg');
+  if(!code){ if(msg) msg.innerHTML='<span style="color:#ef4444">Digite um código de cupom</span>'; return; }
+  try{
+    var coupons = JSON.parse(localStorage.getItem('vixiCoupons')||'[]');
+    var cpn = coupons.find(function(c){ return c.code===code && c.active; });
+    if(!cpn){ _appliedCoupon=null; _couponAppliedTotal=null; if(msg) msg.innerHTML='<span style="color:#ef4444">Cupom inválido ou inativo ✕</span>'; renderCartPage(); return; }
+    if(cpn.maxUses && (cpn.uses||0) >= cpn.maxUses){ if(msg) msg.innerHTML='<span style="color:#ef4444">Cupom atingiu o limite de usos ✕</span>'; return; }
+    _appliedCoupon = cpn;
+    renderCartPage();
+    setTimeout(function(){
+      var inp = document.getElementById('couponInput');
+      if(inp) inp.value = code;
+      var label = cpn.type==='percent' ? cpn.discount+'% de desconto' : 'R$ '+cpn.discount+' de desconto';
+      if(document.getElementById('couponMsg')) document.getElementById('couponMsg').innerHTML='<span style="color:#16a34a">✅ Cupom aplicado: '+label+'!</span>';
+    }, 50);
+  }catch(e){ if(msg) msg.innerHTML='<span style="color:#ef4444">Erro ao validar cupom</span>'; }
+}
+window.applyCouponCart = applyCouponCart;
 </script>
 <script type="module" src="vixi-firebase.js"></script>
 <script src="ga.js"></script>
