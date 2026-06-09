@@ -35,18 +35,35 @@ body{background:#f5eff3;min-height:100vh}
 .adm-tb-btn{padding:7px 14px;border-radius:99px;border:2px solid rgba(255,255,255,.45);background:transparent;color:#fff;font-family:var(--font-b);font-weight:800;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap;flex-shrink:0}
 .adm-tb-btn:hover{background:rgba(255,255,255,.2)}
 
-/* ── MENU DROPDOWN ── */
-.adm-menu-wrap{position:relative}
-.adm-menu-btn{padding:8px 16px;border-radius:99px;border:2px solid rgba(255,255,255,.45);background:rgba(255,255,255,.15);color:#fff;font-family:var(--font-b);font-weight:900;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s}
-.adm-menu-btn.open,.adm-menu-btn:hover{background:rgba(255,255,255,.28)}
-.adm-menu-dd{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.2);min-width:240px;overflow:hidden;opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .18s,transform .18s;z-index:400}
-.adm-menu-dd.open{opacity:1;transform:translateY(0);pointer-events:auto}
-.adm-menu-item{display:flex;align-items:center;gap:12px;padding:13px 18px;font-family:var(--font-b);font-weight:700;font-size:14px;cursor:pointer;color:var(--ink);transition:background .12s;border:none;background:none;width:100%;text-align:left}
-.adm-menu-item:hover{background:var(--pink-pale)}
-.adm-menu-item.active{color:var(--pink);background:#fff3f8;font-weight:900}
-.adm-menu-item .mi{font-size:17px;width:22px;text-align:center}
-.adm-menu-sep{height:1px;background:var(--line);margin:4px 14px}
-.adm-menu-label{font-size:10px;font-weight:900;color:var(--gray);letter-spacing:1.5px;text-transform:uppercase;padding:10px 18px 4px}
+/* ── HOME MENU ── */
+#admHomeMenu{display:none;overflow-y:auto;flex:1}
+#admHomeMenu.visible{display:block}
+.adm-home-hero{background:linear-gradient(135deg,var(--pink) 0%,#a0004a 100%);padding:32px 24px 28px;color:#fff;position:relative;overflow:hidden}
+.adm-home-hero::after{content:'🌸';position:absolute;font-size:140px;opacity:.07;right:-10px;bottom:-20px;pointer-events:none;line-height:1}
+.adm-home-hero h2{font-family:var(--font-d);font-size:clamp(20px,4vw,28px);font-weight:700;margin:0 0 4px;line-height:1.1}
+.adm-home-hero p{font-size:14px;font-weight:600;opacity:.85;margin:0 0 16px}
+.adm-home-stats{display:flex;gap:10px;flex-wrap:wrap}
+.adm-hs-chip{background:rgba(255,255,255,.18);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:900;display:flex;align-items:center;gap:6px}
+.adm-home-body{padding:20px 20px 32px}
+.adm-home-group{margin-bottom:26px}
+.adm-home-group-title{font-size:10px;font-weight:900;color:var(--gray);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;padding-left:2px}
+.adm-home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+@media(max-width:480px){.adm-home-grid{grid-template-columns:repeat(2,1fr);gap:8px}}
+.adm-home-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:18px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .18s;text-align:center;user-select:none;-webkit-tap-highlight-color:transparent}
+.adm-home-card:hover{border-color:var(--pink);background:var(--pink-pale);transform:translateY(-2px);box-shadow:0 6px 20px rgba(242,39,110,.13)}
+.adm-home-card:active{transform:translateY(0) scale(.97)}
+.adm-home-card.ahc-hi{border-color:rgba(242,39,110,.4);background:#fff8fc}
+.adm-home-card .ahc-icon{font-size:28px;line-height:1}
+.adm-home-card .ahc-name{font-family:var(--font-b);font-size:13px;font-weight:800;color:var(--ink);line-height:1.2}
+.adm-home-card .ahc-desc{font-size:11px;color:var(--gray);font-weight:600}
+/* ── BACK BAR ── */
+#admBackBar{display:none;align-items:center;gap:10px;padding:10px 20px;background:#fff;border-bottom:2px solid var(--line);flex-shrink:0;position:sticky;top:62px;z-index:100}
+#admBackBar.visible{display:flex}
+.adm-back-btn{border:2px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;font-family:var(--font-b);font-weight:900;font-size:13px;cursor:pointer;color:var(--ink-mid);display:flex;align-items:center;gap:6px;transition:all .18s;flex-shrink:0;white-space:nowrap}
+.adm-back-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-pale)}
+#admBackTitle{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* keep these so JS doesn't break */
+.adm-menu-item{display:none}.adm-menu-sep{display:none}.adm-menu-label{display:none}
 
 /* ── STATS ── */
 #admStats{display:flex;gap:10px;padding:14px 20px;overflow-x:auto;background:#fff;border-bottom:2px solid var(--line);flex-shrink:0}
@@ -121,35 +138,7 @@ body{background:#f5eff3;min-height:100vh}
     <div class="adm-topbar-logo">🌸 vixi maria <span class="adm-badge">ADMIN</span></div>
     <input type="text" id="admSearchInput" class="adm-tb-search" placeholder="🔍 Buscar produto..." oninput="renderAdminGrid()">
     <div class="adm-tb-right">
-      <!-- Settings dropdown -->
-      <div class="adm-menu-wrap">
-        <button class="adm-menu-btn" id="admMenuBtn" onclick="toggleAdmMenu()">⚙️ Menu ▾</button>
-        <div class="adm-menu-dd" id="admMenuDd">
-          <button class="adm-menu-item" data-sec="dashboard" onclick="switchAdmSection('dashboard')"><span class="mi">🏠</span> Painel de Controle</button>
-          <div class="adm-menu-sep"></div>
-          <div class="adm-menu-label">Produtos</div>
-          <button class="adm-menu-item active" data-sec="products" onclick="switchAdmSection('products')"><span class="mi">📦</span> Gerenciar Produtos</button>
-          <button class="adm-menu-item" data-sec="add" onclick="switchAdmSection('add')"><span class="mi">➕</span> Adicionar Produto</button>
-          <div class="adm-menu-sep"></div>
-          <div class="adm-menu-label">Loja</div>
-          <button class="adm-menu-item" data-sec="categories" onclick="switchAdmSection('categories')"><span class="mi">🗂️</span> Categorias</button>
-          <button class="adm-menu-item" data-sec="annbar" onclick="switchAdmSection('annbar')"><span class="mi">📢</span> Barra de Avisos</button>
-          <button class="adm-menu-item" data-sec="colecoes" onclick="switchAdmSection('colecoes')"><span class="mi">🌟</span> Coleções</button>
-          <a class="adm-menu-item" href="index.html?admin=visual"><span class="mi">🎨</span> Editar Página Inicial</a>
-          <button class="adm-menu-item" data-sec="photos" onclick="switchAdmSection('photos')"><span class="mi">🖼️</span> Galeria de Fotos</button>
-          <div class="adm-menu-sep"></div>
-          <div class="adm-menu-label">Configurações</div>
-          <button class="adm-menu-item" data-sec="orders" onclick="switchAdmSection('orders')"><span class="mi">📊</span> Pedidos</button>
-          <button class="adm-menu-item" data-sec="badges" onclick="switchAdmSection('badges')"><span class="mi">🏷️</span> Estilo das Tags</button>
-          <button class="adm-menu-item" data-sec="clientes" onclick="switchAdmSection('clientes')"><span class="mi">👥</span> Clientes</button>
-          <button class="adm-menu-item" data-sec="config" onclick="switchAdmSection('config')"><span class="mi">⚙️</span> Configurações</button>
-          <button class="adm-menu-item" data-sec="backup" onclick="switchAdmSection('backup')"><span class="mi">💾</span> Backups</button>
-          <button class="adm-menu-item" data-sec="email" onclick="switchAdmSection('email')"><span class="mi">📧</span> Email Marketing</button>
-          <div class="adm-menu-sep"></div>
-          <div class="adm-menu-label">Páginas</div>
-          <button class="adm-menu-item" data-sec="pagebuilder" onclick="switchAdmSection('pagebuilder')"><span class="mi">📄</span> Criar Página Web</button>
-        </div>
-      </div>
+      <button class="adm-tb-btn" id="admHomeBtn" onclick="goAdmHome()" style="display:none">☰ Menu</button>
       <a href="index.html" class="adm-tb-btn hide-mob">🏠 Loja</a>
       <button class="adm-tb-btn" onclick="closeAdmin()">✕ Sair</button>
     </div>
@@ -157,6 +146,118 @@ body{background:#f5eff3;min-height:100vh}
 
   <!-- Stats bar -->
   <div id="admStats"></div>
+
+  <!-- ── HOME MENU ── -->
+  <div id="admHomeMenu">
+    <div class="adm-home-hero">
+      <h2>🌸 Painel Admin</h2>
+      <p>Vixi Maria Kids — o que você quer fazer?</p>
+      <div class="adm-home-stats" id="admHomeStats"></div>
+    </div>
+    <div class="adm-home-body">
+
+      <div class="adm-home-group">
+        <div class="adm-home-group-title">Produtos</div>
+        <div class="adm-home-grid">
+          <div class="adm-home-card ahc-hi" onclick="switchAdmSection('products')">
+            <span class="ahc-icon">📦</span>
+            <span class="ahc-name">Gerenciar</span>
+            <span class="ahc-desc">Ver e editar</span>
+          </div>
+          <div class="adm-home-card ahc-hi" onclick="switchAdmSection('add')">
+            <span class="ahc-icon">➕</span>
+            <span class="ahc-name">Adicionar</span>
+            <span class="ahc-desc">Novo produto</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('orders')">
+            <span class="ahc-icon">📊</span>
+            <span class="ahc-name">Pedidos</span>
+            <span class="ahc-desc">Ver pedidos</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('clientes')">
+            <span class="ahc-icon">👥</span>
+            <span class="ahc-name">Clientes</span>
+            <span class="ahc-desc">Base de clientes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-home-group">
+        <div class="adm-home-group-title">Loja</div>
+        <div class="adm-home-grid">
+          <div class="adm-home-card" onclick="switchAdmSection('colecoes')">
+            <span class="ahc-icon">🌟</span>
+            <span class="ahc-name">Coleções</span>
+            <span class="ahc-desc">Subcoleções</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('categories')">
+            <span class="ahc-icon">🗂️</span>
+            <span class="ahc-name">Categorias</span>
+            <span class="ahc-desc">Organizar</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('annbar')">
+            <span class="ahc-icon">📢</span>
+            <span class="ahc-name">Avisos</span>
+            <span class="ahc-desc">Barra de avisos</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('photos')">
+            <span class="ahc-icon">🖼️</span>
+            <span class="ahc-name">Galeria</span>
+            <span class="ahc-desc">Fotos</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-home-group">
+        <div class="adm-home-group-title">Personalizar</div>
+        <div class="adm-home-grid">
+          <div class="adm-home-card" onclick="window.location.href='index.html?admin=visual'">
+            <span class="ahc-icon">🎨</span>
+            <span class="ahc-name">Editar Página</span>
+            <span class="ahc-desc">Editor visual</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('badges')">
+            <span class="ahc-icon">🏷️</span>
+            <span class="ahc-name">Tags</span>
+            <span class="ahc-desc">Estilo das tags</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('pagebuilder')">
+            <span class="ahc-icon">📄</span>
+            <span class="ahc-name">Criar Página</span>
+            <span class="ahc-desc">Web builder</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-home-group">
+        <div class="adm-home-group-title">Sistema</div>
+        <div class="adm-home-grid">
+          <div class="adm-home-card" onclick="switchAdmSection('email')">
+            <span class="ahc-icon">📧</span>
+            <span class="ahc-name">Email</span>
+            <span class="ahc-desc">Marketing</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('config')">
+            <span class="ahc-icon">⚙️</span>
+            <span class="ahc-name">Config</span>
+            <span class="ahc-desc">Configurações</span>
+          </div>
+          <div class="adm-home-card" onclick="switchAdmSection('backup')">
+            <span class="ahc-icon">💾</span>
+            <span class="ahc-name">Backup</span>
+            <span class="ahc-desc">Salvar dados</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /admHomeMenu -->
+
+  <!-- ── BACK BAR ── -->
+  <div id="admBackBar">
+    <button class="adm-back-btn" onclick="goAdmHome()">← Menu</button>
+    <span id="admBackTitle"></span>
+  </div>
 
   <!-- Main content -->
   <div class="adm-content">
@@ -180,7 +281,7 @@ body{background:#f5eff3;min-height:100vh}
     </div>
 
     <!-- ── PRODUTOS ── -->
-    <div class="adm-section active" id="admSecProducts">
+    <div class="adm-section" id="admSecProducts">
       <div class="adm-sec-hdr">
         <div class="adm-sec-title">📦 Produtos</div>
         <button class="btn-main" onclick="switchAdmSection('add')" style="padding:10px 22px;font-size:14px">➕ Novo Produto</button>
@@ -700,37 +801,86 @@ body{background:#f5eff3;min-height:100vh}
 // Admin v2 — section switcher + overrides
 // ══════════════════════════════════════════
 
+// ── Section titles ──
+var ADM_SEC_TITLES = {
+  products:'📦 Produtos', add:'➕ Adicionar Produto', orders:'📊 Pedidos',
+  clientes:'👥 Clientes', colecoes:'🌟 Coleções', categories:'🗂️ Categorias',
+  annbar:'📢 Barra de Avisos', photos:'🖼️ Galeria de Fotos', email:'📧 Email Marketing',
+  config:'⚙️ Configurações', backup:'💾 Backups', badges:'🏷️ Estilo das Tags',
+  pagebuilder:'📄 Criar Páginas', dashboard:'🏠 Painel'
+};
+
+// ── Go back to home menu ──
+function goAdmHome(){
+  document.querySelectorAll('.adm-section').forEach(function(s){ s.classList.remove('active'); });
+  var home = document.getElementById('admHomeMenu');
+  if(home) home.classList.add('visible');
+  var back = document.getElementById('admBackBar');
+  if(back) back.classList.remove('visible');
+  var homeBtn = document.getElementById('admHomeBtn');
+  if(homeBtn) homeBtn.style.display = 'none';
+  var srch = document.getElementById('admSearchInput');
+  if(srch) srch.style.display = 'none';
+  var stats = document.getElementById('admStats');
+  if(stats) stats.style.display = '';
+  _updateAdmHomeStats();
+  window.scrollTo({top:0});
+}
+window.goAdmHome = goAdmHome;
+
+function _updateAdmHomeStats(){
+  var el = document.getElementById('admHomeStats');
+  if(!el) return;
+  var prods = typeof PRODS!=='undefined' ? PRODS : [];
+  var orders = [];
+  try{ orders = JSON.parse(localStorage.getItem('vixiOrders')||'[]'); }catch(e){}
+  var clientes = [];
+  try{ clientes = JSON.parse(localStorage.getItem('vixiClientes')||'[]'); }catch(e){}
+  el.innerHTML =
+    '<div class="adm-hs-chip">📦 '+prods.length+' produtos</div>'
+    +'<div class="adm-hs-chip">📊 '+orders.length+' pedidos</div>'
+    +'<div class="adm-hs-chip">👥 '+clientes.length+' clientes</div>';
+}
+
 // ── Section switcher ──
 function switchAdmSection(sec) {
-  document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.adm-menu-item[data-sec]').forEach(b => b.classList.remove('active'));
+  if(sec === 'visual'){ window.location.href = 'index.html?admin=visual'; return; }
+  // Hide home, show back bar
+  var home = document.getElementById('admHomeMenu');
+  if(home) home.classList.remove('visible');
+  var back = document.getElementById('admBackBar');
+  if(back) back.classList.add('visible');
+  var homeBtn = document.getElementById('admHomeBtn');
+  if(homeBtn) homeBtn.style.display = '';
+  // Update back bar title
+  var titleEl = document.getElementById('admBackTitle');
+  if(titleEl) titleEl.textContent = ADM_SEC_TITLES[sec] || sec;
+  // Activate section
+  document.querySelectorAll('.adm-section').forEach(function(s){ s.classList.remove('active'); });
   var section = document.getElementById('admSec' + sec.charAt(0).toUpperCase() + sec.slice(1));
-  if (section) section.classList.add('active');
-  var btn = document.querySelector('[data-sec="' + sec + '"]');
-  if (btn) btn.classList.add('active');
-  closeAdmMenuDd();
-  // Show search only on products view
+  if(section) section.classList.add('active');
+  // Show search only on products
   var srch = document.getElementById('admSearchInput');
-  if (srch) srch.style.display = sec === 'products' ? '' : 'none';
-  // Hide category stats bar in Pedidos and Backups tabs
+  if(srch) srch.style.display = sec === 'products' ? '' : 'none';
+  // Stats bar visibility
   var stats = document.getElementById('admStats');
-  if (stats) stats.style.display = (sec === 'orders' || sec === 'backup') ? 'none' : '';
+  if(stats) stats.style.display = (sec === 'orders' || sec === 'backup') ? 'none' : '';
   // Section init
-  if (sec === 'orders') loadAdminOrders();
-  if (sec === 'clientes') loadClientesList();
-  if (sec === 'annbar') loadAnnBarAdmin();
-  if (sec === 'colecoes') loadColecoesAdmin();
-  if (sec === 'add') setTimeout(function(){ if(typeof populateColecaoSelects==='function') populateColecaoSelects(''); }, 150);
-  if (sec === 'visual') { window.location.href = 'index.html?admin=visual'; return; }
-  if (sec === 'backup') viewBackups();
-  if (sec === 'email') loadEmailAdmin();
-  if (sec === 'categories') renderCatEditor();
-  if (sec === 'add') initAddNew();
-  if (sec === 'badges') refreshBadgeBtns();
-  if (sec === 'config') loadPixDiscountConfig();
-  if (sec === 'photos') { setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads') || '[]'); renderGalleryList(); }, 100); }
-  if (sec === 'pagebuilder') loadPagesList();
-  if (sec === 'dashboard') loadDashboard();
+  if(sec === 'orders') loadAdminOrders();
+  if(sec === 'clientes') loadClientesList();
+  if(sec === 'annbar') loadAnnBarAdmin();
+  if(sec === 'colecoes') loadColecoesAdmin();
+  if(sec === 'add') setTimeout(function(){ if(typeof populateColecaoSelects==='function') populateColecaoSelects(''); }, 150);
+  if(sec === 'backup') viewBackups();
+  if(sec === 'email') loadEmailAdmin();
+  if(sec === 'categories') renderCatEditor();
+  if(sec === 'add') initAddNew();
+  if(sec === 'badges') refreshBadgeBtns();
+  if(sec === 'config') loadPixDiscountConfig();
+  if(sec === 'photos'){ setTimeout(function(){ _galleryUploads = JSON.parse(localStorage.getItem('vixiGalleryUploads')||'[]'); renderGalleryList(); }, 100); }
+  if(sec === 'pagebuilder') loadPagesList();
+  if(sec === 'dashboard') loadDashboard();
+  window.scrollTo({top:0});
 }
 
 async function loadDashboard() {
@@ -1130,18 +1280,9 @@ function refreshBadgeBtns() {
   });
 }
 
-// ── Menu dropdown ──
-function toggleAdmMenu() {
-  var dd = document.getElementById('admMenuDd');
-  var btn = document.getElementById('admMenuBtn');
-  var open = dd.classList.contains('open');
-  dd.classList.toggle('open', !open);
-  btn.classList.toggle('open', !open);
-}
-function closeAdmMenuDd() {
-  document.getElementById('admMenuDd')?.classList.remove('open');
-  document.getElementById('admMenuBtn')?.classList.remove('open');
-}
+// ── Menu (legacy stubs — mantidos para compatibilidade) ──
+function toggleAdmMenu(){ goAdmHome(); }
+function closeAdmMenuDd(){ /* no-op */ }
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.adm-menu-wrap')) closeAdmMenuDd();
 });
@@ -1250,9 +1391,13 @@ var _origOpen = window.openAdmin;
 window.openAdmin = function() {
   document.getElementById('admLoadingScreen').style.display = 'none';
   if (typeof _origOpen === 'function') _origOpen();
-  // Handle ?sec= URL param
+  // Handle ?sec= URL param — otherwise show home menu
   var sec = new URLSearchParams(window.location.search).get('sec');
-  if (sec) setTimeout(function(){ switchAdmSection(sec); }, 200);
+  if (sec) {
+    setTimeout(function(){ switchAdmSection(sec); }, 200);
+  } else {
+    setTimeout(goAdmHome, 100);
+  }
   setTimeout(refreshBadgeBtns, 500);
 };
 
