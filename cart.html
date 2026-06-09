@@ -291,9 +291,22 @@ function renderCartPage() {
       + '<div class="cart-page-total">Total: <span id="cartTotalAmt">' + money(_couponAppliedTotal !== null ? _couponAppliedTotal : total) + '</span></div>'
       + (_couponAppliedTotal !== null ? '<div style="font-size:12px;font-weight:700;color:#16a34a;margin:-10px 0 10px">✅ Desconto aplicado: economizou ' + money(total - _couponAppliedTotal) + '</div>' : '')
       + '<div style="background:#e8fff3;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px;font-weight:700;color:#128c4a">💚 No PIX: <strong style="font-size:16px">' + money(pix) + '</strong> <span style="font-size:12px;font-weight:600;color:#2d8a52">('+pixDisc+'% off)</span></div>'
+      + '<div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;padding:12px 14px;margin-bottom:4px">'
+        + '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">'
+          + '<input type="checkbox" id="newsOptIn" style="width:18px;height:18px;accent-color:#e91e63;margin-top:2px;flex-shrink:0">'
+          + '<div>'
+            + '<div style="font-size:13px;font-weight:800;color:#0369a1">💌 Quero receber novidades e promoções por email</div>'
+            + '<div style="font-size:11px;font-weight:600;color:#64748b;margin-top:3px">Cupons exclusivos, lançamentos da semana e ofertas especiais. Cancele quando quiser.</div>'
+          + '</div>'
+        + '</label>'
+        + '<div id="newsOptInEmail" style="display:none;margin-top:10px">'
+          + '<input type="email" id="newsOptInInput" placeholder="seu@email.com" style="width:100%;box-sizing:border-box;padding:9px 14px;border-radius:99px;border:2px solid #bae6fd;font-size:14px;font-family:inherit;font-weight:700;outline:none">'
+          + '<div id="newsOptInMsg" style="font-size:11px;font-weight:700;margin-top:4px;min-height:16px"></div>'
+        + '</div>'
+      + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:12px">'
-        + '<button class="btn-main" onclick="openMpCheckoutModal()" style="justify-content:center;font-size:17px;padding:16px 28px;background:var(--pink)">💳 Pagar Online (PIX / Cartão)</button>'
-        + '<button class="btn-ghost" onclick="checkoutWhatsApp()" style="justify-content:center;font-size:15px;padding:14px 24px">📲 Finalizar pelo WhatsApp</button>'
+        + '<button class="btn-main" onclick="checkoutWithOptIn();openMpCheckoutModal()" style="justify-content:center;font-size:17px;padding:16px 28px;background:var(--pink)">💳 Pagar Online (PIX / Cartão)</button>'
+        + '<button class="btn-ghost" onclick="checkoutWithOptIn();checkoutWhatsApp()" style="justify-content:center;font-size:15px;padding:14px 24px">📲 Finalizar pelo WhatsApp</button>'
         + '<a href="clothes.html" style="text-align:center;color:var(--gray);font-weight:700;font-size:14px;text-decoration:none">← Continuar comprando</a>'
       + '</div>'
     + '</div>';
@@ -337,6 +350,35 @@ function applyCouponCart(){
   }catch(e){ if(msg) msg.innerHTML='<span style="color:#ef4444">Erro ao validar cupom</span>'; }
 }
 window.applyCouponCart = applyCouponCart;
+
+// ── Newsletter opt-in no carrinho ──
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id === 'newsOptIn'){
+    var emailBox = document.getElementById('newsOptInEmail');
+    if(emailBox) emailBox.style.display = e.target.checked ? '' : 'none';
+  }
+});
+
+function checkoutWithOptIn(){
+  var chk = document.getElementById('newsOptIn');
+  if(!chk || !chk.checked) return;
+  var email = (document.getElementById('newsOptInInput')?.value||'').trim();
+  var msg   = document.getElementById('newsOptInMsg');
+  if(!email || !email.includes('@')){
+    if(msg) msg.innerHTML = '<span style="color:#ef4444">Digite um email válido para se inscrever</span>';
+    return;
+  }
+  if(typeof window.vixiSubscribeNewsletter === 'function'){
+    window.vixiSubscribeNewsletter(email).then(function(r){
+      if(msg){
+        msg.innerHTML = r === 'ja_inscrito'
+          ? '<span style="color:#0369a1">Você já está inscrito! 💌</span>'
+          : '<span style="color:#16a34a">✅ Inscrito com sucesso!</span>';
+      }
+    }).catch(function(){ });
+  }
+}
+window.checkoutWithOptIn = checkoutWithOptIn;
 </script>
 <script type="module" src="vixi-firebase.js"></script>
 <script src="ga.js"></script>

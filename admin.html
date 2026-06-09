@@ -618,19 +618,66 @@ body{background:#f5eff3;min-height:100vh}
       </div>
       <!-- Enviar -->
       <div class="email-tab-panel" id="etabSend">
+        <!-- EmailJS Config -->
+        <div class="adm-card" style="max-width:920px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+            <div style="font-weight:900;font-size:15px;color:var(--ink)">🔧 Configurar EmailJS</div>
+            <a href="https://www.emailjs.com" target="_blank" style="font-size:12px;color:var(--pink);font-weight:700;text-decoration:none">Criar conta grátis →</a>
+          </div>
+          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:#92400e;margin-bottom:14px">
+            📋 <strong>Como configurar:</strong> 1) Crie conta no EmailJS.com (200 emails/mês grátis) → 2) Adicione um serviço de email (Gmail/Outlook) → 3) Crie um template usando as variáveis abaixo → 4) Cole os IDs aqui
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div><label class="adm-label" style="font-size:11px">Service ID</label><input class="adm-input" id="ejsServiceId" placeholder="service_xxxxxxx" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px"></div>
+            <div><label class="adm-label" style="font-size:11px">Template ID</label><input class="adm-input" id="ejsTemplateId" placeholder="template_xxxxxxx" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px"></div>
+            <div><label class="adm-label" style="font-size:11px">Public Key</label><input class="adm-input" id="ejsPublicKey" placeholder="xxxxxxxxxxxxxx" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="mini-btn primary" onclick="saveEjsConfig()">💾 Salvar credenciais</button>
+            <button class="mini-btn soft" onclick="testEjsSend()" id="ejsTestBtn">📧 Enviar email de teste</button>
+            <div id="ejsStatus" style="font-size:12px;font-weight:700;color:var(--gray)"></div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--gray);font-weight:600">
+            Variáveis do template: <code style="background:var(--pink-pale);padding:2px 6px;border-radius:4px">{{to_email}}</code> <code style="background:var(--pink-pale);padding:2px 6px;border-radius:4px">{{subject}}</code> <code style="background:var(--pink-pale);padding:2px 6px;border-radius:4px">{{body_html}}</code> <code style="background:var(--pink-pale);padding:2px 6px;border-radius:4px">{{sender_name}}</code>
+          </div>
+        </div>
+
+        <!-- Assinantes -->
+        <div class="adm-card" style="max-width:920px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+            <div style="font-weight:900;font-size:15px;color:var(--ink)">👥 Assinantes</div>
+            <button class="mini-btn soft" onclick="loadSubscribersList()">🔄 Atualizar</button>
+          </div>
+          <div id="subscriberCountBig" style="font-size:28px;font-weight:900;color:var(--pink);margin-bottom:10px">—</div>
+          <div id="subscribersList" style="max-height:200px;overflow-y:auto;display:grid;gap:6px"></div>
+        </div>
+
+        <!-- Compor + Preview -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px" id="emailSendGrid">
           <div class="adm-card" style="display:grid;gap:16px">
             <div style="font-weight:900;font-size:15px;color:var(--ink)">✉️ Compor email</div>
+            <div><label class="adm-label" style="font-size:11px">Enviar para</label>
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:700"><input type="radio" name="sendTarget" value="all" checked onchange="updateSendRecipientCount()"> Todos os assinantes</label>
+              </div>
+            </div>
             <div><label class="adm-label" style="font-size:11px">Tipo</label><select class="adm-input" id="sendEmailType" onchange="updateEmailPreview()" style="width:100%;box-sizing:border-box"><option value="news">📰 Novidades da semana</option><option value="promo">📣 Promoção</option><option value="custom">✏️ Personalizado</option></select></div>
             <div><label class="adm-label" style="font-size:11px">Assunto</label><input class="adm-input" id="sendEmailSubject" oninput="updateEmailPreview()" style="width:100%;box-sizing:border-box" placeholder="Assunto do email..."></div>
             <div id="sendCustomBody" style="display:none"><label class="adm-label" style="font-size:11px">Corpo (personalizado)</label><textarea class="adm-input" id="sendEmailBody" rows="5" oninput="updateEmailPreview()" style="width:100%;box-sizing:border-box;resize:vertical" placeholder="Escreva o texto..."></textarea></div>
-            <div><label class="adm-label" style="font-size:11px">Destinatários</label><div style="font-size:14px;font-weight:900;color:var(--ink-mid)" id="sendRecipientCount">—</div></div>
-            <button class="btn-main" onclick="openManualSendModal()" style="justify-content:center;padding:14px">📤 Preparar e enviar</button>
-            <p style="font-size:11px;color:var(--gray);font-weight:600;text-align:center;margin:0">⚡ Integração com serviço de email em breve</p>
+            <div id="sendRecipientCount" style="font-size:13px;font-weight:700;color:var(--gray)">—</div>
+            <button class="btn-main" id="sendNowBtn" onclick="sendEmailsNow()" style="justify-content:center;padding:14px;font-size:16px">
+              📤 Enviar Agora
+            </button>
+            <div id="sendProgress" style="display:none">
+              <div style="background:var(--pink-pale);border-radius:8px;height:8px;overflow:hidden;margin-bottom:6px">
+                <div id="sendProgressBar" style="background:var(--pink);height:100%;width:0;transition:width .3s"></div>
+              </div>
+              <div id="sendProgressText" style="font-size:12px;font-weight:700;color:var(--gray);text-align:center"></div>
+            </div>
           </div>
           <div class="adm-card" style="padding:0;overflow:hidden">
-            <div style="background:var(--pink);color:#fff;padding:12px 16px;font-weight:900;font-size:13px">👁 Preview</div>
-            <div id="emailPreviewFrame" style="padding:16px;font-size:13px;line-height:1.6;max-height:500px;overflow-y:auto"></div>
+            <div style="background:var(--pink);color:#fff;padding:12px 16px;font-weight:900;font-size:13px">👁 Preview do email</div>
+            <div id="emailPreviewFrame" style="padding:16px;font-size:13px;line-height:1.6;max-height:460px;overflow-y:auto"></div>
           </div>
         </div>
       </div>
@@ -1593,6 +1640,10 @@ function saveEmailNews(d){localStorage.setItem(EMAIL_NEWS_KEY,JSON.stringify(d))
 function readEmailPromos(){try{return JSON.parse(localStorage.getItem(EMAIL_PROMOS_KEY)||'[]');}catch(e){return [];}}
 function saveEmailPromos(d){localStorage.setItem(EMAIL_PROMOS_KEY,JSON.stringify(d));if(window.vixiSaveCloud)window.vixiSaveCloud(EMAIL_PROMOS_KEY,d);}
 
+var EJSCONFIG_KEY = 'vixiEmailJsConfig';
+function readEjsConfig(){ try{ return JSON.parse(localStorage.getItem(EJSCONFIG_KEY)||'{}'); }catch(e){ return {}; } }
+function saveEjsConfigData(d){ localStorage.setItem(EJSCONFIG_KEY,JSON.stringify(d)); }
+
 function loadEmailAdmin(){
   var cfg=readEmailConfig();
   var fn=document.getElementById('emailSenderName');if(fn)fn.value=cfg.senderName||'';
@@ -1600,9 +1651,159 @@ function loadEmailAdmin(){
   var ft=document.getElementById('emailFreqTimes');if(ft)ft.value=cfg.freqTimes||1;
   var fp=document.getElementById('emailFreqPeriod');if(fp)fp.value=cfg.freqPeriod||'week';
   var fd=document.getElementById('emailDefaultSubject');if(fd)fd.value=cfg.defaultSubject||'🌸 Novidades da Vixi Maria Kids!';
+  // load EmailJS config
+  var ejs=readEjsConfig();
+  var es=document.getElementById('ejsServiceId');if(es)es.value=ejs.serviceId||'';
+  var et=document.getElementById('ejsTemplateId');if(et)et.value=ejs.templateId||'';
+  var ek=document.getElementById('ejsPublicKey');if(ek)ek.value=ejs.publicKey||'';
   switchEmailTab('config');
 }
 window.loadEmailAdmin=loadEmailAdmin;
+
+function saveEjsConfig(){
+  var d={serviceId:(document.getElementById('ejsServiceId')?.value||'').trim(),templateId:(document.getElementById('ejsTemplateId')?.value||'').trim(),publicKey:(document.getElementById('ejsPublicKey')?.value||'').trim()};
+  if(!d.serviceId||!d.templateId||!d.publicKey){showToast('Preencha todos os campos do EmailJS');return;}
+  saveEjsConfigData(d);showToast('Credenciais EmailJS salvas ✅');
+  var st=document.getElementById('ejsStatus');if(st){st.textContent='✅ Salvo';st.style.color='#16a34a';}
+}
+window.saveEjsConfig=saveEjsConfig;
+
+function _loadEjsSDK(cb){
+  if(window.emailjs){cb();return;}
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  s.onload=cb;document.head.appendChild(s);
+}
+
+function testEjsSend(){
+  var ejs=readEjsConfig();
+  if(!ejs.serviceId||!ejs.templateId||!ejs.publicKey){showToast('Configure o EmailJS primeiro');return;}
+  var cfg=readEmailConfig();
+  var testEmail=cfg.senderEmail||prompt('Email para o teste:');
+  if(!testEmail){return;}
+  var btn=document.getElementById('ejsTestBtn');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  _loadEjsSDK(function(){
+    window.emailjs.send(ejs.serviceId,ejs.templateId,{
+      to_email:testEmail,
+      subject:'🧪 Teste — Vixi Maria Kids',
+      body_html:'<p>Este é um email de teste do painel Vixi Maria Kids.</p><p>Se recebeu este email, o EmailJS está configurado corretamente! 🎉</p>',
+      sender_name:cfg.senderName||'Vixi Maria Kids'
+    },ejs.publicKey).then(function(){
+      showToast('Email de teste enviado para '+testEmail+' ✅');
+      var st=document.getElementById('ejsStatus');if(st){st.textContent='✅ Teste OK';st.style.color='#16a34a';}
+    }).catch(function(err){
+      showToast('Erro: '+(err.text||err.message||JSON.stringify(err)));
+      var st=document.getElementById('ejsStatus');if(st){st.textContent='❌ Erro: '+(err.text||'falha');st.style.color='#ef4444';}
+    }).finally(function(){
+      if(btn){btn.disabled=false;btn.textContent='📧 Enviar email de teste';}
+    });
+  });
+}
+window.testEjsSend=testEjsSend;
+
+// ── Assinantes ──
+var _subscribers = [];
+async function loadSubscribersList(){
+  var el=document.getElementById('subscribersList');
+  var countEl=document.getElementById('subscriberCountBig');
+  var recipEl=document.getElementById('sendRecipientCount');
+  if(countEl) countEl.textContent='⏳ Carregando...';
+  if(el) el.innerHTML='';
+  try{
+    if(typeof window.vixiGetSubscribers!=='function'){
+      if(countEl) countEl.textContent='Firebase não conectado';
+      return;
+    }
+    _subscribers = await window.vixiGetSubscribers();
+    var n=_subscribers.length;
+    if(countEl) countEl.innerHTML='<span style="font-size:36px;font-weight:900;color:var(--pink)">'+n+'</span> assinante'+(n!==1?'s':'');
+    if(recipEl) recipEl.innerHTML='📨 Será enviado para <strong>'+n+'</strong> assinante'+(n!==1?'s':'');
+    if(el){
+      if(!n){el.innerHTML='<p style="color:var(--gray);font-size:13px;font-weight:600">Nenhum assinante ainda. O formulário do rodapé já capta emails automaticamente.</p>';return;}
+      el.innerHTML=_subscribers.map(function(s,i){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--pink-pale);border-radius:8px;font-size:13px">'
+          +'<span style="font-weight:700">'+escapeHtml(s.email||s.id||'')+'</span>'
+          +'<button onclick="removeSubscriber(\''+escapeHtml(s.email||'')+'\','+i+')" style="border:none;background:#fff0f3;color:#ef4444;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px;font-weight:900">Remover</button>'
+          +'</div>';
+      }).join('');
+    }
+  }catch(err){
+    if(countEl) countEl.textContent='Erro ao carregar';
+    showToast('Erro: '+(err.message||err));
+  }
+}
+window.loadSubscribersList=loadSubscribersList;
+
+async function removeSubscriber(email,idx){
+  if(!confirm('Remover '+email+' da lista?'))return;
+  try{
+    if(window.vixiUnsubscribe) await window.vixiUnsubscribe(email);
+    showToast(email+' removido ✅');
+    loadSubscribersList();
+  }catch(e){ showToast('Erro ao remover: '+(e.message||e)); }
+}
+window.removeSubscriber=removeSubscriber;
+
+// ── Envio real ──
+async function sendEmailsNow(){
+  var ejs=readEjsConfig();
+  if(!ejs.serviceId||!ejs.templateId||!ejs.publicKey){
+    showToast('Configure o EmailJS antes de enviar');switchEmailTab('send');
+    document.getElementById('ejsServiceId')?.focus();return;
+  }
+  if(!_subscribers.length){
+    showToast('Carregando assinantes...');await loadSubscribersList();
+    if(!_subscribers.length){showToast('Nenhum assinante para enviar');return;}
+  }
+  var subject=document.getElementById('sendEmailSubject')?.value||readEmailConfig().defaultSubject||'🌸 Novidades da Vixi Maria Kids!';
+  var cfg=readEmailConfig();
+  var previewEl=document.getElementById('emailPreviewFrame');
+  var bodyHtml=previewEl?previewEl.innerHTML:'';
+
+  if(!confirm('Enviar email para '+_subscribers.length+' assinante(s)?\nAssunto: '+subject)){return;}
+
+  var btn=document.getElementById('sendNowBtn');
+  var prog=document.getElementById('sendProgress');
+  var progBar=document.getElementById('sendProgressBar');
+  var progText=document.getElementById('sendProgressText');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  if(prog) prog.style.display='';
+
+  _loadEjsSDK(async function(){
+    var ok=0,fail=0;
+    for(var i=0;i<_subscribers.length;i++){
+      var sub=_subscribers[i];
+      var pct=Math.round((i+1)/_subscribers.length*100);
+      if(progBar) progBar.style.width=pct+'%';
+      if(progText) progText.textContent='Enviando '+(i+1)+' de '+_subscribers.length+'... ('+ok+' ok, '+fail+' falhas)';
+      try{
+        await window.emailjs.send(ejs.serviceId,ejs.templateId,{
+          to_email:sub.email||sub.id,
+          subject:subject,
+          body_html:bodyHtml,
+          sender_name:cfg.senderName||'Vixi Maria Kids'
+        },ejs.publicKey);
+        ok++;
+      }catch(e){ fail++; console.warn('Falha ao enviar para '+(sub.email||sub.id),e); }
+      // delay leve para não ser bloqueado
+      await new Promise(function(r){setTimeout(r,300);});
+    }
+    if(btn){btn.disabled=false;btn.textContent='📤 Enviar Agora';}
+    if(progText) progText.textContent='✅ Concluído: '+ok+' enviados, '+fail+' falhas.';
+    showToast('📧 '+(ok)+' emails enviados com sucesso!');
+    // registra histórico
+    var type=document.getElementById('sendEmailType')?.value||'news';
+    if(type==='news'){
+      var nd=readEmailNews();
+      nd.sentHistory=(nd.sentHistory||[]);
+      nd.sentHistory.push((nd.products||[]).slice());
+      nd.products=[];
+      saveEmailNews(nd);_newsSelected=[];
+    }
+  });
+}
+window.sendEmailsNow=sendEmailsNow;
 
 function switchEmailTab(tab){
   document.querySelectorAll('.email-tab').forEach(function(b){b.classList.toggle('on',b.dataset.etab===tab);});
@@ -1612,7 +1813,7 @@ function switchEmailTab(tab){
   if(tab==='news')renderNewsTab();
   if(tab==='coupons')renderCouponsList();
   if(tab==='promos')renderPromosList();
-  if(tab==='send'){updateEmailPreview();updateSendRecipientCount();}
+  if(tab==='send'){updateEmailPreview();loadSubscribersList();}
 }
 window.switchEmailTab=switchEmailTab;
 

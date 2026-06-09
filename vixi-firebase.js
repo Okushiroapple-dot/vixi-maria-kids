@@ -363,6 +363,18 @@ window.vixiSubscribeNewsletter = async function(email) {
   return 'ok';
 };
 
+// ── Get all newsletter subscribers ─────────────
+window.vixiGetSubscribers = async function() {
+  const snap = await getDocs(collection(db, 'newsletter'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+// ── Remove subscriber ───────────────────────────
+window.vixiUnsubscribe = async function(email) {
+  const normalized = email.trim().toLowerCase();
+  await deleteDoc(doc(db, 'newsletter', normalized.replace(/[^a-z0-9]/g, '_')));
+};
+
 // ── Page Builder ──────────────────────────────
 window.vixiSavePage = async function(pageData) {
   const slug = (pageData.slug || '').replace(/[^a-z0-9-]/g, '-').toLowerCase();
