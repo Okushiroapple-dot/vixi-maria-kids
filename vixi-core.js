@@ -216,7 +216,7 @@ function renderColecoesSection(){
   if(!cols.length){sec.style.display='none';return;}
   sec.style.display='';
   grid.innerHTML=cols.map(function(c){
-    return '<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="cat-tile ct-colecao">'
+    return '<a href="colecao.html?subcat='+escapeHtml(c.id)+'" class="cat-tile ct-colecao">'
       +'<div class="bg-illust">'+(c.icon||'🌟')+'</div>'
       +'<div class="cat-label">'
         +'<span class="cat-name">'+escapeHtml(c.name)+'</span>'
@@ -828,8 +828,8 @@ function syncCategoriesUI(){
   if(nav){
     nav.className='vixi-main-nav';
     var roupasDD=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    var colDD='<a href="clothes.html?cat=colecao">🌟 Ver todas as coleções</a>'
-      +(colecoes.length?'<div class="nav-dd-sep"></div>'+colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join(''):'');
+    var colDD='<a href="colecao.html">🌟 Ver todas as coleções</a>'
+      +(colecoes.length?'<div class="nav-dd-sep"></div>'+colecoes.map(function(c){return '<a href="colecao.html?subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join(''):'');
     nav.innerHTML=
       '<a href="clothes.html" class="nav-link-hot">🔥 Novidades</a>'
       +'<div class="nav-dd"><button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button><div class="nav-dd-menu"><a href="clothes.html">Todas as roupas</a>'+roupasDD+'</div></div>'
@@ -856,9 +856,9 @@ function syncCategoriesUI(){
   if(mob){
     var close='<button class="mob-close" id="mobClose">✕</button>';
     var links=regularCats.map(function(c){return '<a href="clothes.html?cat='+c.id+'" onclick="closeMob()">'+c.icon+' '+escapeHtml(c.label)+'</a>';}).join('');
-    var colLinks=colecoes.map(function(c){return '<a href="clothes.html?cat=colecao&subcat='+c.id+'" onclick="closeMob()">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join('');
+    var colLinks=colecoes.map(function(c){return '<a href="colecao.html?subcat='+c.id+'" onclick="closeMob()">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';}).join('');
     mob.innerHTML=close+'<a href="index.html" onclick="closeMob()">🏠 Início</a><a href="clothes.html" onclick="closeMob()">🔥 Novidades</a><a href="clothes.html" onclick="closeMob()">🛍️ Roupas</a>'+links
-      +'<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>'+colLinks;
+      +'<a href="colecao.html" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>'+colLinks;
     document.getElementById('mobClose')&&document.getElementById('mobClose').addEventListener('click',closeMob);
   }
   var tabs=document.querySelector('.prod-tabs');

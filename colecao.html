@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coleções — Vixi Maria Kids</title>
+<meta name="description" content="Explore as coleções exclusivas da Vixi Maria Kids. Peças temáticas selecionadas com carinho para cada estação — do RN ao tamanho 20.">
+<meta property="og:title" content="Coleções Exclusivas — Vixi Maria Kids">
+<meta property="og:description" content="Coleções temáticas infantis. Peças selecionadas com muito carinho para cada estação.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://vixi-maria-kids-8c494.web.app/og-image.png">
+<meta property="og:url" content="https://vixi-maria-kids-8c494.web.app/colecao.html">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vixi-shared.css">
+<link rel="manifest" href="manifest.json">
+<style>
+/* ── Coleção Page ── */
+.colpage-hero{background:linear-gradient(135deg,var(--pink) 0%,#a8006b 100%);padding:52px 0 48px;text-align:center;color:#fff;position:relative;overflow:hidden}
+.colpage-hero::before{content:'🌸';position:absolute;font-size:180px;opacity:.07;top:-30px;left:-20px;pointer-events:none}
+.colpage-hero::after{content:'🌟';position:absolute;font-size:160px;opacity:.07;bottom:-30px;right:-10px;pointer-events:none}
+.colpage-hero h1{font-family:var(--font-d);font-size:clamp(28px,6vw,52px);font-weight:700;margin:0 0 10px;line-height:1.1}
+.colpage-hero p{font-size:clamp(14px,2.5vw,18px);opacity:.9;margin:0;font-weight:600}
+.colpage-hero .breadcrumb-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:18px}
+.colpage-hero .back-btn{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:99px;padding:7px 16px;font-weight:900;font-size:13px;cursor:pointer;transition:.2s}
+.colpage-hero .back-btn:hover{background:rgba(255,255,255,.3)}
+.colpage-hero .breadcrumb{color:rgba(255,255,255,.75);font-size:13px;font-weight:700}
+.colpage-hero .breadcrumb a{color:#fff;text-decoration:none}
+
+/* Cards flutuantes */
+.colpage-cards-wrap{padding:0 0 8px}
+.colpage-float-row{display:grid;grid-template-columns:1fr 1fr;gap:60px;padding:40px 20px 20px;max-width:780px;margin:0 auto}
+@media(max-width:680px){.colpage-float-row{grid-template-columns:1fr;gap:48px;padding:28px 12px}}
+
+/* Filtro de subcoleções */
+.colsec-filter{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:24px}
+.colsec-filter-btn{border:2px solid var(--line);background:#fff;border-radius:99px;padding:9px 20px;font:inherit;font-size:13px;font-weight:800;color:var(--ink-mid);cursor:pointer;transition:.18s}
+.colsec-filter-btn:hover{border-color:var(--pink);color:var(--pink)}
+.colsec-filter-btn.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+
+/* Empty state */
+.col-empty{text-align:center;padding:60px 20px;color:var(--gray)}
+.col-empty .col-empty-icon{font-size:56px;margin-bottom:12px}
+.col-empty p{font-size:15px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- Announce Bar -->
+<div class="ann">
+  <div class="ann-track" id="annTrack"></div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="hdr">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-text">
+        <span class="logo-name">vixi maria</span>
+        <span class="logo-sub">kids</span>
+      </div>
+    </a>
+    <nav>
+      <a href="index.html">🏠 Início</a>
+      <div class="nav-dd">
+        <button class="nav-dd-btn" type="button">🛍️ Roupas ▾</button>
+        <div class="nav-dd-menu">
+          <a href="clothes.html">Todas as roupas</a>
+          <a href="clothes.html?cat=meninas">👗 Meninas</a>
+          <a href="clothes.html?cat=meninos">⚽ Meninos</a>
+          <a href="clothes.html?cat=bebes">🍼 Bebês</a>
+          <a href="clothes.html?cat=juvenil">✨ Juvenil</a>
+          <a href="clothes.html?cat=acessorios">🎀 Acessórios</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <button class="nav-dd-btn" type="button">🌟 Coleção ▾</button>
+        <div class="nav-dd-menu" id="colecaoNavMenu">
+          <a href="colecao.html">🌟 Ver todas as coleções</a>
+        </div>
+      </div>
+      <a href="clothes.html?cat=novidades" class="hot">🔥 Novidades</a>
+    </nav>
+    <div class="hdr-icons">
+      <button class="ibt" title="Buscar" id="searchBtn">🔍</button>
+      <button class="ibt" title="Favoritos" id="favBtn">🤍</button>
+      <button class="ibt" title="Carrinho" id="cartBtn">
+        🛍️<span class="badge" id="cartBadge">0</span>
+      </button>
+      <div id="acctDd" class="acct-dd"><a href="conta.html" class="ibt" title="Minha Conta">👤</a></div>
+      <button class="burger" id="burgerBtn">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mob-menu" id="mobMenu">
+  <button class="mob-close" id="mobClose">✕</button>
+  <a href="index.html" onclick="closeMob()">🏠 Início</a>
+  <a href="clothes.html" onclick="closeMob()">🛍️ Todas as roupas</a>
+  <a href="clothes.html?cat=meninas" onclick="closeMob()">👗 Meninas</a>
+  <a href="clothes.html?cat=meninos" onclick="closeMob()">⚽ Meninos</a>
+  <a href="clothes.html?cat=bebes" onclick="closeMob()">🍼 Bebês</a>
+  <a href="clothes.html?cat=juvenil" onclick="closeMob()">✨ Juvenil</a>
+  <a href="clothes.html?cat=acessorios" onclick="closeMob()">🎀 Acessórios</a>
+  <a href="colecao.html" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleções</a>
+  <a href="cart.html" onclick="closeMob()">🛒 Carrinho</a>
+  <a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>
+</div>
+
+<!-- Hero -->
+<div class="colpage-hero">
+  <div class="colpage-hero-inner wrap">
+    <div class="breadcrumb-row">
+      <button class="back-btn" onclick="goBackOrHome()">← Voltar</button>
+      <div class="breadcrumb">
+        <a href="index.html">Início</a> › <span id="colPageBreadcrumb">Coleções</span>
+      </div>
+    </div>
+    <h1>🌟 Nossas Coleções</h1>
+    <p>Peças temáticas selecionadas com muito carinho para cada estação</p>
+  </div>
+</div>
+
+<!-- Cards flutuantes das coleções em destaque -->
+<div class="colpage-cards-wrap" id="featuredCardsWrap">
+  <div class="colpage-float-row" id="featuredCardsGrid"></div>
+</div>
+
+<!-- Produtos por coleção -->
+<section class="section" style="padding-top:8px">
+  <div class="wrap">
+    <div class="sec-head" style="margin-bottom:28px">
+      <span class="eyebrow">filtrar por</span>
+      <h2 id="colPageTitle">Todas as peças</h2>
+    </div>
+
+    <!-- Filtros de subcoleção -->
+    <div class="colsec-filter" id="colFilterTabs"></div>
+
+    <!-- Sort + Count -->
+    <div class="filter-bar">
+      <span class="prod-count" id="prodCount"></span>
+      <label class="sort-wrap">
+        Ordenar:
+        <select class="sort-sel" onchange="sortBy(this.value)">
+          <option value="default">Relevância</option>
+          <option value="price-asc">Menor preço</option>
+          <option value="price-desc">Maior preço</option>
+          <option value="name">A → Z</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- Produtos -->
+    <div class="prod-grid" id="prodGrid"></div>
+
+    <!-- Ver mais -->
+    <div class="view-more">
+      <button id="viewMoreBtn" class="btn-main" onclick="loadMore()" style="display:none">Ver mais peças →</button>
+    </div>
+
+    <!-- Estado vazio -->
+    <div id="colEmptyState" class="col-empty" style="display:none">
+      <div class="col-empty-icon">🌟</div>
+      <p>Nenhum produto encontrado nesta coleção ainda.</p>
+      <a href="clothes.html" class="btn-main" style="margin-top:16px;display:inline-block">Ver todas as peças →</a>
+    </div>
+  </div>
+</section>
+
+<!-- Instagram -->
+<section class="ig-bar" id="instagram">
+  <h3>Siga a gente no Instagram! 📸</h3>
+  <p>Novidades diárias, looks charmosos e muito amor — <strong>@kidsviximaria</strong></p>
+  <div class="ig-grid" id="igGrid">
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig1">
+      <div class="ig-placeholder"><span class="ig-icon">🌸</span></div>
+      <div class="ig-overlay"><span>Ver no IG →</span></div>
+    </a>
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig2">
+      <div class="ig-placeholder"><span class="ig-icon">👗</span></div>
+      <div class="ig-overlay"><span>Ver no IG →</span></div>
+    </a>
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig3">
+      <div class="ig-placeholder"><span class="ig-icon">🎀</span></div>
+      <div class="ig-overlay"><span>Ver no IG →</span></div>
+    </a>
+    <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-tile" data-ig-key="ig4">
+      <div class="ig-placeholder"><span class="ig-icon">👶</span></div>
+      <div class="ig-overlay"><span>Ver no IG →</span></div>
+    </a>
+  </div>
+  <a href="https://instagram.com/kidsviximaria" target="_blank" rel="noopener" class="ig-btn">📷 @kidsviximaria — seguir</a>
+</section>
+
+<!-- Footer -->
+<footer id="contato">
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <a href="index.html" class="logo" style="margin-bottom:18px;display:inline-flex">
+        <div class="logo-icon">🌸</div>
+        <div class="logo-text">
+          <span class="logo-name">vixi maria</span>
+          <span class="logo-sub">kids</span>
+        </div>
+      </a>
+      <p>Moda infantil e juvenil em Ribeirão Preto — vestindo criança como criança com charme e muito carinho.</p>
+      <div class="foot-socials">
+        <a href="https://instagram.com/kidsviximaria" class="fsoc" target="_blank" rel="noopener">📷</a>
+        <a href="https://wa.me/5516991781559" class="fsoc" target="_blank" rel="noopener">💬</a>
+      </div>
+    </div>
+    <div>
+      <h5>Coleções</h5>
+      <ul id="footColecoes">
+        <li><a href="colecao.html">🌟 Ver todas</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Categorias</h5>
+      <ul>
+        <li><a href="clothes.html?cat=meninas">👗 Meninas</a></li>
+        <li><a href="clothes.html?cat=meninos">⚽ Meninos</a></li>
+        <li><a href="clothes.html?cat=bebes">🍼 Bebês</a></li>
+        <li><a href="clothes.html?cat=juvenil">✨ Juvenil</a></li>
+        <li><a href="clothes.html?cat=acessorios">🎀 Acessórios</a></li>
+      </ul>
+    </div>
+    <div class="foot-contact">
+      <h5>Visite a Loja 📍</h5>
+      <p><span class="ic">📍</span><span>Rua Orlândia, 1193<br>Ribeirão Preto — SP</span></p>
+      <p><span class="ic">🕐</span><span>Seg–Sáb · 9h às 18h</span></p>
+      <p><span class="ic">💬</span><span>WhatsApp disponível</span></p>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2026 Vixi Maria Kids. Todos os direitos reservados.</span>
+    <span>Feito com 💖 em Ribeirão Preto</span>
+  </div>
+</footer>
+
+<!-- WhatsApp flutuante -->
+<a href="https://wa.me/5516991781559" class="wa-float" target="_blank" rel="noopener" title="WhatsApp">
+  <span class="wa-tip">Fale com a Débora!</span>💬
+</a>
+
+<!-- Toast -->
+<div class="toast" id="toast">🌸 <span id="toastMsg">Pronto!</span></div>
+
+<!-- Modals -->
+<div class="store-modal" id="searchModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🔍 Buscar</h3><button class="store-close" onclick="closeStoreModal('searchModal')">✕</button></div>
+    <input class="store-input" id="searchInput" placeholder="Produto, categoria ou tamanho..." oninput="runSearch()">
+    <div class="store-list" id="searchResults"></div>
+  </div>
+</div>
+<div class="store-modal" id="favModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🥰 Favoritos</h3><button class="store-close" onclick="closeStoreModal('favModal')">✕</button></div>
+    <div class="store-list" id="favResults"></div>
+  </div>
+</div>
+<div class="store-modal" id="cartModal">
+  <div class="store-box">
+    <div class="store-title"><h3>🛍️ Carrinho</h3><button class="store-close" onclick="closeStoreModal('cartModal')">✕</button></div>
+    <div class="store-list" id="cartResults"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap">
+      <strong id="cartTotal" style="font-size:20px;color:var(--ink)">Total: R$ 0,00</strong>
+      <a href="cart.html" class="store-mini" style="text-align:center;text-decoration:none;display:block">Continuar →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="vixi-products.js"></script>
+<script src="vixi-core.js"></script>
+<script src="vixi-admin.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  colecao.html — página de coleções com cards flutuantes
+// ══════════════════════════════════════════════════════
+
+var _colpageTimers = [];
+var _colpageIdx    = [0, 0];
+var _COLPAGE_FLOATS = [
+  ['🌸','🎀','✨','💫'],
+  ['🌟','🎀','🌸','💝']
+];
+
+function _colpageSlideHtml(prods, idx){
+  var p = prods[idx % prods.length];
+  if(!p || !p.img)
+    return '<div class="colsec-img" style="display:flex;align-items:center;justify-content:center;font-size:64px;background:var(--pink-pale)">🌟</div>';
+  return '<img class="colsec-img" src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name||'')+'" loading="lazy">'
+    +'<div class="colsec-name">'+escapeHtml(p.name||'')+'</div>'
+    +'<div class="colsec-price">'+money(p.price)+'</div>';
+}
+
+function _prodsForCol(colId){
+  return PRODS.filter(function(p){ return p.colecao === colId && p.img; });
+}
+
+function renderFeaturedCards(){
+  var grid = document.getElementById('featuredCardsGrid');
+  var wrap = document.getElementById('featuredCardsWrap');
+  if(!grid) return;
+
+  var allCols  = typeof getColecoes === 'function' ? getColecoes() : [];
+  var featured = typeof getFeaturedColecoes === 'function' ? getFeaturedColecoes() : [];
+  var cols = [];
+  if(featured.length >= 2){
+    cols = featured.slice(0,2).map(function(id){
+      return allCols.find(function(c){ return c.id === id; });
+    }).filter(Boolean);
+  }
+  if(cols.length < 2) cols = allCols.slice(0, 2);
+  if(!cols.length){ if(wrap) wrap.style.display = 'none'; return; }
+  if(wrap) wrap.style.display = '';
+
+  _colpageIdx = [0, 0];
+
+  grid.innerHTML = cols.map(function(c, ci){
+    var prods  = _prodsForCol(c.id);
+    var count  = prods.length;
+    var floats = _COLPAGE_FLOATS[ci] || _COLPAGE_FLOATS[0];
+    var MAX_DOTS = Math.min(count, 8);
+    var dots = count > 1
+      ? '<div class="colsec-dots">'
+          + Array.from({length:MAX_DOTS}, function(_, di){
+              return '<span'+(di===0?' class="on"':'')+'>&#8203;</span>';
+            }).join('')
+          + '</div>'
+      : '';
+    var slideContent = count > 0
+      ? _colpageSlideHtml(prods, 0)
+      : '<div class="colsec-img" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--pink-pale);font-size:42px;">'
+          + (c.icon||'🌟')
+          + '<span style="font-size:11px;font-weight:900;color:var(--gray);letter-spacing:1px;text-transform:uppercase">Nenhum produto ainda</span>'
+          + '</div>';
+
+    return '<div class="colsec-art">'
+      + '<div class="float-el f1">'+floats[0]+'</div>'
+      + '<div class="float-el f2">'+floats[1]+'</div>'
+      + '<div class="float-el f3">'+floats[2]+'</div>'
+      + '<div class="colsec-float-card" data-colsec="'+ci+'">'
+        + '<div class="colsec-ribbon">'+(c.icon||'🌟')+' '+escapeHtml(c.name||c.id)+'</div>'
+        + '<div class="colsec-slide" data-colsec-slide="'+ci+'">'+slideContent+'</div>'
+        + dots
+        + (count ? '<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>' : '')
+        + '<a href="colecao.html?subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Inicia carrosseis
+  _colpageTimers.forEach(clearInterval);
+  _colpageTimers = [];
+  cols.forEach(function(c, ci){
+    var prods = _prodsForCol(c.id);
+    if(prods.length <= 1) return;
+    var MAX_DOTS = Math.min(prods.length, 8);
+    var t = setInterval(function(){
+      _colpageIdx[ci] = (_colpageIdx[ci]+1) % prods.length;
+      var slide = document.querySelector('[data-colsec-slide="'+ci+'"]');
+      if(!slide) return;
+      slide.classList.add('swap');
+      setTimeout(function(){
+        slide.innerHTML = _colpageSlideHtml(prods, _colpageIdx[ci]);
+        slide.classList.remove('swap');
+        var card = document.querySelector('[data-colsec="'+ci+'"]');
+        if(card) card.querySelectorAll('.colsec-dots span')
+          .forEach(function(s,si){ s.classList.toggle('on', si === _colpageIdx[ci] % MAX_DOTS); });
+      }, 280);
+    }, 4500 + ci*1800);
+    _colpageTimers.push(t);
+  });
+}
+
+// ── Filtro de subcoleções ──────────────────────────────
+var _activeSubcat = null;
+
+function renderColFilter(){
+  var box  = document.getElementById('colFilterTabs');
+  var cols = typeof getColecoes === 'function' ? getColecoes() : [];
+  if(!box) return;
+  if(!cols.length){ box.style.display='none'; return; }
+  box.style.display = '';
+  box.innerHTML =
+    '<button class="colsec-filter-btn'+(_activeSubcat===null?' on':'')+'" onclick="setColFilter(null)">🌟 Todas</button>'
+    + cols.map(function(c){
+        return '<button class="colsec-filter-btn'+(_activeSubcat===c.id?' on':'')+'" onclick="setColFilter(\''+escapeHtml(c.id)+'\')">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</button>';
+      }).join('');
+
+  // Footer coleções
+  var footList = document.getElementById('footColecoes');
+  if(footList){
+    footList.innerHTML = '<li><a href="colecao.html">🌟 Ver todas</a></li>'
+      + cols.map(function(c){
+          return '<li><a href="colecao.html?subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a></li>';
+        }).join('');
+  }
+
+  // Nav dropdown Coleção
+  var navMenu = document.getElementById('colecaoNavMenu');
+  if(navMenu){
+    navMenu.innerHTML = '<a href="colecao.html">🌟 Ver todas as coleções</a>'
+      + (cols.length ? '<div class="nav-dd-sep"></div>' : '')
+      + cols.map(function(c){
+          return '<a href="colecao.html?subcat='+escapeHtml(c.id)+'">'+(c.icon||'🌟')+' '+escapeHtml(c.name)+'</a>';
+        }).join('');
+  }
+}
+
+function setColFilter(subcatId){
+  _activeSubcat = subcatId;
+  renderColFilter();
+  renderColProds();
+
+  // Atualiza URL sem recarregar
+  var url = subcatId
+    ? (location.pathname + '?subcat=' + encodeURIComponent(subcatId))
+    : location.pathname;
+  history.replaceState(null,'', url);
+
+  // Atualiza título
+  var titleEl = document.getElementById('colPageTitle');
+  var bcEl    = document.getElementById('colPageBreadcrumb');
+  if(subcatId){
+    var c = (typeof getColecoes === 'function' ? getColecoes() : []).find(function(x){ return x.id===subcatId; });
+    if(c){
+      if(titleEl) titleEl.textContent = (c.icon||'🌟')+' '+c.name;
+      if(bcEl)    bcEl.textContent    = c.name;
+    }
+  } else {
+    if(titleEl) titleEl.textContent = 'Todas as peças';
+    if(bcEl)    bcEl.textContent    = 'Coleções';
+  }
+}
+
+function renderColProds(){
+  var grid     = document.getElementById('prodGrid');
+  var emptyBox = document.getElementById('colEmptyState');
+  var moreBtn  = document.getElementById('viewMoreBtn');
+  if(!grid) return;
+
+  var list;
+  if(_activeSubcat){
+    list = PRODS.filter(function(p){ return p.colecao === _activeSubcat; });
+  } else {
+    list = PRODS.filter(function(p){ return p.cat === 'colecao' || !!p.colecao; });
+  }
+
+  var countEl = document.getElementById('prodCount');
+  if(countEl) countEl.textContent = list.length + ' produto'+(list.length!==1?'s':'');
+
+  if(!list.length){
+    grid.innerHTML = '';
+    if(emptyBox) emptyBox.style.display = '';
+    if(moreBtn) moreBtn.style.display = 'none';
+    return;
+  }
+  if(emptyBox) emptyBox.style.display = 'none';
+
+  var show = list.slice(0, window.visibleCount || 12);
+  grid.innerHTML = show.map(function(p){
+    var liked    = typeof favorites !== 'undefined' && Array.isArray(favorites) && favorites.includes(p.id);
+    var badgeStr = String(p.badge||'');
+    var pctMatch = badgeStr.match(/^-?(\d+)%$/);
+    var dispOld  = p.old || null;
+    if(pctMatch && !dispOld && p.price){
+      var pct = parseInt(pctMatch[1],10);
+      if(pct>0&&pct<100) dispOld = Math.ceil(p.price/(1-pct/100));
+    }
+    var colTag = p.colecao
+      ? '<span class="prod-colecao-tag" onclick="event.stopPropagation();setColFilter(\''+escapeHtml(p.colecao)+'\')">'+
+          (typeof getColecaoName==='function'?getColecaoName(p.colecao):p.colecao)+'</span>'
+      : '';
+    return '<article class="prod-card" data-id="'+p.id+'" onclick="window.location.href=\'product.html?id='+p.id+'\'" style="cursor:pointer">'
+      + '<div class="prod-img-wrap">'
+        + (p.badge&&p.badge!=='FAV'&&p.badge!=='NOVO_HIDDEN'?
+            '<span class="pbadge '+(pctMatch?'off':'novo')+'">'
+              +(p.badge==='NOVO'?'✨ Novo!':pctMatch?'🔥 '+p.badge:p.badge)
+            +'</span>':'')
+        + '<button class="fav-btn '+(liked?'liked':'')+'" onclick="toggleFav(\''+p.id+'\',this,event)" aria-label="Favoritar">'+(liked?'❤️':'🤍')+'</button>'
+        + '<img src="'+escapeHtml(p.img)+'" alt="'+escapeHtml(p.name||'')+'" loading="lazy">'
+        + '<a class="prod-quick-link" href="product.html?id='+p.id+'" onclick="event.stopPropagation()">Ver produto →</a>'
+      + '</div>'
+      + '<div class="prod-info">'
+        + '<div class="prod-cat">'+(typeof getCatLabel==='function'?getCatLabel(p.cat):(p.cat||''))+colTag+'</div>'
+        + '<h4 class="prod-name">'+escapeHtml(p.name||'')+'</h4>'
+        + '<p class="prod-desc">'+escapeHtml(p.desc||'')+'</p>'
+        + '<div class="prod-sizes">'+(p.sizes||[]).map(function(s){return '<span class="psz">'+escapeHtml(s)+'</span>';}).join('')+'</div>'
+        + '<div class="prod-foot">'
+            + '<div class="prod-price">'
+              + (dispOld?'<span class="pold">'+(typeof money==='function'?money(dispOld):'R$ '+dispOld)+'</span>':'')
+              + '<span class="pnew">'+(typeof money==='function'?money(p.price):'R$ '+p.price)+'</span>'
+            + '</div>'
+            + '<button class="padd" onclick="addCart(\''+p.id+'\',event)" aria-label="Adicionar">+</button>'
+          + '</div>'
+      + '</div>'
+      + '</article>';
+  }).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--gray);font-weight:700;padding:40px 0">Nenhum produto encontrado.</p>';
+
+  if(moreBtn) moreBtn.style.display = list.length > show.length ? 'flex' : 'none';
+}
+
+function loadMore(){
+  window.visibleCount = (window.visibleCount||12) + 8;
+  renderColProds();
+}
+
+// ── Init ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  var params = new URLSearchParams(location.search);
+  var subcat = params.get('subcat');
+
+  syncCategoriesUI();
+  renderColFilter();
+  renderFeaturedCards();
+
+  if(subcat) setColFilter(subcat);
+  else       renderColProds();
+});
+
+// Recarrega quando Firebase sincronizar
+window._vixiOnFirebaseSync = window._vixiOnFirebaseSync || [];
+window._vixiOnFirebaseSync.push(function(){
+  renderFeaturedCards();
+  renderColFilter();
+  renderColProds();
+});
+</script>
+<script type="module" src="vixi-firebase.js"></script>
+<script src="ga.js"></script>
+</body>
+</html>

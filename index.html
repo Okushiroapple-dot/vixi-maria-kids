@@ -50,7 +50,7 @@
       <div class="nav-dd">
         <button class="nav-dd-btn" type="button">🌟 Coleção ▾</button>
         <div class="nav-dd-menu" id="colecaoNavMenu">
-          <a href="clothes.html?cat=colecao">🌟 Ver todas as coleções</a>
+          <a href="colecao.html">🌟 Ver todas as coleções</a>
         </div>
       </div>
       <a href="clothes.html?cat=novidades" class="hot">🔥 Novidades</a>
@@ -78,7 +78,7 @@
   <a href="clothes.html?cat=bebes" onclick="closeMob()">🍼 Bebês</a>
   <a href="clothes.html?cat=juvenil" onclick="closeMob()">✨ Juvenil</a>
   <a href="clothes.html?cat=acessorios" onclick="closeMob()">🎀 Acessórios</a>
-  <a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>
+  <a href="colecao.html" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>
   <a href="https://wa.me/5516991781559" target="_blank">💬 WhatsApp</a>
 </div>
 
@@ -897,7 +897,7 @@
     </div>
     <div class="colecao-float-wrap" id="colcardGrid"></div>
     <div style="text-align:center;margin-top:44px">
-      <a href="clothes.html?cat=colecao" class="btn-main">Ver todas as coleções →</a>
+      <a href="colecao.html" class="btn-main">Ver todas as coleções →</a>
     </div>
   </div>
 </section>
@@ -1013,7 +1013,7 @@
         <li><a href="clothes.html?cat=bebes">🍼 Bebês (RN–24m)</a></li>
         <li><a href="clothes.html?cat=juvenil">✨ Juvenil (10–20)</a></li>
         <li><a href="clothes.html">🌸 Novidades</a></li>
-          <li><a href="clothes.html?cat=colecao">🌟 Coleção</a></li>
+          <li><a href="colecao.html">🌟 Coleção</a></li>
       </ul>
     </div>
     <div>
@@ -2361,7 +2361,7 @@ function filterCategory(cat){
 }
 // Subcoleções no index também redirecionam
 window.filterColecao=function(id){
-  window.location.href='clothes.html?cat=colecao'+(id?'&subcat='+encodeURIComponent(id):'');
+  window.location.href='colecao.html'+(id?'?subcat='+encodeURIComponent(id):'');
 };
 function filterSize(sz){activeSizeFilter=sz; document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.f==='all')); visibleCount=4; renderProds('all');  showToast(`Mostrando tamanho ${sz} 📏`);}
 function loadMore(){visibleCount+=8;renderProds(document.querySelector('.tab.on')?.dataset.f||'all');}
@@ -2830,7 +2830,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
       mob.innerHTML = close
         + `<a href="#colecao" onclick="filterCategory('all');closeMob()">🔥 Novidades</a>`
         + regularCats.map(c=>`<a href="javascript:void(0)" onclick="filterCategory('${c.id}');closeMob()">${c.icon} ${escapeHtml(c.label)}</a>`).join('')
-        + `<a href="clothes.html?cat=colecao" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>`;
+        + `<a href="colecao.html" onclick="closeMob()" style="font-weight:900;color:var(--pink)">🌟 Coleção</a>`;
       document.getElementById('mobClose')?.addEventListener('click', closeMob);
     }
     const tabs = document.querySelector('.prod-tabs');
@@ -2928,7 +2928,7 @@ body.vixi-editing [data-section-key].drag-over{outline:3px solid var(--mint);out
           +'<div class="colsec-slide" data-colsec-slide="'+ci+'">'+slideContent+'</div>'
           +dots
           +(count?'<div class="colsec-count">'+count+' peça'+(count!==1?'s':'')+' nesta coleção</div>':'')
-          +'<a href="clothes.html?cat=colecao&subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
+          +'<a href="colecao.html?subcat='+escapeHtml(c.id)+'" class="col-btn">Ver coleção →</a>'
         +'</div>'
         +'</div>';
     }).join('');
