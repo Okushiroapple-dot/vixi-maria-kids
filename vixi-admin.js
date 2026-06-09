@@ -1627,34 +1627,20 @@ window.loadAdminOrders=typeof loadAdminOrders!=='undefined'?loadAdminOrders:wind
 window.renderOrdersList=typeof renderOrdersList!=='undefined'?renderOrdersList:window.renderOrdersList;
 window.showOrderDetail=typeof showOrderDetail!=='undefined'?showOrderDetail:window.showOrderDetail;
 
-// ── Admin nav dropdown (disponível em todas as páginas) ──
-if (!window.syncAdminNav) {
-  window.syncAdminNav = function() {
-    var nav = document.querySelector('header nav');
-    if (!nav) return;
-    nav.querySelector('.nav-admin-dd')?.remove();
-    if (window.currentUser?.email !== 'viximariakids@viximariakids.com') return;
-    var items = [
-      ['admin.html','🏠','Entrar no Painel'],
-      ['admin.html?sec=products','📦','Produtos'],
-      ['admin.html?sec=add','➕','Adicionar'],
-      ['admin.html?sec=categories','🗂️','Categorias'],
-      ['index.html?admin=visual','🎨','Editar Página'],
-      ['admin.html?sec=orders','📊','Pedidos'],
-      ['admin.html?sec=backup','💾','Backups']
-    ];
-    var links = items.map(function(i){ return '<a href="'+i[0]+'">'+i[1]+' '+i[2]+'</a>'; }).join('');
-    var html = '<div class="nav-dd nav-admin-dd"><button class="nav-dd-btn nav-admin-btn" type="button">⚙️ Admin ▾</button><div class="nav-dd-menu">'+links+'</div></div>';
-    var allDDs = nav.querySelectorAll('.nav-dd:not(.nav-admin-dd)');
-    var lastDD = allDDs[allDDs.length - 1];
-    if (lastDD) lastDD.insertAdjacentHTML('afterend', html);
-    else nav.insertAdjacentHTML('beforeend', html);
-    var dd = nav.querySelector('.nav-admin-dd');
-    if (dd) {
-      dd.addEventListener('mouseenter', function(){ dd.classList.add('open'); });
-      dd.addEventListener('mouseleave', function(){ dd.classList.remove('open'); });
-      var btn = dd.querySelector('.nav-dd-btn');
-      if (btn) btn.addEventListener('click', function(e){ e.stopPropagation(); dd.classList.toggle('open'); });
-    }
-  };
-}
+// ── Admin nav — botão simples para admin.html (todas as páginas) ──
+window.syncAdminNav = function() {
+  var nav = document.querySelector('header nav');
+  if (!nav) return;
+  // remove versões antigas (dropdown ou botão)
+  nav.querySelector('.nav-admin-dd')?.remove();
+  nav.querySelector('.nav-admin-link')?.remove();
+  if (window.currentUser?.email !== 'viximariakids@viximariakids.com') return;
+  var link = document.createElement('a');
+  link.href = 'admin.html';
+  link.className = 'nav-admin-link';
+  link.style.cssText = 'padding:8px 16px;border-radius:99px;background:rgba(242,39,110,.1);color:var(--pink);font-weight:900;font-size:13px;text-decoration:none;white-space:nowrap;border:1.5px solid rgba(242,39,110,.3);transition:all .2s;display:inline-flex;align-items:center;gap:5px';
+  link.innerHTML = '⚙️ Admin';
+  link.onmouseenter = function(){ this.style.background='var(--pink)'; this.style.color='#fff'; };
+  link.onmouseleave = function(){ this.style.background='rgba(242,39,110,.1)'; this.style.color='var(--pink)'; };
+  nav.appendChild(link);
+};
